@@ -1,14 +1,4 @@
 
-function Matrix(n,m,fill=0){
-    let x=new Array(n+1);
-    for(let i=0; i<=n; i++){
-        x[i]=new Array(m+1);
-        for(let j=0; j<=m; j++)x[i][j]=fill;
-    }
-    return x;
-}
-
-
 class listLabel{
     constructor(graph){
         this.parentGraph=graph;
@@ -263,6 +253,7 @@ class Graph{
         }
         return Object.keys(this.node(id).list);
     }
+    
     select(){
         for(const key in this.nodes) selection.push(this.nodes[key]);
         

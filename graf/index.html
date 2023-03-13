@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/7878e75ccc.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <title>Document</title>
+    <title>GraphMaker</title>
 </head>
 
 <body>
@@ -60,7 +60,7 @@
         </div>
     </template>
     
-    <div id="info-area">
+    <div id="main-display">
         <div id="header">
             <span style="font-size: 20px; ">Logs</span> 
             <label class="check-bt"> 
@@ -71,7 +71,7 @@
             <label class="new-graph">
                 <i class="fa-solid fa-plus"></i>
                 <input type="checkbox" onclick="checkBox(this)"> 
-
+    
                 <div class="input-info">
                     <div class="graph-type">
                         <label><input type="radio" name="graph-type" value="Ordered">Ordered</label>
@@ -90,8 +90,9 @@
                     </label>
                 </div>
             </label>
+            
         </div>
-
+        <div id="info-area"></div>
     </div>
 
 

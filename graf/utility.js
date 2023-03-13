@@ -8,7 +8,7 @@ function elementFromHtml(html){
 }
 
 function slide(inout){
-    document.querySelector(".input-area").classList.toggle("slide-in",inout);
+    document.getElementById("main-display").classList.toggle("slide-in",inout);
 }
 
 function checkBox(el){
