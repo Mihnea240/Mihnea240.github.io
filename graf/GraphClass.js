@@ -22,6 +22,18 @@ class listLabel{
             this.scrollIntoView();
             this.parentGraph.select();
         },false);
+
+        this.html.querySelector(".display-settings .node-slider").addEventListener("input",(event)=>{
+            let size=event.target.value;
+            this.parentGraph.updateAll();
+            this.parentGraph.html.style.setProperty("--node-size",size+"px");
+        })
+        this.html.querySelector(".display-settings .color").addEventListener("input",(event)=>{
+            let color=event.target.value;
+            this.parentGraph.html.style.setProperty("--neon-color",color);
+            //this.parentGraph.html.style.setProperty("--neon-color","#ffffff");
+
+        })
     }
 
     scrollIntoView(){
@@ -135,6 +147,11 @@ class Graph{
         if(!this.node(id))return;
         for(const key in this.nodes[id].list)this.nodes[id].list[key].updateLine();
         for(const key in this.nodes)this.nodes[key].list[id]?.updateLine();
+    }
+
+    updateAll(){
+        for(const key in this.nodes)
+            for(const key1 in this.nodes[key].list)this.nodes[key].list[key1].updateLine();
     }
 
     removeNode(node){
@@ -271,7 +288,7 @@ class Edge{
         this.html=this.tracker.html;
         this.parentGraph.html.appendChild(this.html);
         
-        this.arrow=elementFromHtml(`<i class="fa-solid fa-play" style="color: var(--background); text-shadow: none;"></i>`);
+        this.arrow=elementFromHtml(`<i class="fa-solid fa-play" style="color: var(--background); font-size:inherit;"></i>`);
         if(this.parentGraph.type=="Ordered")this.html.appendChild(this.arrow);
 
         ((duration)=>{
@@ -344,7 +361,7 @@ class Node{
         ((duration)=>{
             this.html.extra_info=elementFromHtml(`
                 <div class="hide" style="position: absolute; width:max-content; \
-                border: 1px double white; box-shadow 1px 2px 3px black; z-index:600 "></div>`
+                border: 1px double white; box-shadow 1px 2px 3px black; z-index:101 background-color:inherit"></div>`
             );this.html.appendChild(this.html.extra_info);
 
             let timer=1;

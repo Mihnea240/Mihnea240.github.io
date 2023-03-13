@@ -26,19 +26,19 @@
                 <button onclick="toggleMenu(this)"><i class="fa-solid fa-caret-down"></i></button>
             </div>
             <div class="menu-info">
-                <div class="menu">
+                <div class="menu display-settings">
                     <div class="header">
                         Display
                         <button onclick="toggleMenu(this)" style="margin-left:auto" ><i class="fa-solid fa-cog"></i></button>
                     </div>
                     <div class="menu-info">
-                        <label>
+                        <label class="node-slider" draggable="false" >
                             Node Size
-                            <input type="range" min="0" max="100">
+                            <input type="range" min="0" max="100" style="margin-left: auto;">
                         </label>
-                        <label>
+                        <label class="color" >
                             Color
-                            <input type="color">
+                            <input type="color" style="margin-left: auto;">
                         </label>
                     </div>
                 </div>

@@ -153,18 +153,19 @@ input[type="checkbox"],input[type="radio"]{
     --node-size: 40px;
     --border-radius: 50%;
     --neon-color: var(--accent-color);
+    --font-size: calc(var(--node-size)*0.5);
 }
 
 .node{
     position: absolute;
     background:transparent;
-    color: var(--color);
+    color: var(--background);
 
     width: var(--node-size);  border-radius: var(--border-radius);
     aspect-ratio: 1;
 
     display: grid; place-content: center;
-    font-size: larger;
+    font-size: var(--font-size);
     text-shadow: none;
     border: 2px solid var(--background);
     transition: transform 250ms ease-out;
@@ -173,6 +174,10 @@ input[type="checkbox"],input[type="radio"]{
 .edge.neon,.neon{
     box-shadow: 0px 0px 1px var(--neon-color),0 0 4px var(--neon-color);
 }
+.edge>*{
+    text-shadow: 0px 0px 1px var(--neon-color),0 0 4px var(--neon-color)!important;
+}
+
 .node.neon{
     box-shadow: 0 0 4px 1px var(--neon-color) inset, 0 0 10px 1px var(--neon-color);
 }
@@ -191,6 +196,7 @@ input[type="checkbox"],input[type="radio"]{
     background-color: var(--background);
     height: 2.5px;
     color: var(--color);
+    font-size: calc(var(--font-size)*0.80);
     display: grid;
     place-content: center right;
     font-smooth: always;
@@ -392,4 +398,10 @@ input[type="checkbox"],input[type="radio"]{
 .chain .menu-info>*:focus{
     translate: 10px 0px;
     background-color: rgb(255, 255, 255);
+}
+
+.display-settings .menu-info>*{
+    display: flex;
+    justify-content: space-around;
+    background-color: transparent !important;
 }
