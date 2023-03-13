@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/7878e75ccc.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="selection-menu">
+        <ul>
+            <li data-check="checkNotNeeded"><button onclick="removeFromSelection()">Remove</button></li>
+            <li data-check="invertCheck"   ><button onclick="reverseEdge()">Invert</button></li>
+            <li data-check="decoupleCheck" ><button onclick="decouple(event)">Decouple</button></li>
+        </ul>
+    </div>
+
+    <template id="graph-list">
+        <div class="menu main">
+            <div class="header">
+                <span contenteditable="true"></span>
+                <span style="white-space: pre; flex-grow: 1;">- Ordered</span>
+                <button onclick="toggleMenu(this)"><i class="fa-solid fa-caret-down"></i></button>
+            </div>
+            <div class="menu-info">
+                <div class="menu">
+                    <div class="header">
+                        Display
+                        <button onclick="toggleMenu(this)" style="margin-left:auto" ><i class="fa-solid fa-cog"></i></button>
+                    </div>
+                    <div class="menu-info">
+                        <label>
+                            Node Size
+                            <input type="range" min="0" max="100">
+                        </label>
+                        <label>
+                            Color
+                            <input type="color">
+                        </label>
+                    </div>
+                </div>
+                <button onclick="deleteGraph(this.parentNode.parentNode.id)">Delete</button>
+                <button onclick="copyGraph(this.parentNode.parentNode.id)">Copy</button>
+                <div class="menu chain" style="background: transparent;">
+                    <div class="header">
+                        Chain from
+                        <input type="number" min="1" max="1000">
+                        to
+                        <input type="number" min="1" max="1000">
+                        <button onclick="toggleMenu(this)" style="transition: all 250ms ease-in-out;">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="menu-info"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <div id="info-area">
+        <div id="header">
+            <span style="font-size: 20px; ">Logs</span> 
+            <label class="check-bt"> 
+                <input type="checkbox">
+                <i class="fa-solid fa-arrow-left"></i>
+            </label>
+            
+            <label class="new-graph">
+                <i class="fa-solid fa-plus"></i>
+                <input type="checkbox" onclick="checkBox(this)"> 
+
+                <div class="input-info">
+                    <div class="graph-type">
+                        <label><input type="radio" name="graph-type" value="Ordered">Ordered</label>
+                        <label><input type="radio" name="graph-type" value="Unordered" checked>Unordered</label>
+                    </div>
+                    
+                    <select>
+                        <option>Matrix</option>
+                        <option>Nr. of nodes & list of edges</option>
+                        <option>Adjacency list</option>
+                    </select>
+                   
+                    <label>
+                        <textarea cols="40" rows="10"></textarea>
+                        <button onclick="createGraph()">Submit</button>
+                    </label>
+                </div>
+            </label>
+        </div>
+
+    </div>
+
+
+
+    <div id="line">1</div>
+
+    <script src="GraphClass.js"></script>
+    <script src="InfiniteScroll.js"></script>
+    <script src="selection.js"></script>
+    <script src="utility.js"></script>
+</body>
+
+
+</html>
