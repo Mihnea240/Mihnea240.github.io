@@ -3,58 +3,79 @@ class listLabel{
     constructor(graph){
         this.parentGraph=graph;
         this.html=document.getElementById("graph-list").content.firstElementChild.cloneNode(true);
-        this.name_span=this.html.querySelector("span:first-child");
-        this.type_span=this.html.querySelector("span:nth-of-type(2)");
+        this.name_span=this.html.querySelector(".header> span");
+        this.type_button=this.html.querySelector(".header > button")
         this.html.id=graph.id;
+        this.html.style.setProperty("--graph-id",graph.id);
+        this.hidden=false;
 
         this.name_span.textContent=" G"+graph.id;
-        this.type_span.textContent="  - "+graph.type;
+        if(this.parentGraph.type=="Unordered")this.type_button.classList.add("fa-solid","fa-share-nodes");
+        else this.type_button.classList.add("fa-solid","fa-arrows-to-circle");
+
         document.getElementById("info-area").appendChild(this.html);
 
         this.chain_menu=this.html.querySelector(".menu-info .menu.chain");
         this.chain_menu.header=this.chain_menu.querySelector(".header");
         this.chain_menu.info=this.chain_menu.querySelector(".menu-info");
+       
         this.chain_menu.header.querySelector("button").addEventListener("click",(ev)=>{
             ev.stopPropagation(); ev.stopImmediatePropagation();
+            toggleMenu(ev.target,ev);
             this.getChains();
         });
         this.html.querySelector(".header").addEventListener("dblclick",()=>{
+            if(this.hidden)return;
             this.scrollIntoView();
             this.parentGraph.select();
         },false);
 
         this.html.querySelector(".display-settings .node-slider").addEventListener("input",(event)=>{
             let size=event.target.value;
-            this.parentGraph.updateAll();
             this.parentGraph.html.style.setProperty("--node-size",size+"px");
+            this.parentGraph.nodeSize=size;
+            this.parentGraph.updateAll();
         })
         this.html.querySelector(".display-settings .color").addEventListener("input",(event)=>{
-            let color=event.target.value;
-            this.parentGraph.html.style.setProperty("--neon-color",color);
-            //this.parentGraph.html.style.setProperty("--neon-color","#ffffff");
-
+            this.parentGraph.html.style.setProperty("--neon-color",event.target.value);
         })
+        this.html.querySelector(".display-settings .spread-slider").addEventListener("input",(event)=>{
+            this.parentGraph.html.style.setProperty("--spread-radius",event.target.value)
+        })
+
+        this.type_button.addEventListener("click",(ev)=>{
+            ev.stopPropagation(); ev.stopImmediatePropagation();
+            this.hidden=!this.hidden
+            this.parentGraph.toggleHide(); 
+            if(this.hidden){
+                this.html.style.opacity="0.3";
+                this.html.children[1].classList.remove("extend-max-height");
+            }else{
+                this.html.style.opacity="1.0";
+            }
+        },false);
     }
 
     scrollIntoView(){
-         let pos=this.parentGraph.center();
+        let pos=this.parentGraph.center();
         window.scroll({
-            top: pos.y-window.screen.height/2,
-            left: pos.x-window.screen.width/2,
+            top: pos.y-window.innerHeight/2*zoomLevel,
+            left: pos.x-window.innerWidth/2*zoomLevel,
             behavior: "smooth"
         })
     }
 
     getChains(){
-        const [a,b]=this.chain_menu.header.children;
+        const [a,b]=this.chain_menu.header.querySelectorAll("input");
         let chains=this.parentGraph.chains(a.value,b.value); 
         this.chain_menu.info.textContent="";
         if(!chains){
+            a.value=b.value="";
             alert("Input invalid");
             return;
         }
         
-        this.chain_menu.header.children[2].classList.toggle("chain-menu-play");
+        this.chain_menu.header.querySelector("button").classList.toggle("chain-menu-play");
         
         this.chain_menu.info.appendChild(elementFromHtml(`<div style="background: inherit;">\
         <span>Count -${chains.length} </span>\
@@ -94,17 +115,20 @@ class Graph{
         this.type=graph_type;
         this.nodes={};
         this.id=(++Graph.count);
-        this.html=elementFromHtml(`<div id="g${this.id}" class="default"></div>`);
-        document.body.appendChild(this.html);
+        this.html=elementFromHtml(`<div id="g${this.id}" class="default" draggable="false"></div>`);
+        
+        this.nodeSize=parseFloat(getComputedStyle(document.getElementById("defaultInfo")).getPropertyValue("--node-size"));
         
         this.label=new listLabel(this);
         this.readImput(input,input_type);
-
-        for(const i in this.nodes)
+        
+        for(const i in this.nodes){
             this.nodes[i].position(
                 window.scrollX+300+Math.random()*(window.innerWidth-300),
                 window.scrollY+300+Math.random()*(window.innerHeight-300)
-        );
+            );
+        }
+        document.getElementById("container").appendChild(this.html);
     }
 
     readImput(input,input_type){
@@ -142,6 +166,7 @@ class Graph{
             }
         }
     }
+
 
     updateEdge(id){
         if(!this.node(id))return;
@@ -192,7 +217,7 @@ class Graph{
     }
 
     delete(){
-        document.body.removeChild(this.html);
+        document.getElementById("container").removeChild(this.html);
         document.getElementById("info-area").removeChild(this.label.html);
         delete graphs[this.id];
     }
@@ -284,55 +309,60 @@ class Edge{
         this.son=i2;
         this.parentGraph=parent;
         this.tracker=new Tracker();
-        //this.html=elementFromHtml(`<div class="edge"></div>`);
         this.html=this.tracker.html;
-        this.parentGraph.html.appendChild(this.html);
         
-        this.arrow=elementFromHtml(`<i class="fa-solid fa-play" style="color: var(--background); font-size:inherit;"></i>`);
+        this.arrow=elementFromHtml(`<i class="fa-solid fa-play" style="color: var(--background); font-size:inherit;" draggable="false"></i>`);
         if(this.parentGraph.type=="Ordered")this.html.appendChild(this.arrow);
-
-        ((duration)=>{
-            this.extra_info=elementFromHtml(`
-                <div class="hide" style="position: absolute; width:max-content; \
-                border: 1px double white; box-shadow 1px 2px 3px black; z-index:600 "></div>`
-            );document.body.appendChild(this.extra_info);
-
-            let timer=1;
-            let hideUI=()=>{
+        
+        this.html.addEventListener("mouseover",(event)=>{
+            let timer,el,r=this.parentGraph.nodeSize;
+            let move=(ev)=>{
                 if(timer)clearTimeout(timer);
-                const anim=this.extra_info.animate([{opacity: 0}],{duration: duration-100,iterations:1})
-                anim.onfinish=()=>this.extra_info.classList.add("hide");
-            }
-
-            this.html.addEventListener("mousemove",(event)=>{
-                hideUI();
+                if(el)el.style.display="hidden";
                 timer=setTimeout(()=>{
-                    this.extra_info.classList.remove("hide");
-                    this.extra_info.textContent=this.parentGraph.name()+" : "+this.parent+" - "+this.son;
-                    this.extra_info.style.left=event.pageX+"px";
-                    this.extra_info.style.top=event.pageY+20+"px";
-                },duration);
+                    let offset={x:random(-r,0),y:random(-r,0)};
+                    if(!el)
+                        this.parentGraph.html.appendChild(
+                            el=elementFromHtml(`<div style="z-index:900; transform:translate(-100%,-100%); position:absolute; paddin: 5px; border: 1px double var(--neon-color); color: var(--background)"></div>`)
+                        );
+                    el.style.cssText+=`display: flex; opacity:1; width:max-content; left: ${ev.pageX+offset.x}px; top: ${ev.pageY+offset.y}px;`;
+                    el.textContent=this.parentGraph.name()+ "  :  "+this.parent+"  -  "+this.son;
+                    el.animate([{opacity: 0},{opacity:1}],200);
+                },1000);   
+            }
+            this.html.addEventListener("mousemove",move);
+            this.html.addEventListener("mouseout",()=>{
+                clearTimeout(timer);
+                if(el){
+                    el.getAnimations().forEach((x)=>x.cancel())
+                    this.parentGraph.html.removeChild(el);
+                    el=undefined;
+                }
+                this.html.removeEventListener("mousemove",move);
+            },{once:true});
+        })
 
-            this.html.addEventListener("mouseout",hideUI,false);
-        },false)
-        })(1000);
 
         this.html.addEventListener("contextmenu",(ev)=>{
             ev.preventDefault();
             selection.push(this);
             return false;
         })
-       
+        
+        
         this.updateLine();
+        this.parentGraph.html.appendChild(this.html);
     }
 
     updateLine(){
         let i1=this.parentGraph.node(this.parent);
         let i2=this.parentGraph.node(this.son);
-        this.tracker.distance_offset=(i1.html.offsetHeight+i2.html.offsetHeight)/2;
-        this.tracker.update(i1.position(),i2.position());
+        let r=this.parentGraph.nodeSize/2;
+        this.tracker.distance_offset=2*r;
+        this.tracker.offset={x:r,y:r};
+        let info=this.tracker.update(i1.position(),i2.position());
 
-        if(this.html.offsetWidth<3)this.arrow.classList.add("hide");
+        if(info.length<3)this.arrow.classList.add("hide");
         else this.arrow.classList.remove("hide");
        
     }
@@ -352,105 +382,115 @@ class Node{
     constructor(id,parent){
         this.parentGraph=parent;
         this.id=id;
+        this.pos={x:0,y:0};
         this.list={};
         
-        this.html=elementFromHtml(`<div class="node neon" draggable="true">${id}</div>`);
-        this.parentGraph.html.appendChild(this.html);
-
+        this.html=elementFromHtml(`<div class="node neon" contenteditable="false">${id}</div>`);
         
-        ((duration)=>{
-            this.html.extra_info=elementFromHtml(`
-                <div class="hide" style="position: absolute; width:max-content; \
-                border: 1px double white; box-shadow 1px 2px 3px black; z-index:101 background-color:inherit"></div>`
-            );this.html.appendChild(this.html.extra_info);
-
-            let timer=1;
-            let hideUI=()=>{
-                if(timer)clearTimeout(timer);
-                const anim=this.html.extra_info.animate([{opacity: 0}],{duration: duration-100,iterations:1})
-                anim.onfinish=()=>this.html.extra_info.classList.add("hide");
-            }
-
-            this.html.addEventListener("mousemove",(event)=>{
-            hideUI();
-
-            timer=setTimeout(()=>{
-                this.html.extra_info.classList.remove("hide");
-                this.html.extra_info.textContent=this.parentGraph.name()+" : "+this.id;
-                this.html.extra_info.style.left=Math.random()*10-30+"px";
-                this.html.extra_info.style.top=Math.random()*10-30+"px";
-            },duration);
-
-            this.html.addEventListener("mouseout",hideUI,false);
-        },false)
-        })(1000);
         
-
         this.html.ondragstart=function(){return false};
-
-        this.html.onmousedown=(ev)=>{
-            let p=this.position();
-            let tracker=new Tracker(); this.parentGraph.html.appendChild(tracker.html);
-            tracker.distance_offset=this.html.offsetWidth;
-           
-
+        
+        let tracker=new Tracker();
+        this.html.addEventListener("mousedown",(ev)=>{
+            let p=this.position(),r=this.parentGraph.nodeSize/2;
+            let lastPos={x:ev.pageX,y:ev.pageY},delta={x:0,y:0}; 
+            tracker.distance_offset=2*r;
+            tracker.offset={x:r,y:r};
+            ev.preventDefault();
+            
             let ontrackEnd=(e)=>{
-                this.parentGraph.html.removeChild(tracker.html);
-
                 e.preventDefault(); e.stopImmediatePropagation();
+                
+                this.parentGraph.html.removeChild(tracker.html);
+                
                 if(e.target.classList[0]=="node"){
                     this.parentGraph.addEdge(this.id,parseInt(e.target.textContent));
                     selection.clear();
                 }else{
                     let i=this.parentGraph.addNode();
                     this.parentGraph.addEdge(this.id,i.id); 
-                    i.position(e.pageX,e.pageY);
+                    i.position(e.pageX-r,e.pageY-r);
                 }
                 return false;
-            }
+            };
             let mouseMove=(event)=>{
+                
+                event.stopImmediatePropagation(); event.stopPropagation();
                 p=this.position();
-                if(ev.which==1)this.position(event.movementX+p.x,event.movementY+p.y);
+                delta={
+                    x: event.pageX-lastPos.x,
+                    y: event.pageY-lastPos.y
+                };
+                
+                if(ev.which==1)this.position(delta.x+p.x,delta.y+p.y);
                 else if(ev.which==2){
+                    this.parentGraph.html.style.visibility="hidden";
                     for(const nd of selection.nodes){
                         let p=nd.position();
-                        event.stopPropagation();
-                        nd.position(event.movementX+p.x,event.movementY+p.y);
+                        nd.position(delta.x+p.x,delta.y+p.y);
                     }
-                }
-                else if(ev.which==3){
-                    tracker.update(this.position(),{x:event.pageX,y:event.pageY});
+                    this.parentGraph.html.style.visibility="visible";
+                }else if(ev.which==3){ 
+                    this.parentGraph.html.appendChild(tracker.html);
+                    tracker.update(this.position(),{x:event.pageX-r,y:event.pageY-r});
                     document.addEventListener("contextmenu",ontrackEnd,{once: true});
                 }
+                lastPos={x:event.pageX,y:event.pageY};
             }
-            document.addEventListener("mousemove",mouseMove);
+            document.addEventListener("mousemove",mouseMove,false);
             document.addEventListener("mouseup",(e)=>{
                 document.removeEventListener("mousemove",mouseMove);
-                
+               
             }, {once:true});
-        }
+        },false);
+
+        this.html.addEventListener("mouseover",(event)=>{
+            let timer,el,r=this.parentGraph.nodeSize;
+            let move=(ev)=>{
+                if(timer)clearTimeout(timer);
+                if(el)el.style.display="hidden";
+                timer=setTimeout(()=>{
+                    let offset={x:random(-r,0),y:random(-r,0)};
+                    if(!el)
+                        this.parentGraph.html.appendChild(
+                            el=elementFromHtml(`<div style="z-index:900; transform: translate(-100%,-100%);  position:absolute; paddin: 5px; border: 1px double var(--neon-color); color: var(--background)"></div>`)
+                        );
+                    el.style.cssText+=`display: flex; opacity:1; width:max-content; left: ${ev.pageX+offset.x}px; top: ${ev.pageY+offset.y}px;`;
+                    el.textContent=this.parentGraph.name()+ "  :  "+this.id;
+                    el.animate([{opacity: 0},{opacity:1}],200);
+                },1000);   
+            }
+            this.html.addEventListener("mousemove",move);
+            this.html.addEventListener("mouseout",()=>{
+                clearTimeout(timer);
+                if(el){
+                    el.getAnimations().forEach((x)=>x.cancel())
+                    this.parentGraph.html.removeChild(el);
+                    el=undefined;
+                }
+                this.html.removeEventListener("mousemove",move);
+            },{once:true});
+        })
         this.html.addEventListener("contextmenu",(e)=>{
             e.preventDefault();
             selection.push(this);
             return false;
         })
+        this.parentGraph.html.appendChild(this.html);
     }
-
-    position(x,y){
+    position(x,y){ 
         if(x&&y){
-            this.html.style.left=x-parseFloat(this.html.offsetWidth)/2+"px";
-            this.html.style.top=y-parseFloat(this.html.offsetHeight)/2+"px";  
+            let r=this.parentGraph.nodeSize/2;
+            this.pos={x:x,y:y};
+            this.html.style.cssText+=`; left: ${this.pos.x}px; top: ${this.pos.y}px`;
             this.parentGraph.updateEdge(this.id);
         }
-        return {
-            x:parseFloat(this.html.style.left)+parseFloat(this.html.offsetWidth)/2,
-            y:parseFloat(this.html.style.top)+parseFloat(this.html.offsetHeight)/2
-        };
+        return this.pos;
     }
-
+    
     delete(){
-       if(!this.parentGraph.node(this.id))return;
-       this.parentGraph.html.removeChild(this.html);
+        if(!this.parentGraph.node(this.id))return;
+        this.parentGraph.html.removeChild(this.html);
 
        for(const key in this.list)this.list[key].delete();
 
@@ -458,6 +498,7 @@ class Node{
             value.list[this.id]?.delete();
         
         delete this.parentGraph.nodes[this.id];
+        if(this.parentGraph.nodeCount()==0)this.parentGraph.delete();
     }
 }
 
@@ -469,6 +510,7 @@ function matrixFromGraph(graph){
         for(let j=1; j<=n; j++)s+= (graph.edge(i,j))? "1 ":"0 ";
         s+="\n";
     }
+    console.log(s);
     return s;
 }
 

@@ -1,11 +1,16 @@
 
-var graphs={};
+var graphs={},scrollLevel=1;
 
 function elementFromHtml(html){
     const template=document.createElement("template");
     template.innerHTML=html.trim();
     return template.content.firstElementChild;
 }
+
+function random(min,max){
+    return min+Math.random()*(max-min);
+}
+
 
 function slide(inout){
     document.getElementById("main-display").classList.toggle("slide-in",inout);
@@ -36,9 +41,6 @@ function createGraph(){
     graphs[NEW.id]=NEW;
     input.value="";
 }
-function deleteGraph(id){
-    graphs[id].delete();
-}
 
 function copyGraph(id){
     let input=matrixFromGraph(graphs[id]);
@@ -55,11 +57,15 @@ function copyGraph(id){
 document.body.onload=()=>{
     let n=new Graph("0 1 1 1\n1 0 1 1\n1 1 0 1\n1 1 1 0","Matrix","Ordered");
     graphs[n.id]=n;
+    document.body.style.zoom="100%";
 
 }
 
-function toggleMenu(el){
-    el.parentNode.parentNode.querySelector(".menu-info").classList.toggle("extend-max-height");
+function toggleMenu(el,event){
+    if(event.target!=el)return;
+    let x=el.parentNode;
+    while(!x.classList.contains("menu"))x=x.parentNode;
+    x.querySelector(".menu-info").classList.toggle("extend-max-height");
 }
 
 class Tracker{
@@ -67,9 +73,10 @@ class Tracker{
         this.html=elementFromHtml(`<div class="edge neon"></div>`);
         this.offset={x:0,y:0};
         this.distance_offset=0; 
+        this.Rad2Deg=180/Math.PI;
     }
     update(a,b){
-        let angle=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
+        let angle=Math.atan2(b.y-a.y,b.x-a.x)* this.Rad2Deg;
         let distance=Math.sqrt((b.x-a.x)*(b.x-a.x)+(b.y-a.y)*(b.y-a.y))-this.distance_offset;
         let pos={
             x:(a.x+b.x)/2-distance/2+this.offset.x,
@@ -77,5 +84,21 @@ class Tracker{
         };
         this.html.style= 
         `width: ${distance}px; left:${pos.x}px; top:${pos.y}px; transform: rotate(${angle}deg);`;
+        return {x: pos.x,y:pos.y,length:distance,rotation:angle};
     }
 }
+
+class toolTip{
+    constructor(el){
+        this.html=el;
+    }
+    show({x,y},{ox=0,oy=0}){
+        this.el.style.cssText+=`position: absolute; left: ${x+ox}; top: ${y+oy};`
+        this.el.classList.add("hide");
+    }
+    hide(){
+        this.el.style.classList.add("hide");
+    }
+}
+
+var generalToolTip=new toolTip(elementFromHtml(`<div class="selection-menu"></div>`));

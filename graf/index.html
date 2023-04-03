@@ -9,7 +9,8 @@
     <title>Graph Maker</title>
 </head>
 
-<body>
+<body draggable="false" contenteditable="false">
+    <div class="default" id="defaultInfo"></div>
     <div id="selection-menu">
         <ul>
             <li data-check="checkNotNeeded"><button onclick="removeFromSelection()">Remove</button></li>
@@ -19,40 +20,50 @@
     </div>
 
     <template id="graph-list">
-        <div class="menu main">
-            <div class="header">
-                <span contenteditable="true"></span>
-                <span style="white-space: pre; flex-grow: 1;">- Ordered</span>
-                <button onclick="toggleMenu(this)"><i class="fa-solid fa-caret-down"></i></button>
+        <div class="menu main" draggable="false" >
+            <div class="header" onclick="toggleMenu(this,event)" style="justify-content: flex-start;">
+                <button class="fa-thin"><i></i></button>
+                <span contenteditable="true" class="content-edit" style="max-width: 50%;"></span>
             </div>
             <div class="menu-info">
                 <div class="menu display-settings">
-                    <div class="header">
-                        Display
-                        <button onclick="toggleMenu(this)" style="margin-left:auto" ><i class="fa-solid fa-cog"></i></button>
-                    </div>
+                    <div class="header" onclick="toggleMenu(this,event)">Display</div>
                     <div class="menu-info">
-                        <label class="node-slider" draggable="false" >
-                            Node Size
-                            <input type="range" min="0" max="100" style="margin-left: auto;">
+                        <label class="node-slider" draggable="false" style="padding: 0 10%; display: flex; flex-direction: column;">
+                            <span style="word-break: pre;">Node Size</span> 
+                            <div class="flex-center-around">
+                                <input style="flex-grow: 1;" type="range" min="0" max="100" step="5" value="40" oninput="this.nextElementSibling.textContent=this.value">
+                                <div style="min-width: 5%  ;">12</div>
+                            </div>
                         </label>
                         <label class="color" >
-                            Color
-                            <input type="color" style="margin-left: auto;">
+                            <span style="position:absolute"> Color</span>
+                            <input style="height: 100%; width:100%; margin-left: auto;" type="color" value="#e9449e">
+                        </label>
+                        <label class="spread-slider" draggable="false" style="padding:0 10%; display: flex; flex-direction: column;">
+                            <span style="word-break: pre;">Spread Radius</span> 
+                            <div class="flex-center-around">
+                                <input style="flex-grow: 1;" type="range" min="0" max="40" value="6" oninput="this.nextElementSibling.textContent=this.value">
+                                <div style="min-width: 5%  ;">6</div>
+                            </div>
                         </label>
                     </div>
                 </div>
-                <button onclick="deleteGraph(this.parentNode.parentNode.id)">Delete</button>
-                <button onclick="copyGraph(this.parentNode.parentNode.id)">Copy</button>
-                <div class="menu chain" style="background: transparent;">
-                    <div class="header">
-                        Chain from
-                        <input type="number" min="1" max="1000">
-                        to
-                        <input type="number" min="1" max="1000">
-                        <button onclick="toggleMenu(this)" style="transition: all 250ms ease-in-out;">
-                            <i class="fa-solid fa-play"></i>
-                        </button>
+
+                <button onclick='graphs[getComputedStyle(this).getPropertyValue("--graph-id")].delete()'>Delete</button>
+
+                <button onclick="copyGraph(getComputedStyle(this).getPropertyValue('--graph-id'))">Copy</button>
+
+                <div class="menu chain">
+                    <div class="header" style="flex-direction: column;">
+                        <span style="margin-right: auto;">Get Chains</span> 
+                        <div class="flex-center-around">
+                            from
+                            <input type="number" min="1" max="1000" style="width: 20%;">
+                            to
+                            <input type="number" min="1" max="1000"  style="width: 20%;">
+                            <button style="transition: all 250ms ease-in-out;"><i class="fa-solid fa-play"></i></button>
+                        </div>
                     </div>
                     <div class="menu-info"></div>
                 </div>
@@ -62,7 +73,7 @@
     
     <div id="main-display">
         <div id="header">
-            <span style="font-size: 20px; ">Logs</span> 
+            <span>Logs</span> 
             <label class="check-bt"> 
                 <input type="checkbox">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -93,11 +104,12 @@
             
         </div>
         <div id="info-area"></div>
+       
     </div>
 
 
-
-    <div id="line">1</div>
+    <div id="line"></div>
+    <div id="container" draggable="false"  ondrag="return false" style="position: absolute;" ></div>
 
     <script src="GraphClass.js"></script>
     <script src="InfiniteScroll.js"></script>
