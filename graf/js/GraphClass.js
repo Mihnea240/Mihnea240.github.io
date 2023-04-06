@@ -54,6 +54,17 @@ class listLabel{
                 this.html.style.opacity="1.0";
             }
         },false);
+        
+        this.html.querySelector(".select-color select").oninput=(ev)=>{
+            this.parentGraph.html.classList.toggle("plain");
+            this.parentGraph.html.classList.toggle("rainbow");
+            toggleMenu(ev.target,null,ev.target.value=="Plain");
+        }
+        this.html.querySelector(".select-color .color").oninput=(ev)=>{
+            this.parentGraph.html.style.setProperty("--select-color",ev.target.value);
+        }
+
+        this.html.querySelector(".overview-window").onclick=()=>this.openOverview();
     }
 
     scrollIntoView(){
@@ -103,6 +114,10 @@ class listLabel{
         }
     }
 
+    openOverview(){
+        
+    }
+
     update(){
         this.chain_menu.info.classList.remove("extend-max-height");
     }
@@ -115,11 +130,10 @@ class Graph{
         this.type=graph_type;
         this.nodes={};
         this.id=(++Graph.count);
-        this.html=elementFromHtml(`<div id="g${this.id}" class="default" draggable="false"></div>`);
-        
+        this.html=elementFromHtml(`<div id="g${this.id}" class="default rainbow" draggable="false"></div>`);
         this.nodeSize=parseFloat(getComputedStyle(document.getElementById("defaultInfo")).getPropertyValue("--node-size"));
-        
         this.label=new listLabel(this);
+
         this.readImput(input,input_type);
         
         for(const i in this.nodes){
@@ -297,20 +311,26 @@ class Graph{
     }
     
     select(){
-        for(const key in this.nodes) selection.push(this.nodes[key]);
-        
+        this.toggleHide();
+        for(const key in this.nodes){
+            selection.push(this.nodes[key]);
+            for(const k1 in this.nodes[key].list)selection.push(this.edge(key,k1));
+        }
+        this.toggleHide();
     }
 }
 
 
 class Edge{
-    constructor(i1,i2,parent){
+    constructor(i1,i2,parent,weight){
         this.parent=i1;
         this.son=i2;
         this.parentGraph=parent;
+        this.weight=weight;
         this.tracker=new Tracker();
         this.html=this.tracker.html;
         
+        if(weight)this.html.textContent=this.weight;
         this.arrow=elementFromHtml(`<i class="fa-solid fa-play" style="color: var(--background); font-size:inherit;" draggable="false"></i>`);
         if(this.parentGraph.type=="Ordered")this.html.appendChild(this.arrow);
         
@@ -478,6 +498,7 @@ class Node{
         })
         this.parentGraph.html.appendChild(this.html);
     }
+
     position(x,y){ 
         if(x&&y){
             let r=this.parentGraph.nodeSize/2;
@@ -524,7 +545,7 @@ function adjacencyListFromGraph(graph){
 function edgeListFromGraph(graph){
     let n=graph.getLastID(),s=n+"\n";
     for(const key in graph.nodes){
-        for(const k in graph.nodes[key])s+=`${key} ${k}\n`
+        for(const k in graph.nodes[key].list)s+=`${key} ${k}\n`;
     }
     return s;
 }

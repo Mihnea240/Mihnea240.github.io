@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://kit.fontawesome.com/7878e75ccc.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
     <title>Graph Maker</title>
 </head>
 
@@ -29,24 +29,41 @@
                 <div class="menu display-settings">
                     <div class="header" onclick="toggleMenu(this,event)">Display</div>
                     <div class="menu-info">
-                        <label class="node-slider" draggable="false" style="padding: 0 10%; display: flex; flex-direction: column;">
+                        <label class="node-slider" draggable="false" style="padding: 0 10% 0 1%; display: flex; flex-direction: column;">
                             <span style="word-break: pre;">Node Size</span> 
                             <div class="flex-center-around">
                                 <input style="flex-grow: 1;" type="range" min="0" max="100" step="5" value="40" oninput="this.nextElementSibling.textContent=this.value">
-                                <div style="min-width: 5%  ;">12</div>
+                                <div style="min-width: 5%  ;">40</div>
                             </div>
                         </label>
+
                         <label class="color" >
-                            <span style="position:absolute"> Color</span>
+                            <span style="position:absolute">Color</span>
                             <input style="height: 100%; width:100%; margin-left: auto;" type="color" value="#e9449e">
                         </label>
-                        <label class="spread-slider" draggable="false" style="padding:0 10%; display: flex; flex-direction: column;">
+
+                        <label class="spread-slider" draggable="false" style="padding:0 10% 0 1%; display: flex; flex-direction: column;">
                             <span style="word-break: pre;">Spread Radius</span> 
                             <div class="flex-center-around">
                                 <input style="flex-grow: 1;" type="range" min="0" max="40" value="6" oninput="this.nextElementSibling.textContent=this.value">
                                 <div style="min-width: 5%  ;">6</div>
                             </div>
                         </label>
+
+                        <div class="menu select-color">
+                            <div class="header flex-center-around">
+                                <span>Selection color</span>
+                                <select >
+                                    <option value="Rainbow" onclick="toggleMenu(this,event,true)">Rainbow</option>
+                                    <option value="Plain" onclick="toggleMenu(this,event,false)">Plain</option>
+                                </select>
+                            </div>
+                            <div class="menu-info" style="margin: 0; padding: 0;">
+                                <label class="color" style="margin: 0;  padding: 0;">
+                                    <input style="height: 110%; width:100%; margin-left: auto;" type="color" value="#008080">
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -67,6 +84,7 @@
                     </div>
                     <div class="menu-info"></div>
                 </div>
+                <button class="overview-window">Overview window</button>
             </div>
         </div>
     </template>
@@ -111,10 +129,10 @@
     <div id="line"></div>
     <div id="container" draggable="false"  ondrag="return false" style="position: absolute;" ></div>
 
-    <script src="GraphClass.js"></script>
-    <script src="InfiniteScroll.js"></script>
-    <script src="selection.js"></script>
-    <script src="utility.js"></script>
+    <script src="js/GraphClass.js"></script>
+    <script src="js/InfiniteScroll.js"></script>
+    <script src="js/selection.js"></script>
+    <script src="js/utility.js"></script>
 </body>
 
 

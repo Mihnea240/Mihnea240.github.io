@@ -23,7 +23,7 @@ html{
 }
 
 body{ 
-    font-size: min(2.8vmin,20vw);
+    font-size: min(2.5vmin,20vw);
     font-weight: lighter;
     background-attachment: fixed;
     margin: 0;
@@ -114,7 +114,7 @@ input[type="checkbox"],input[type="radio"]{
     display: none !important;
 }
 .extend-max-height{
-    max-height: 100rem !important;
+    max-height: 100vh !important;
 }
 .flex-center-around{
     display: flex;
@@ -151,7 +151,7 @@ input[type="checkbox"],input[type="radio"]{
     backdrop-filter: blur(2px);
     
     /*background-image:linear-gradient(20deg, hsla(204, 47%, 32%, 0.756) 12%, hsla(253, 28%, 36%, 0.756) 100%);*/
-    background-color: rgba(54, 54, 54, 0.3) ;
+    background-color: rgba(54, 54, 54, 0.3);
     
     transition: translate 750ms ease-in-out;
 }
@@ -161,6 +161,8 @@ input[type="checkbox"],input[type="radio"]{
     display: flex;  flex-direction: column;
     height: 100%; width: 100%;
     font-size: inherit;
+    background-attachment: fixed;
+
 
     padding: 2%;
     gap: 2%;
@@ -216,6 +218,7 @@ input[type="checkbox"],input[type="radio"]{
     --neon-color: var(--accent-color);
     --font-size: calc(var(--node-size)*0.4);
     --spread-radius: 10;
+    --select-color: #008080;
 }
 
 
@@ -235,11 +238,18 @@ input[type="checkbox"],input[type="radio"]{
 .node:hover{
     transform: translateY(-2px);
 }
-.node.selected,.edge.selected{
-    animation: pulse 1000ms infinite linear alternate;
+
+.default.plain :is(.node.selected,.edge.selected){
+    --neon-color: var(--select-color);
+}
+.default.rainbow :is(.node.selected,.edge.selected) {
+    animation: pulse 3000ms infinite linear alternate;
+}
+.selected{
+    background: radial-gradient(transparent 30%,var(--neon-color));
 }
 @keyframes pulse{
-    to{filter: hue-rotate(360deg); background: var(--neon-color);}
+    to{filter: hue-rotate(720deg);}
 }
 
 .edge{
@@ -251,6 +261,7 @@ input[type="checkbox"],input[type="radio"]{
     font-size: calc(var(--font-size)*.9);
     display: grid;
     place-content: center right;
+    text-align: center;
 }
 .edge>*,.node{
     text-shadow: 0px 0px 1px var(--neon-color),0 0 4px var(--neon-color);
@@ -394,7 +405,7 @@ input[type="checkbox"],input[type="radio"]{
     height: 100%;
     padding: 3% 0 3% 2%;
     background: inherit;
-    font-size: inherit;
+    font-size: 120%;
 }
 .menu button:hover{
     background-color: rgba(0, 128, 128, 0.173) 
@@ -404,6 +415,8 @@ input[type="checkbox"],input[type="radio"]{
     position: relative;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
 
     max-height: 0;
     overflow: hidden;
@@ -411,7 +424,6 @@ input[type="checkbox"],input[type="radio"]{
 }
 
 .menu-info >*{
-    width: 100%;
     text-align: left;
     padding: 2%;
     font-size: inherit;
@@ -420,8 +432,7 @@ input[type="checkbox"],input[type="radio"]{
     transition: transform,opacity 150ms ease-in-out;
 }
 
-.menu-info> *:not(.menu):hover{
-    /* background-color: rgba(255, 255, 255, 0.769); */
+.menu .menu-info>button:hover,.display-settings .menu-info>*:hover,.chain .menu-info>*:hover{
     background: linear-gradient(90deg, rgb(137, 50, 130) 0%, rgba(181, 79, 254, 0.947) 51%, rgba(0, 213, 255, 0.262) 100%);
 }
 
@@ -429,7 +440,7 @@ input[type="checkbox"],input[type="radio"]{
     transform: rotate(90deg);
 }
 
-.chain .menu-info>*:focus{
+.chain .menu-info>*:focus>*{
     translate: 10px 0px;
     background-color: rgb(255, 255, 255);
 }
@@ -438,6 +449,21 @@ input[type="checkbox"],input[type="radio"]{
     width: 50%;
     height: 50%;
     margin: auto;
+}
+
+
+.select-color{
+    box-shadow: none;
+    font-size: 70%;
+}
+.select-color .header,.select-color .header *{
+    margin: 0; padding: 0;
+}
+.select-color select{
+    font-size: inherit;
+    background-color: transparent;
+    width: 50%;
+    padding: 0; margin: 0;
 }
 
 

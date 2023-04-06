@@ -59,13 +59,21 @@ document.body.onload=()=>{
     graphs[n.id]=n;
     document.body.style.zoom="100%";
 
+    document.addEventListener("keydown",(ev)=>{
+        if(ev.key==="Enter")toggleFullScreen();
+        
+    },false);
+}
+function toggleFullScreen(){
+    if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
 }
 
-function toggleMenu(el,event){
-    if(event.target!=el)return;
+function toggleMenu(el,event,force=undefined){
+    if(event&&event.target!=el)return;
     let x=el.parentNode;
     while(!x.classList.contains("menu"))x=x.parentNode;
-    x.querySelector(".menu-info").classList.toggle("extend-max-height");
+    x.querySelector(".menu-info").classList.toggle("extend-max-height",force);
 }
 
 class Tracker{
