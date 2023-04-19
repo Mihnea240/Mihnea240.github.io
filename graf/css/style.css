@@ -8,12 +8,14 @@
    
     color:  var(--accent-color);/*rgb(178, 53, 178);*/
     font-size: inherit;
+    user-select: inherit;
    
     text-shadow: 0px 0px 5px rgba(178, 53, 178, 0.595),
                  0 0 10px rgb(207, 77, 207);
 }
 html{
     height:100%; width:100%; overflow: auto; min-width: none;
+    user-select: none;
 }
 
 :root{
@@ -28,7 +30,7 @@ body{
     background-attachment: fixed;
     margin: 0;
     background: rgba(0, 0, 0, 0.9);
-    height: 100%;
+    width: 100%; height: 100%;
 }
 
 
@@ -114,7 +116,7 @@ input[type="checkbox"],input[type="radio"]{
     display: none !important;
 }
 .extend-max-height{
-    max-height: 100vh !important;
+    max-height: 300vh !important;
 }
 .flex-center-around{
     display: flex;
@@ -150,7 +152,7 @@ input[type="checkbox"],input[type="radio"]{
     box-shadow: 0px 0px 5px 2px var(--accent-color),0px 0px 1px 1px white;
     backdrop-filter: blur(2px);
     
-    /*background-image:linear-gradient(20deg, hsla(204, 47%, 32%, 0.756) 12%, hsla(253, 28%, 36%, 0.756) 100%);*/
+    /* background-image:linear-gradient(20deg, hsla(204, 47%, 32%, 0.756) 12%, hsla(253, 28%, 36%, 0.756) 100%); */
     background-color: rgba(54, 54, 54, 0.3);
     
     transition: translate 750ms ease-in-out;
@@ -166,7 +168,7 @@ input[type="checkbox"],input[type="radio"]{
 
     padding: 2%;
     gap: 2%;
-    overflow-y: auto;
+    overflow: auto;
 }
 
 #header{
@@ -259,9 +261,18 @@ input[type="checkbox"],input[type="radio"]{
     height: 2.5px;
     color: var(--neon-color);
     font-size: calc(var(--font-size)*.9);
-    display: grid;
-    place-content: center right;
-    text-align: center;
+    display: flex;
+    align-items: center;
+}
+.edge div{
+    position: absolute;
+    right: 0; 
+}
+.edge span{
+    position: absolute;
+    left: 50%; top: -700%;
+    color: var(--background);
+    user-select: all;
 }
 .edge>*,.node{
     text-shadow: 0px 0px 1px var(--neon-color),0 0 4px var(--neon-color);
@@ -327,6 +338,7 @@ input[type="checkbox"],input[type="radio"]{
 .input-info select{
     background: var(--accent-bg);
     font-size: 120%;
+    text-shadow: none;
     box-shadow: none;
     
 }
@@ -386,7 +398,6 @@ input[type="checkbox"],input[type="radio"]{
     --graph-id: 1;
 }
 .menu.main>.header>*{
-    font-size: inherit;
     padding: 0; margin-right: 10%;
 }
 .menu .menu .menu-info >*{
@@ -398,7 +409,6 @@ input[type="checkbox"],input[type="radio"]{
     position: relative; 
     display: flex;
     justify-content: space-between;
-    flex-direction: row;
     align-items: center;
     flex-basis: 0;  
 
@@ -466,6 +476,143 @@ input[type="checkbox"],input[type="radio"]{
     padding: 0; margin: 0;
 }
 
+.weight[data-toggle=true] {
+    background: var(--accent-bg);
+}
+
+.overview .header{
+    font-size: 80%;
+    display: flex;
+    align-items: center;
+    flex-basis: content;
+    overflow-y: auto;
+
+}
+.overview .header>*{
+    min-width: max-content;
+}
+.overview .menu-info{
+    display: flex;
+    flex-direction: row;
+   
+}
+.overview .menu-info>*{
+    min-width: 100%;
+    margin: 0 !important; padding: 0 !important;
+    background-color: transparent;
+}
+.overview .selected{
+    background-color: gray !important;
+}
+
+
+.tab{
+    position: relative;
+    display: grid;
+    grid-template-areas: "corner x" "y content";
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: min-content 1fr;
+    width: 100%; height: 100%;
+    aspect-ratio: 1;
+}
+.tab textarea{
+    grid-area: content;
+    width: 100%;
+    text-shadow: none;
+    background: transparent;
+    resize: none;
+    overflow: scroll;
+    font-size: 1vw;
+    padding: 0; margin-top: -.2vw;
+    line-height: 1.5vw;
+}
+.node-degree{
+    display: flex;
+    height: 100%;
+    grid-area: content;
+    
+}
+
+.node-degree textarea{
+    grid-area: unset;
+    flex-grow: 1;
+    overflow-y: hidden;
+}
+.node-degree .degree{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid gray;
+    min-width: 0;
+    flex-grow: 1;
+    flex-basis: 33%;
+}
+.node-degree .degree span{
+    display: block;
+    border: 1px solid gray;
+    overflow: hidden;
+    font-size: 1vw;
+    height: 1.5vw;
+}
+
+
+.Xaxis{
+    position: relative;
+    top: 0; left: 0;
+    height: 1.5vw; width: 100%;
+    grid-column: corner / x;
+    grid-row: corner;
+}
+.Yaxis{
+    position: relative;
+    top: 0; left: 0;
+    height: 100%; width: 1vw;
+    grid-row: corner / y;
+    grid-column: corner;
+}
+
+:is(.Xaxis,.Yaxis) .line-number{
+    font-size: 1vw;
+}
+
+
+
+.resize{
+    position: absolute;
+    right: -0.1rem;
+    width: 0.2rem;
+    margin-right: -0.1rem;
+    height: 100%;
+}
+.resize:hover{
+    background-color: rgba(255, 255, 255, 0.136);
+    cursor: col-resize;
+}
+
+
+
+.bottom-line{
+    position: fixed;
+    width: 99%;
+    bottom: 0;
+}
+.right-line{
+    position: fixed;
+    height: 99%;
+    right: 0;
+}
+
+.line-number{
+    font-size: 0.5em;
+    color:rgb(100, 100, 100);
+    text-shadow: none;
+    display: grid;
+    place-items: center;
+}
+.line-number:hover{
+    color: var(--accent-color)
+}
+
 
 #line{
     position: absolute;
@@ -475,5 +622,4 @@ input[type="checkbox"],input[type="radio"]{
     min-width: 100%; min-height: 100%;
     background-color: transparent;
     /* background-color: rgba(255, 255, 255, 0.201); */
-    z-index: -1;
 }

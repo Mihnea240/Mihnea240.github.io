@@ -71,6 +71,8 @@
 
                 <button onclick="copyGraph(getComputedStyle(this).getPropertyValue('--graph-id'))">Copy</button>
 
+                <button class="weight" data-toggle="false">Toggle weights</button>
+
                 <div class="menu chain">
                     <div class="header" style="flex-direction: column;">
                         <span style="margin-right: auto;">Get Chains</span> 
@@ -79,17 +81,63 @@
                             <input type="number" min="1" max="1000" style="width: 20%;">
                             to
                             <input type="number" min="1" max="1000"  style="width: 20%;">
-                            <button style="transition: all 250ms ease-in-out;"><i class="fa-solid fa-play"></i></button>
+                            <button style="transition: transform 250ms ease-in-out;"><i class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="menu-info"></div>
                 </div>
-                <button class="overview-window">Overview window</button>
+                <div class="menu overview">
+                    <div class="header">
+                        <button data-id="Matrix">Matrix</button>
+                        <button data-id="Edge List">Edge List</button>
+                        <button data-id="Adjacency List">Adjecency List</button>
+                        <button data-id="Cost Matrix">Cost Matrix</button>
+                        <button data-id="Node Degree">Node Degree</button>
+                        <button data-id="">Node</button>
+                        <button data-id="">Node</button>
+                        <button data-id="">Node</button>
+                    </div>
+                    <div class="menu-info" style="resize: both;">
+                        <div data-id="Matrix" class="tab">
+                            <textarea wrap="off">1</textarea>
+                        </div>
+
+                        <div data-id="Edge List" class="tab">
+                            <textarea wrap="off">2</textarea>
+                        </div>
+
+                        <div data-id="Adjacency List" class="tab">
+                            <textarea wrap="off">3</textarea>
+                        </div>
+
+                        <div data-id="Cost Matrix" class="tab">
+                            <textarea wrap="off">4</textarea>
+                        </div>
+
+                        <div class="tab" data-id="Node Degree" >
+                            <div class="node-degree">
+                                <div class="degree">
+                                    <span>Degree</span>
+                                    <textarea wrap="off">1</textarea>
+                                </div>
+                                <div class="degree">
+                                    <span>Indegree</span>
+                                    <textarea wrap="off">2</textarea>
+                                </div>
+                                <div class="degree">
+                                    <span>Outdegree</span>
+                                    <textarea wrap="off">3</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </template>
     
-    <div id="main-display">
+    <div id="main-display" style="resize: both;"> 
+        <div class="resize" draggable="true" ondrag="resize(this.parentNode,event)"></div>
         <div id="header">
             <span>Logs</span> 
             <label class="check-bt"> 
@@ -111,6 +159,7 @@
                         <option>Matrix</option>
                         <option>Nr. of nodes & list of edges</option>
                         <option>Adjacency list</option>
+                        <option>Parent array</option>
                     </select>
                    
                     <label>
@@ -126,13 +175,15 @@
     </div>
 
 
-    <div id="line"></div>
-    <div id="container" draggable="false"  ondrag="return false" style="position: absolute;" ></div>
+    <div id="line" draggable="false"></div>
+
+    <div id="container" draggable="false" style="position: absolute;" ></div>
 
     <script src="js/GraphClass.js"></script>
     <script src="js/InfiniteScroll.js"></script>
     <script src="js/selection.js"></script>
     <script src="js/utility.js"></script>
+    <script src="js/main.js"></script>
 </body>
 
 

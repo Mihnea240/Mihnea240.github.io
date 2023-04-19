@@ -1,7 +1,10 @@
 
 
+
+
 window.addEventListener("mousedown",(event)=>{ 
-    if(document.getElementById("main-display").contains(event.target))return;
+    //if(document.getElementById("main-display").contains(event.target))return;
+    if(event.target.id!="line")return;
     event.stopPropagation(); event.stopImmediatePropagation();
     
     let pos={x:event.clientX,y:event.clientY},line=document.getElementById("line");
@@ -9,8 +12,8 @@ window.addEventListener("mousedown",(event)=>{
     let moveHandle=function(ev){  
         ev.stopPropagation(); ev.stopImmediatePropagation();
         let rect=line.getBoundingClientRect();
-        let dx=rect.width -ev.movementX;  pos.x=ev.clientX;
-        let dy=rect.height-ev.movementY;  pos.y=ev.clientY;
+        let dx=rect.width -(ev.clientX-pos.x);  pos.x=ev.clientX;
+        let dy=rect.height-(ev.clientY-pos.y);  pos.y=ev.clientY;
         
         line.style.width=dx+"px";   line.style.height=dy+"px";
         window.scroll(dx-window.innerWidth,dy-window.innerHeight);
@@ -23,40 +26,23 @@ window.addEventListener("mousedown",(event)=>{
     window.addEventListener("mouseup",(e)=>{
         window.removeEventListener("mousemove",moveHandle);
     },{once:true});
-    
 });
-
 
 let timer=null;
 let f=function(e){
     if(timer)clearTimeout(timer);
     timer=setTimeout(()=>{
         let el=document.documentElement;
-        line.style.width=el.scrollLeft+window.innerWidth+"px";
-        line.style.height=el.scrollTop+window.innerHeight+"px";
+        line.style.cssText+=`width: ${el.scrollLeft+window.innerWidth}px; height: ${el.scrollTop+window.innerHeight}px;`
     },250);
 }
 window.addEventListener("scroll",f,false);
 
 
-let zoomLevel=1,container=document.getElementById("container");
-let or={x:0,y:0},pos={x:0,y:0};
+
 document.addEventListener("wheel",(ev)=>{ 
     if(ev.altKey){
         ev.preventDefault();
-       
-        /*
-        let fact=0.05;
-        zoomLevel+=fact*ev.deltaY;
-        if(zoomLevel>5)zoomLevel=5;
-        if(zoomLevel<=0.05)zoomLevel=0.05;
-
-        let d=1/zoomLevel;
-
-        pos.x+=(ev.pageX)*(d-1)-pos.x;
-        pos.y+=(ev.pageY)*(d-1)-pos.y;
-
-        container.style.cssText+=`zoom: ${zoomLevel}; left: ${pos.x}px; top: ${pos.y}px;`;*/
         if(selection.nodes.size==0)return;
 
         let fact=ev.deltaY*30,[pg]=selection.nodes,p,dir,mag;
