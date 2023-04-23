@@ -31,6 +31,24 @@ function matrixToString(mat,x1=0,x2=0,y1=mat.length,y2=mat[0].length){
     return str;
 }
 
+function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=onstart,onend=onstart}){
+    let pos={x:0,y:0},delta=pos;
+    let moveHandle=(ev)=>{
+        delta={x: ev.clientX-pos.x, y: ev.clientY-pos.y};
+        pos={x: ev.clientX, y: ev.clientY};
+        onmove(ev,delta);
+    }
+    target.addEventListener("mousedown",(ev)=>{
+        pos={x: ev.clientX, y: ev.clientY};
+        
+        if(!onstart(ev))return;
+        document.addEventListener("mousemove",moveHandle);
+        document.addEventListener("mouseup",(ev)=>{
+            if(onend(ev))document.removeEventListener("mousemove",moveHandle);
+        },{once:true});
+        
+    })
+}
 
 
 
@@ -105,9 +123,9 @@ class toolTip{
     constructor(el){
         this.html=el;
     }
-    show({x,y},{ox=0,oy=0}){
-        this.el.style.cssText+=`position: absolute; left: ${x+ox}; top: ${y+oy};`
-        this.el.classList.add("hide");
+    show({x,y},message,{ox,oy}={ox: 0, oy: 0}){
+        this.html.style.cssText+=`position: absolute; left: ${x+ox}; top: ${y+oy}; content: ${message}`
+        this.html.classList.remove("hide");
     }
     hide(){
         this.el.style.classList.add("hide");
@@ -117,11 +135,6 @@ var generalToolTip=new toolTip(elementFromHtml(`<div class="selection-menu"></di
 
 
 class numberLine{
-    static resizeObserver=new ResizeObserver((entries)=>{
-        for(const entry of entries){
-            
-        }
-    });
     constructor(elem,{class1='',class2='',unit,direction,slideTarget=elem,onclick}){
         this.target=elem;
         this.direction=direction;

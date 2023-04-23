@@ -1,7 +1,9 @@
 var selection={
     edges: new Set(),
     nodes: new Set(),
+    graph: undefined,
     clear(){
+        this.graph=undefined;
         this.edges.forEach((ed)=>{
             ed.html.classList.toggle("selected");
         })
@@ -15,7 +17,7 @@ var selection={
         closeSelectionMenu();
     },
     clickHandle: function(ev){
-        ev.stopPropagation(); ev.stopImmediatePropagation();
+        ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
         let class_list=ev.target.classList;
         if(class_list.length!=0&&class_list[0]==="edge"||class_list[0]==="node")return;
         if(selection_menu.contains(ev.target))return;
@@ -25,12 +27,9 @@ var selection={
     },
     push(element){
         let name=element.constructor.name;
-        if(!this.empty()){
-            const [x]=this.nodes;
-            const [y]=this.edges;
-            if(x&&x.parentGraph!=element.parentGraph)this.clear();
-            if(y&&y.parentGraph!=element.parentGraph)this.clear();
-        }
+        if(!this.empty()&&this.graph!=element.parentGraph)this.clear();
+
+        this.graph=element.parentGraph;
         if(name==="Node"){
             if(this.nodes.has(element))this.nodes.delete(element);
             else this.nodes.add(element);
@@ -48,14 +47,14 @@ var selection={
         
         
     },
-    empty(){
-        return (this.edges.size+this.nodes.size==0);
-    }
+    empty(){return !(this.nodes.size+this.edges.size)},
+
+
 }, selection_menu=document.getElementById("selection-menu");
 
 function openSelectionMenu(ev){
-    if(ev.ctrlKey||selection.empty())return false;
     ev.preventDefault();
+    if(ev.ctrlKey||selection.empty())return false;
     selection_menu.style.display="block";
     selection_menu.style.left=ev.pageX+10+"px";
     selection_menu.style.top=ev.pageY+10+"px";
@@ -82,16 +81,15 @@ function removeFromSelection(){
 
 function invertCheck(){
     if(selection.nodes.size!=0)return false;
-    [first]=selection.edges;   
-    if(first.parentGraph.type=="Unordered")return false; 
-    if(selection.edges.size==1&&first.parentGraph.edge(first.son,first.parent))return false;
+    if(selection.graph.type=="Unordered")return false; 
+    let [first]=selection.edges;
+    if(selection.edges.size==1&&selection.graph.edge(first.son,first.parent))return false;
     return true;
 }
 function reverseEdge(){
-    let [parent]=selection.edges;
-    parent=parent.parentGraph;
+    let parent = selection.graph;
     for(const ed of selection.edges){
-        let n1=ed.parent, n2=ed.son;
+        let n2=ed.son ,n1=ed.parent;
         if(parent.edge(n2,n1))continue;
         parent.removeEdge(n1,n2);
         parent.addEdge(n2,n1);
@@ -99,35 +97,31 @@ function reverseEdge(){
     selection.clear();
 }
 
-function decoupleCheck(){return selection.edges.size==1&&selection.nodes.size==0;}
-function decouple(event){
-    event.stopPropagation();
-    let [first]=selection.edges;
-    let nd=first.parentGraph.nodes[first.parent];
 
-    let tracker=new Tracker(); tracker.distance_offset=nd.html.offsetWidth;
-    first.parentGraph.html.appendChild(tracker.html);
-    
-    selection.clear();
-    first.html.classList.add("hide");
-    
-    let f=function(ev){
-        first.parentGraph.html.removeChild(tracker.html);
-        first.delete();
-        if(ev.target.classList[0]=="node"){
-            first.parentGraph.addEdge(nd.id,parseInt(ev.target.textContent));
-        }else{
-            let New=first.parentGraph.addNode();
-            first.parentGraph.addEdge(nd.id,New.id);
-            New.position(ev.pageX,ev.pageY);
-        }
-        document.body.removeEventListener("mousemove",mouveHandle);
+function BFScheck(){return selection.nodes.size!=0}
+function startBFS(ev){
+    let n=selection.graph.getLastID();
+    let queue=[],fr=new Array(n+1).fill(0);
+    for(const x of selection.nodes){
+        queue.push(x.id);
+        fr[x.id]=1;
     }
-
-    let mouveHandle=function(event){
-        tracker.update(nd.position(),{x:event.pageX,y:event.pageY});
-        document.body.addEventListener("mousedown",f,{once:true});
-        
+    closeSelectionMenu();
+    let BFS_step=(ev)=>{
+        let newQ=[];
+        for(const x of queue){
+            for(const id in selection.graph.node(x).list){
+                if(fr[id])continue;
+                fr[id]++;
+                selection.push(selection.graph.edge(x,id));
+                selection.push(selection.graph.node(id));
+                newQ.push(id);
+            }
+        }
+        queue=newQ;
+        if(!queue.length||selection.empty())document.removeEventListener("keydown",BFS_step);
     };
-    document.body.addEventListener("mousemove",mouveHandle);
+
+    document.addEventListener("keydown",BFS_step);
+
 }

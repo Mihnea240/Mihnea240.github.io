@@ -63,70 +63,76 @@ class listLabel {
             toggleMenu(ev.target, null, ev.target.value == "Plain");
         }
 
-        this.html.querySelector(".weight").addEventListener("click",(ev)=>{
-            let value=ev.target.getAttribute("data-toggle")=="false"?false:true;
-            ev.target.setAttribute("data-toggle",(!value).toString());
-            this.parentGraph.isWeighted=!value;
+        this.html.querySelector(".weight").addEventListener("click", (ev) => {
+            let value = ev.target.getAttribute("data-toggle") == "false" ? false : true;
+            ev.target.setAttribute("data-toggle", (!value).toString());
+            this.parentGraph.isWeighted = !value;
         })
 
-        this.overview={};
+        this.overview = {};
         this.overview.html = this.html.querySelector(".overview");
         this.overview.open_tab = undefined;
-
-        for (const title of this.overview.html.querySelector(".header").children) {
-            if(!title.dataset.id)continue;
+        this.overview.header = this.overview.html.querySelector(".header");
+        for (const title of this.overview.header.querySelectorAll(" [data-id]")) {
+            console.log(title);
             this.overview[title.dataset.id] = {
                 title: title,
                 content: this.overview.html.querySelector(` .menu-info>[data-id="${title.dataset.id}"]`),
             }
         }
-        this.overview.header = this.overview.html.querySelector(".header");        
+
+
+        this.overview.header.querySelector("select").addEventListener("input", ev => {
+            this.processID(ev.target.value);
+            ev.target.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
+        });
+        this.overview.header.querySelector("select").addEventListener("dblclick", ev => this.processID(this.overview.open_tab));
 
         this.overview.header.addEventListener("click", (ev) => {
-            let id=ev.target.dataset?.id;
-            console.log(id);
-            if (!id) return;
-            if(!this.overview.open_tab)toggleMenu(ev.target);
-            if (id == this.overview.open_tab) {
-                this.overview[id]?.title.classList.remove("selected");
-                toggleMenu(ev.target);
-                this.overview.open_tab=undefined;
-                return;
-            }
-            this.overview[id].title.scrollIntoView({behavior: "smooth",block: "center", inline: "center"});
-            this.fillOverview(id);
-            this.overview[this.overview.open_tab]?.title.classList.remove("selected");
-            this.overview[id].title.classList.add("selected");
-            
-            this.overview.open_tab ||=id;
-
-            this.overview[this.overview.open_tab].content.style.order=100;
-            this.overview[id].content.style.order=-1;
-
-            this.overview.open_tab=id;
-
+            let id = ev.target.dataset?.id;
+            if (id) this.processID(id);
         })
 
     }
+    processID(id) {
+        if (!this.overview.open_tab) toggleMenu(this.overview.header);
+        if (id == this.overview.open_tab) {
+            this.overview[id]?.title.classList.remove("selected");
+            toggleMenu(this.overview.header);
+            this.overview.open_tab = undefined;
+            return;
+        }
+        this.overview[id].title.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+        this.fillOverview(id);
+        this.overview[this.overview.open_tab]?.title.classList.remove("selected");
+        this.overview[id].title.classList.add("selected");
+
+        this.overview.open_tab ||= id;
+
+        this.overview[this.overview.open_tab].content.style.order = 100;
+        this.overview[id].content.style.order = -1;
+
+        this.overview.open_tab = id;
+    }
 
     fillOverview(id) {
-        let tab=this.overview[id].content;
+        let tab = this.overview[id].content;
         let el = tab.querySelector("textarea");
-        let axisOnClick=(ev)=>{
-            if(ev.target.tagName.toLowerCase()!="span")return;
-            let nd=this.parentGraph.node(parseInt(ev.target.textContent));
-            if(!nd)return;
+        let axisOnClick = (ev) => {
+            if (ev.target.tagName.toLowerCase() != "span") return;
+            let nd = this.parentGraph.node(parseInt(ev.target.textContent));
+            if (!nd) return;
             this.focusOn(nd.id);
             selection.push(nd);
         }
-        let XaxisTemplate={
+        let XaxisTemplate = {
             class1: "Xaxis",
             class2: "line-number",
             direction: "row",
             unit: "1.1vw",
             onclick: axisOnClick,
         }
-        let YaxisTemplate={
+        let YaxisTemplate = {
             class1: "Yaxis",
             class2: "line-number",
             direction: "column",
@@ -136,11 +142,11 @@ class listLabel {
 
         switch (id) {
             case "Matrix": {
-                el.value = matrixToString(matrixFromGraph(this.parentGraph),1,1); 
-                if(!tab.Xaxis&&!tab.Yaxis){
-                    XaxisTemplate.slideTarget=YaxisTemplate.slideTarget=el;
-                    tab.Xaxis=new numberLine(tab,XaxisTemplate);
-                    tab.Yaxis=new numberLine(tab,YaxisTemplate);
+                el.value = matrixToString(matrixFromGraph(this.parentGraph), 1, 1);
+                if (!tab.Xaxis && !tab.Yaxis) {
+                    XaxisTemplate.slideTarget = YaxisTemplate.slideTarget = el;
+                    tab.Xaxis = new numberLine(tab, XaxisTemplate);
+                    tab.Yaxis = new numberLine(tab, YaxisTemplate);
                 }
                 break;
             }
@@ -150,57 +156,100 @@ class listLabel {
             }
             case "Adjacency List": {
                 el.value = adjacencyListFromGraph(this.parentGraph);
-                if(!tab.Xaxis&&!tab.Yaxis){
-                    XaxisTemplate.slideTarget=YaxisTemplate.slideTarget=el;
-                    tab.Xaxis=new numberLine(tab,XaxisTemplate);
-                    tab.Yaxis=new numberLine(tab,YaxisTemplate);
+                if (!tab.Xaxis && !tab.Yaxis) {
+                    XaxisTemplate.slideTarget = YaxisTemplate.slideTarget = el;
+                    tab.Xaxis = new numberLine(tab, XaxisTemplate);
+                    tab.Yaxis = new numberLine(tab, YaxisTemplate);
                 }
                 break;
             }
             case "Cost Matrix": {
-                el.value = matrixToString(costMatrixFromGraph(this.parentGraph),1,1).replaceAll("0","-");
+                el.value = matrixToString(costMatrixFromGraph(this.parentGraph), 1, 1).replaceAll("0", "-");
                 break;
             }
-            case "Node Degree": {
-                let items=tab.children[0].children;
-
-                if(!tab.initSyncScroll){
-                    tab.initSyncScroll=true;
-                    for(const el of items){
-                        el.querySelector("textarea").addEventListener("scroll",(ev)=>{
-                            for(const e of items)e.querySelector("textarea").scrollTop=ev.target.scrollTop;
-                        },false);
-                    }
+            case "Parent Array": {
+                let root = this.parentGraph.root;
+                if (root) {
+                    let rez=getParentArrayFromGraph(this.parentGraph, root);
+                    rez.splice(0,1); 
+                    el.value = rez.join("\n").replaceAll("-1","-");
+                    el.parentNode.querySelector("input").value = root;
                 }
-
-                if(!tab.Yaxis){
+                if (!tab.init) {
+                    tab.init = true;
+                    el.parentNode.querySelector("input").addEventListener("input", (ev) => {
+                        root = parseInt(ev.target.value) 
+                        if (root&&this.parentGraph.node(root)){
+                            let rez = getParentArrayFromGraph(this.parentGraph, root);
+                            rez.splice(0,1);
+                            el.value = rez.join("\n").replaceAll("-1","-");
+                        }
+                    })
                     YaxisTemplate.slideTarget=el;
                     tab.Yaxis=new numberLine(tab,YaxisTemplate);
                 }
+                break;
+            }
+            case "Node Degree": {
+                let items = tab.children[0].children;
 
-                let force=(this.parentGraph.type=="Unordered");
-                items[1].classList.toggle("hide",force);
-                items[2].classList.toggle("hide",force);
-
-                let degrees=getNodeDegree(this.parentGraph);
-                if(force){
-                    items[0].querySelector("textarea").value=degrees.join("\n");
-                    items[0].querySelector("textarea").style.overflowY="auto"
-                    break;
-                }else{
-                    let s1='',s2='',s3='';
-                    for(const val of degrees){
-                        s1+=(val.in+val.out)+'\n';
-                        s2+=val.in+'\n';
-                        s3+=val.out+'\n';
+                if (!tab.initSyncScroll) {
+                    tab.initSyncScroll = true;
+                    for (const el of items) {
+                        el.querySelector("textarea").addEventListener("scroll", (ev) => {
+                            for (const e of items) e.querySelector("textarea").scrollTop = ev.target.scrollTop;
+                        }, false);
                     }
-                    items[0].querySelector("textarea").value=s1;
-                    items[1].querySelector("textarea").value=s2;
-                    items[2].querySelector("textarea").value=s3;
-                    items[2].querySelector("textarea").style.overflowY="auto";
                 }
 
+                if (!tab.Yaxis) {
+                    YaxisTemplate.slideTarget = el;
+                    tab.Yaxis = new numberLine(tab, YaxisTemplate);
+                }
 
+                let force = (this.parentGraph.type == "Unordered");
+                items[1].classList.toggle("hide", force);
+                items[2].classList.toggle("hide", force);
+
+                let degrees = getNodeDegree(this.parentGraph);
+                if (force) {
+                    items[0].querySelector("textarea").value = degrees.join("\n");
+                    items[0].querySelector("textarea").style.overflowY = "auto"
+                    break;
+                } else {
+                    let s1 = '', s2 = '', s3 = '';
+                    for (const val of degrees) {
+                        s1 += (val.in + val.out) + '\n';
+                        s2 += val.in + '\n';
+                        s3 += val.out + '\n';
+                    }
+                    items[0].querySelector("textarea").value = s1;
+                    items[1].querySelector("textarea").value = s2;
+                    items[2].querySelector("textarea").value = s3;
+                    items[2].querySelector("textarea").style.overflowY = "auto";
+                }
+
+                break;
+            }
+            case "Chain": {
+                if(tab.init)break;
+                tab.init=true;
+                let getc=()=>{
+                    let [a,b] = tab.querySelectorAll("input");
+                    a=a.value; b=b.value;
+                    if(!a&&!b)return;
+                    if(a&&b){
+                        let chains=this.parentGraph.chains(a,b);
+                        el.value=chains
+                    }
+                }
+                tab.querySelectorAll("input[type=number]").forEach((el)=>{
+                    el.addEventListener("change",(ev)=>getc());
+                })
+
+                break;
+            }
+            case "Info": {
                 break;
             }
         }
@@ -215,15 +264,15 @@ class listLabel {
         })
     }
 
-    focusOn(x,y){
-        if(!x)return false;
-        if(!y){
-            this.parentGraph.node(x).html.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+    focusOn(x, y) {
+        if (!x) return false;
+        if (!y) {
+            this.parentGraph.node(x).html.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
             return true
-        }else{
-            this.parentGraph.edge(x,y).html.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+        } else {
+            this.parentGraph.edge(x, y).html.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
             return true;
-        }return false;
+        } return false;
     }
 
     getChains() {
@@ -279,40 +328,43 @@ class Graph {
         this.html = elementFromHtml(`<div id="g${this.id}" class="default rainbow" draggable="false"></div>`);
         this.nodeSize = parseFloat(getComputedStyle(document.getElementById("defaultInfo")).getPropertyValue("--node-size"));
         this.label = new listLabel(this);
-        this._isWeighted=false;
+        this._isWeighted = false;
 
         this.readImput(input, input_type);
 
-        if(input_type=="Parent array"){
-            console.log(this.root);
-            this.node(this.root).position(window.innerWidth/2,60);
+        if (input_type == "Parent array") {
 
-            let fr=new Array(this.getLastID()+1).fill(0),queue=[this.root];
-            (()=>{
-                const PI=Math.PI;
+            this.node(this.root).position(window.innerWidth / 2, 60);
+
+            let fr = new Array(this.getLastID() + 1).fill(0), queue = [this.root];
+            (() => {
+                const PI = Math.PI;
+                let height = 400
                 fr[this.root]++;
-                while(queue.length){
-                    let top=this.node(queue[0]);
-                    queue.splice(0,1);
+                while (queue.length) {
+                    let top = this.node(queue[0]);
+                    queue.splice(0, 1);
 
-                    let n=top.getDegree();
-                    if(n.out!=undefined)n=n.out;
-                    let p=top.position();
-                    let tetha=PI/(n+1),angle=PI,height=100;
+                    let n = top.getDegree();
+                    if (n.out != undefined) n = n.out;
+                    let p = top.position();
+                    let tetha = PI / (n + 1), angle = PI;
 
-                    for(const x in top.list){
-                        if(fr[x])continue;
-                        angle-=tetha;
-                        let c=Math.tan(angle);
-                        this.node(x).position(p.x+height*Math.cos(angle),p.y+height);
+                    //console.log(top.id,n,tetha*180/PI);
+
+                    for (const x in top.list) {
+                        if (fr[x]) continue;
+                        angle += tetha;
+                        //console.log(angle*180/PI);
+                        this.node(x).position(p.x + height * Math.cos(angle), p.y + height);
                         fr[x]++;
                         queue.push(x);
                     }
                 }
             })()
-            
 
-        }else for (const i in this.nodes) {
+
+        } else for (const i in this.nodes) {
             this.nodes[i].position(
                 window.scrollX + 300 + Math.random() * (window.innerWidth - 300),
                 window.scrollY + 300 + Math.random() * (window.innerHeight - 300)
@@ -322,12 +374,12 @@ class Graph {
         document.getElementById("container").appendChild(this.html);
     }
 
-    set isWeighted(val){
-        val=!!val;
-        this._isWeighted=true;
-        this.html.querySelectorAll(".edge span").forEach(el=>el.classList.toggle("hide",!val));
+    set isWeighted(val) {
+        val = !!val;
+        this._isWeighted = true;
+        this.html.querySelectorAll(".edge span").forEach(el => el.classList.toggle("hide", !val));
     }
-    get isWeighted(){
+    get isWeighted() {
         return this._isWheighted;
     }
 
@@ -365,11 +417,11 @@ class Graph {
                 }
                 this.addEdge(x, y);
             }
-        } else if (input_type == "Parent array"){
-            for(const x of m[0])this.addNode();
-            for(let i=0; i<m[0].length; i++){
-                if(m[0][i]!='0')this.addEdge(parseInt(m[0][i]),i+1);
-                else this.root=i+1;
+        } else if (input_type == "Parent array") {
+            for (const x of m[0]) this.addNode();
+            for (let i = 0; i < m[0].length; i++) {
+                if (m[0][i] != '0') this.addEdge(parseInt(m[0][i]), i + 1);
+                else this.root = i + 1;
             }
         }
     }
@@ -440,16 +492,17 @@ class Graph {
     }
 
     chains(n1, n2) {
-        if (!this.node(n1) || !this.node(n2)) return undefined;
-        let sol = [], rez = [], fr = new Array(this.nodeCount() + 1), isSol;
-        fr.fill(0);
+        if (!this.node(n1) && !this.node(n2)) return undefined;
+        let sol = [], rez = [], fr = new Array(this.nodeCount() + 1).fill(0), isSol;
+        
         if (n1 == n2) {
             isSol = (node) => {
                 if (fr[node] != 2 || sol.length < 2) return false;
                 if (node == n2) return true;
                 return false;
             }
-        } else isSol = (node) => { return fr[node] == 1 && node == n2 };
+        }
+        else isSol = (node) => { return fr[node] == 1 && node == n2 };
 
         let dfs = (node) => {
             sol.push(node); fr[node]++;
@@ -465,6 +518,7 @@ class Graph {
             }
         }
         dfs(n1);
+        console.log(rez);
         return rez;
     }
 
@@ -515,7 +569,7 @@ class Graph {
 
 
 class Edge {
-    constructor(i1, i2, parent, weight=1) {
+    constructor(i1, i2, parent, weight = 1) {
         this.parent = i1;
         this.son = i2;
         this.parentGraph = parent;
@@ -523,12 +577,12 @@ class Edge {
         this.tracker = new Tracker();
         this.html = this.tracker.html;
 
-        let number=elementFromHtml(`<span class="hide" contenteditable="true" 
+        let number = elementFromHtml(`<span class="hide" contenteditable="true" 
             onkeypress="restrictInput(event)" 
             onfocusout="this.textContent ||=0">${this.weight}</span>`
         );
         this.html.appendChild(number);
-        number.addEventListener("input",(ev)=>this.weight=parseFloat(number.textContent));
+        number.addEventListener("input", (ev) => this.weight = parseFloat(number.textContent));
         this.arrow = elementFromHtml(`<div class="fa-solid fa-play" style="color: var(--background); font-size:inherit;" draggable="false"></div>`);
         if (this.parentGraph.type == "Ordered") this.html.appendChild(this.arrow);
 
@@ -560,23 +614,63 @@ class Edge {
             }, { once: true });
         })
 
+        let pos = { x: 0, y: 0 }, tracker = new Tracker();
+        addCustomDrag(this.html, {
+            onstart: (ev) => {
+                ev.stopPropagation(); ev.stopImmediatePropagation();
 
-        this.html.addEventListener("contextmenu", (ev) => {
-            ev.preventDefault();
-            selection.push(this);
-            return false;
+                let r = this.parentGraph.nodeSize / 2;
+
+                tracker.distance_offset = 2 * r; tracker.offset = { x: r, y: r };
+                this.parentGraph.html.appendChild(tracker.html);
+
+                pos = { x: ev.pageX, y: ev.pageY };
+                return true;
+            },
+            onmove: (ev, delta) => {
+                this.html.classList.add("hide");
+                let p = this.parentGraph.node(this.parent).position();
+                let r = this.parentGraph.nodeSize;
+                tracker.update(p, { x: ev.pageX - r, y: ev.pageY - r });
+            },
+            onend: (ev) => {
+                let r = this.parentGraph.nodeSize / 2;
+                if(Math.abs(pos.x - ev.pageX) <= 2 && Math.abs(pos.x - ev.pageX) <= 2){
+                    if (ev.which == 3) {
+                        this.html.classList.remove("hide");
+                        ev.preventDefault();
+                        selection.push(this);
+                    }
+                    return true;    
+                }
+                
+                this.parentGraph.html.removeChild(tracker.html);
+                if (ev.target.classList[0] == "node") {
+                    this.parentGraph.addEdge(this.parent, parseInt(ev.target.textContent));
+                    selection.clear();
+                } else {
+                    let i = this.parentGraph.addNode();
+                    this.parentGraph.addEdge(this.parent, i.id);
+                    i.position(ev.pageX - r, ev.pageY - r);
+                }
+                this.delete();
+                return true;
+
+            }
         })
+
+        this.html.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
 
         this.updateLine();
         this.parentGraph.html.appendChild(this.html);
     }
 
-    set weight(val){
-        this._weight=val;
-        this.html.querySelector("span").textContent=this.weight;
+    set weight(val) {
+        this._weight = val;
+        this.html.querySelector("span").textContent = this.weight;
     }
-    get weight(){
+    get weight() {
         return this._weight;
     }
 
@@ -617,58 +711,63 @@ class Node {
         this.html.ondragstart = function () { return false };
 
         let tracker = new Tracker();
-        this.html.addEventListener("mousedown", (ev) => {
-            let p = this.position(), r = this.parentGraph.nodeSize / 2;
-            let lastPos = { x: ev.pageX, y: ev.pageY }, delta = { x: 0, y: 0 };
-            tracker.distance_offset = 2 * r;
-            tracker.offset = { x: r, y: r };
-            ev.preventDefault();
 
-            let ontrackEnd = (e) => {
-                e.preventDefault(); e.stopImmediatePropagation();
-
-                this.parentGraph.html.removeChild(tracker.html);
-
-                if (e.target.classList[0] == "node") {
-                    this.parentGraph.addEdge(this.id, parseInt(e.target.textContent));
-                    selection.clear();
-                } else {
-                    let i = this.parentGraph.addNode();
-                    this.parentGraph.addEdge(this.id, i.id);
-                    i.position(e.pageX - r, e.pageY - r);
+        let pos = { x: 0, y: 0 };
+        addCustomDrag(this.html, {
+            onstart: (ev) => {
+                ev.stopPropagation(); ev.stopImmediatePropagation();
+                if (ev.which == 3) {
+                    pos = { x: ev.pageX, y: ev.pageY };
+                    let r = this.parentGraph.nodeSize / 2;
+                    tracker.distance_offset = 2 * r;
+                    tracker.offset = { x: r, y: r };
+                    this.parentGraph.html.appendChild(tracker.html);
+                    ev.preventDefault();
                 }
-                return false;
-            };
-            let mouseMove = (event) => {
+                return true;
+            },
+            onmove: (ev, delta) => {
+                ev.stopImmediatePropagation(); ev.stopPropagation();
 
-                event.stopImmediatePropagation(); event.stopPropagation();
-                p = this.position();
-                delta = {
-                    x: event.pageX - lastPos.x,
-                    y: event.pageY - lastPos.y
-                };
-
-                if (ev.which == 1) this.position(delta.x + p.x, delta.y + p.y);
+                if (ev.which == 1) this.position(delta.x + this.pos.x, delta.y + this.pos.y);
                 else if (ev.which == 2) {
-                    this.parentGraph.html.style.visibility = "hidden";
+                    this.parentGraph.toggleHide();
                     for (const nd of selection.nodes) {
                         let p = nd.position();
                         nd.position(delta.x + p.x, delta.y + p.y);
                     }
-                    this.parentGraph.html.style.visibility = "visible";
+                    this.parentGraph.toggleHide();
                 } else if (ev.which == 3) {
-                    this.parentGraph.html.appendChild(tracker.html);
-                    tracker.update(this.position(), { x: event.pageX - r, y: event.pageY - r });
-                    document.addEventListener("contextmenu", ontrackEnd, { once: true });
+                    let r = this.parentGraph.nodeSize / 2;
+                    tracker.update(this.position(), { x: ev.pageX - r, y: ev.pageY - r });
                 }
-                lastPos = { x: event.pageX, y: event.pageY };
-            }
-            document.addEventListener("mousemove", mouseMove, false);
-            document.addEventListener("mouseup", (e) => {
-                document.removeEventListener("mousemove", mouseMove);
+            },
+            onend: (ev) => {
+                if (ev.which != 3) return true;
+                let r = this.parentGraph.nodeSize / 2;
 
-            }, { once: true });
-        }, false);
+                ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
+
+                if (Math.abs(pos.x - ev.pageX) <= r && Math.abs(pos.y - ev.pageY) <= r) {
+                    selection.push(this);
+                    return true;
+                }
+
+                this.parentGraph.html.removeChild(tracker.html);
+
+                if (ev.target.classList[0] == "node") {
+                    this.parentGraph.addEdge(this.id, parseInt(ev.target.textContent));
+                    selection.clear();
+                } else {
+
+                    let i = this.parentGraph.addNode();
+                    this.parentGraph.addEdge(this.id, i.id);
+                    i.position(ev.pageX - r, ev.pageY - r);
+                }
+                return true;
+            }
+        })
+        this.html.addEventListener("contextmenu", (ev) => ev.preventDefault());
 
         this.html.addEventListener("mouseover", (event) => {
             let timer, el, r = this.parentGraph.nodeSize;
@@ -697,11 +796,6 @@ class Node {
                 this.html.removeEventListener("mousemove", move);
             }, { once: true });
         })
-        this.html.addEventListener("contextmenu", (e) => {
-            e.preventDefault();
-            selection.push(this);
-            return false;
-        })
         this.parentGraph.html.appendChild(this.html);
     }
 
@@ -715,11 +809,11 @@ class Node {
         return this.pos;
     }
 
-    getDegree(){
-        let rez={out: Object.keys(this.list).length,in: 0}
-        if(this.parentGraph.type=="Unordered")return rez.out;
-        for(const key in this.parentGraph.nodes){
-            rez.in+=this.parentGraph.edge(key,this.id)?1:0;
+    getDegree() {
+        let rez = { out: Object.keys(this.list).length, in: 0 }
+        if (this.parentGraph.type == "Unordered") return rez.out;
+        for (const key in this.parentGraph.nodes) {
+            rez.in += this.parentGraph.edge(key, this.id) ? 1 : 0;
         }
         return rez;
     }
@@ -740,9 +834,9 @@ class Node {
 
 function matrixFromGraph(graph) {
     let n = graph.getLastID(), s = "";
-    let mat=getMatrix(n+1,n+1);
+    let mat = getMatrix(n + 1, n + 1);
     for (let i = 1; i <= n; i++) {
-        for (let j = 1; j <= n; j++)mat[i][j]=graph.edge(i,j)?.weight || 0;
+        for (let j = 1; j <= n; j++)mat[i][j] = graph.edge(i, j)?.weight || 0;
         //s += (graph.edge(i, j)) ? "1 " : "0 ";
         //s += "\n";
     }
@@ -764,22 +858,39 @@ function edgeListFromGraph(graph) {
     return s;
 }
 
-function costMatrixFromGraph(graph){
-    let n=graph.getLastID();
-    let mat=matrixFromGraph(graph);
+function costMatrixFromGraph(graph) {
+    let n = graph.getLastID();
+    let mat = matrixFromGraph(graph);
 
-    for(let k=1; k<=n; k++){
-        for(let i=1; i<=n; i++){
-            for(let j=1; j<=n; j++){
-                if(mat[i][k]&&mat[k][j-1])mat[i][j]=Math.min(mat[i][j],mat[i][k]+mat[k][j]);
+    for (let k = 1; k <= n; k++) {
+        for (let i = 1; i <= n; i++) {
+            for (let j = 1; j <= n; j++) {
+                if (mat[i][k] && mat[k][j - 1]) mat[i][j] = Math.min(mat[i][j], mat[i][k] + mat[k][j]);
             }
         }
     }
     return mat;
 }
 
-function getNodeDegree(graph){
-    let rez=[];
-    for(const nd in graph.nodes)rez.push(graph.nodes[nd].getDegree());
+function getNodeDegree(graph) {
+    let rez = [];
+    for (const nd in graph.nodes) rez.push(graph.nodes[nd].getDegree());
+    return rez;
+}
+
+function getParentArrayFromGraph(graph, root) {
+    let n = graph.getLastID(), queue = [root];
+    let rez = new Array(n).fill(-1);
+    rez[root]=0;
+
+    while (queue.length) {
+        let top = queue[0];
+        queue.splice(0, 1);
+        for (let x in graph.node(top).list) {
+            x=parseInt(x);
+            rez[x] = top;
+            queue.push(x);
+        }
+    }
     return rez;
 }

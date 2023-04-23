@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,18 +10,20 @@
     <title>Graph Maker</title>
 </head>
 
-<body draggable="false" contenteditable="false">
+<body contenteditable="false">
     <div class="default" id="defaultInfo"></div>
     <div id="selection-menu">
         <ul>
             <li data-check="checkNotNeeded"><button onclick="removeFromSelection()">Remove</button></li>
-            <li data-check="invertCheck"   ><button onclick="reverseEdge()">Invert</button></li>
-            <li data-check="decoupleCheck" ><button onclick="decouple(event)">Decouple</button></li>
+            <li data-check="invertCheck"><button onclick="reverseEdge()">Invert</button></li>
+        </ul>
+        <ul>
+            <li data-check="BFScheck"><button onclick="startBFS(event)">BFS</button></li>
         </ul>
     </div>
 
     <template id="graph-list">
-        <div class="menu main" draggable="false" >
+        <div class="menu main" draggable="false">
             <div class="header" onclick="toggleMenu(this,event)" style="justify-content: flex-start;">
                 <button class="fa-thin"><i></i></button>
                 <span contenteditable="true" class="content-edit" style="max-width: 50%;"></span>
@@ -29,23 +32,27 @@
                 <div class="menu display-settings">
                     <div class="header" onclick="toggleMenu(this,event)">Display</div>
                     <div class="menu-info">
-                        <label class="node-slider" draggable="false" style="padding: 0 10% 0 1%; display: flex; flex-direction: column;">
-                            <span style="word-break: pre;">Node Size</span> 
+                        <label class="node-slider" draggable="false"
+                            style="padding: 0 10% 0 1%; display: flex; flex-direction: column;">
+                            <span style="word-break: pre;">Node Size</span>
                             <div class="flex-center-around">
-                                <input style="flex-grow: 1;" type="range" min="0" max="100" step="5" value="40" oninput="this.nextElementSibling.textContent=this.value">
+                                <input style="flex-grow: 1;" type="range" min="0" max="100" step="5" value="40"
+                                    oninput="this.nextElementSibling.textContent=this.value">
                                 <div style="min-width: 5%  ;">40</div>
                             </div>
                         </label>
 
-                        <label class="color" >
+                        <label class="color">
                             <span style="position:absolute">Color</span>
                             <input style="height: 100%; width:100%; margin-left: auto;" type="color" value="#e9449e">
                         </label>
 
-                        <label class="spread-slider" draggable="false" style="padding:0 10% 0 1%; display: flex; flex-direction: column;">
-                            <span style="word-break: pre;">Spread Radius</span> 
+                        <label class="spread-slider" draggable="false"
+                            style="padding:0 10% 0 1%; display: flex; flex-direction: column;">
+                            <span style="word-break: pre;">Spread Radius</span>
                             <div class="flex-center-around">
-                                <input style="flex-grow: 1;" type="range" min="0" max="40" value="6" oninput="this.nextElementSibling.textContent=this.value">
+                                <input style="flex-grow: 1;" type="range" min="0" max="40" value="6"
+                                    oninput="this.nextElementSibling.textContent=this.value">
                                 <div style="min-width: 5%  ;">6</div>
                             </div>
                         </label>
@@ -53,14 +60,15 @@
                         <div class="menu select-color">
                             <div class="header flex-center-around">
                                 <span>Selection color</span>
-                                <select >
+                                <select>
                                     <option value="Rainbow" onclick="toggleMenu(this,event,true)">Rainbow</option>
                                     <option value="Plain" onclick="toggleMenu(this,event,false)">Plain</option>
                                 </select>
                             </div>
                             <div class="menu-info" style="margin: 0; padding: 0;">
                                 <label class="color" style="margin: 0;  padding: 0;">
-                                    <input style="height: 110%; width:100%; margin-left: auto;" type="color" value="#008080">
+                                    <input style="height: 110%; width:100%; margin-left: auto;" type="color"
+                                        value="#008080">
                                 </label>
                             </div>
                         </div>
@@ -75,29 +83,32 @@
 
                 <div class="menu chain">
                     <div class="header" style="flex-direction: column;">
-                        <span style="margin-right: auto;">Get Chains</span> 
+                        <span style="margin-right: auto;">Get Chains</span>
                         <div class="flex-center-around">
                             from
                             <input type="number" min="1" max="1000" style="width: 20%;">
                             to
-                            <input type="number" min="1" max="1000"  style="width: 20%;">
-                            <button style="transition: transform 250ms ease-in-out;"><i class="fa-solid fa-play"></i></button>
+                            <input type="number" min="1" max="1000" style="width: 20%;">
+                            <button style="transition: transform 250ms ease-in-out;"><i
+                                    class="fa-solid fa-play"></i></button>
                         </div>
                     </div>
                     <div class="menu-info"></div>
                 </div>
                 <div class="menu overview">
                     <div class="header">
-                        <button data-id="Matrix">Matrix</button>
-                        <button data-id="Edge List">Edge List</button>
-                        <button data-id="Adjacency List">Adjecency List</button>
+                        <select style="padding: 0; background-color: transparent;">
+                            <option data-id="Matrix"         value="Matrix">Matrix</option>
+                            <option data-id="Edge List"      value="Edge List">Edge List</option>
+                            <option data-id="Adjacency List" value="Adjacency List">Adjecency List</option>
+                            <option data-id="Parent Array"   value="Parent Array">Parent Array</option>
+                        </select>
+                        <button data-id="Info">Info</button>
                         <button data-id="Cost Matrix">Cost Matrix</button>
                         <button data-id="Node Degree">Node Degree</button>
-                        <button data-id="">Node</button>
-                        <button data-id="">Node</button>
-                        <button data-id="">Node</button>
+                        <button data-id="Chain">Chains</button>
                     </div>
-                    <div class="menu-info" style="resize: both;">
+                    <div class="menu-info">
                         <div data-id="Matrix" class="tab">
                             <textarea wrap="off">1</textarea>
                         </div>
@@ -110,11 +121,19 @@
                             <textarea wrap="off">3</textarea>
                         </div>
 
+                        <div data-id="Parent Array" class="tab">
+                            <div style="grid-area: x; display: flex; font-size: 1.25vw;">
+                                <span>Root -</span>
+                                <input type="number" maxlength="10" style="padding: 0; width:50%; background-color: transparent;">
+                            </div>
+                            <textarea wrap="off"></textarea>
+                        </div>
+
                         <div data-id="Cost Matrix" class="tab">
                             <textarea wrap="off">4</textarea>
                         </div>
 
-                        <div class="tab" data-id="Node Degree" >
+                        <div class="tab" data-id="Node Degree">
                             <div class="node-degree">
                                 <div class="degree">
                                     <span>Degree</span>
@@ -130,57 +149,65 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div data-id="Chain" class="tab">
+                            <div class="flex-center-around" style="grid-area: x;">
+                                <input type="number" min="1" max="1000" style="width: 20%;">
+                                <i class="fa-solid fa-arrow-right"></i>
+                                <input type="number" min="1" max="1000" style="width: 20%;">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </template>
-    
-    <div id="main-display" style="resize: both;"> 
+
+    <div id="main-display" style="resize: both;">
         <div class="resize" draggable="true" ondrag="resize(this.parentNode,event)"></div>
         <div id="header">
-            <span>Logs</span> 
-            <label class="check-bt"> 
+            <span>Logs</span>
+            <label class="check-bt">
                 <input type="checkbox">
                 <i class="fa-solid fa-arrow-left"></i>
             </label>
-            
+
             <label class="new-graph">
                 <i class="fa-solid fa-plus"></i>
-                <input type="checkbox" onclick="checkBox(this)"> 
-    
+                <input type="checkbox" onclick="checkBox(this)">
+
                 <div class="input-info">
                     <div class="graph-type">
                         <label><input type="radio" name="graph-type" value="Ordered">Ordered</label>
                         <label><input type="radio" name="graph-type" value="Unordered" checked>Unordered</label>
                     </div>
-                    
+
                     <select>
                         <option>Matrix</option>
                         <option>Nr. of nodes & list of edges</option>
                         <option>Adjacency list</option>
                         <option>Parent array</option>
                     </select>
-                   
+
                     <label>
                         <textarea cols="40" rows="10"></textarea>
                         <button onclick="createGraph()">Submit</button>
                     </label>
                 </div>
             </label>
-            
+
         </div>
         <div id="info-area"></div>
-       
+
     </div>
 
 
     <div id="line" draggable="false"></div>
 
-    <div id="container" draggable="false" style="position: absolute;" ></div>
+    <div id="container" draggable="false"></div>
 
     <script src="js/GraphClass.js"></script>
-    <script src="js/InfiniteScroll.js"></script>
     <script src="js/selection.js"></script>
     <script src="js/utility.js"></script>
     <script src="js/main.js"></script>
