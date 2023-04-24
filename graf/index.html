@@ -81,20 +81,6 @@
 
                 <button class="weight" data-toggle="false">Toggle weights</button>
 
-                <div class="menu chain">
-                    <div class="header" style="flex-direction: column;">
-                        <span style="margin-right: auto;">Get Chains</span>
-                        <div class="flex-center-around">
-                            from
-                            <input type="number" min="1" max="1000" style="width: 20%;">
-                            to
-                            <input type="number" min="1" max="1000" style="width: 20%;">
-                            <button style="transition: transform 250ms ease-in-out;"><i
-                                    class="fa-solid fa-play"></i></button>
-                        </div>
-                    </div>
-                    <div class="menu-info"></div>
-                </div>
                 <div class="menu overview">
                     <div class="header">
                         <select style="padding: 0; background-color: transparent;">
@@ -155,6 +141,18 @@
                                 <input type="number" min="1" max="1000" style="width: 20%;">
                                 <i class="fa-solid fa-arrow-right"></i>
                                 <input type="number" min="1" max="1000" style="width: 20%;">
+                            </div>
+                            <div style="display: flex; flex-direction: column; grid-area: content;" class="chains"></div>
+                        </div>
+
+                        <div data-id="Info" class="tab">
+                            <div style="grid-area: content;">
+                                <div class="type"></div><br>
+                                <div class="bipartite"></div><br>
+                                <div class="hamiltonian"></div><br>
+                                <div class="eulerian"></div><br>
+                                <div class="conex"></div><br>
+
                             </div>
                         </div>
 

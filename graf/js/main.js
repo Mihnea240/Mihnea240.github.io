@@ -2,7 +2,8 @@ var graphs={},Xaxis,Yaxis;
 
 
 document.body.onload=()=>{
-    let n=new Graph("0 1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4","Parent array","Ordered");
+    //let n=new Graph("0 1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4","Parent array","Ordered");
+    let n = new Graph("0 1 1 1 \n 1 0 1 1 \n 1 1 0 1\n1 1 1 0","Matrix","Ordered");
     graphs[n.id]=n;
     //n.label.processID("Chain");
 
@@ -79,19 +80,19 @@ document.addEventListener("wheel",(ev)=>{
         ev.preventDefault();
         if(selection.nodes.size==0)return;
 
-        let fact=ev.deltaY*30,[pg]=selection.nodes,p,dir,mag;
+        let fact=(ev.deltaY<0?-1:1)*30,[pg]=selection.nodes,p,dir,mag;
         pg=pg.parentGraph;
-        let r=pg.nodeSize;
-        
+        let r=pg.nodeSize/2;
         pg.toggleHide();
         for(const nd of selection.nodes){
             p=nd.position();
             dir={
-                x: ev.pageX-p.x,
-                y: ev.pageY-p.y
+                x: ev.pageX-p.x-r,
+                y: ev.pageY-p.y-r
             }
             mag=Math.sqrt(dir.x**2+dir.y**2);
-            if(mag<r)continue;
+            if(fact<0&&mag<r)continue;
+            mag=500;
             dir.x/=mag; dir.y/=mag;
             dir.x*=fact; dir.y*=fact;
 

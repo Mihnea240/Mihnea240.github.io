@@ -19,8 +19,8 @@ html{
 }
 
 :root{
-    --accent-bg: linear-gradient(to right, #8ffe4f 0%, #00f2fe 100%);
-    --accent-bg-reverse: linear-gradient(to right, #00f2fe 0%,#4facfe 100%);
+    --accent-bg: linear-gradient(90deg, rgb(137, 50, 130) 0%, rgba(181, 79, 254, 0.947) 51%, rgba(0, 213, 255, 0.262) 100%);
+    --accent-bg-reverse:  linear-gradient(270deg, rgb(137, 50, 130) 0%, rgba(181, 79, 254, 0.947) 51%, rgba(0, 213, 255, 0.262) 100%);
     --accent-color:#e944e9;
 }
 
@@ -245,7 +245,7 @@ input[type="checkbox"],input[type="radio"]{
     --neon-color: var(--select-color);
 }
 .default.rainbow :is(.node.selected,.edge.selected) {
-    animation: pulse 3000ms infinite linear alternate;
+    animation: pulse 15000ms infinite linear alternate;
 }
 .selected{
     background: radial-gradient(transparent 30%,var(--neon-color));
@@ -295,6 +295,7 @@ input[type="checkbox"],input[type="radio"]{
     background-color: rgb(42, 42, 42);
     border: 1px double white;
     box-shadow:3px 2px 5px 1px rgba(0, 0, 0, 0.63);
+    font-size: 80%;
     z-index: 500;
 }
 #selection-menu li:hover{
@@ -575,6 +576,9 @@ input[type="checkbox"],input[type="radio"]{
     font-size: 1vw;
 }
 
+.chain:hover{
+    background: var(--accent-bg);
+}
 
 
 .resize{

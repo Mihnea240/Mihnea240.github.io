@@ -36,7 +36,7 @@ var selection={
         }
         if(name==="Edge"){ 
             if(this.edges.has(element))this.edges.delete(element)
-            else this.edges.add(element); 
+            else this.edges.add(element);
         }
        
         element.html.classList.toggle("selected"); 

@@ -15,15 +15,7 @@ class listLabel {
 
         document.getElementById("info-area").appendChild(this.html);
 
-        this.chain_menu = this.html.querySelector(".menu-info .menu.chain");
-        this.chain_menu.header = this.chain_menu.querySelector(".header");
-        this.chain_menu.info = this.chain_menu.querySelector(".menu-info");
-
-        this.chain_menu.header.querySelector("button").addEventListener("click", (ev) => {
-            ev.stopPropagation(); ev.stopImmediatePropagation();
-            toggleMenu(ev.target, ev);
-            this.getChains();
-        });
+       
         this.html.querySelector(".header").addEventListener("dblclick", () => {
             if (this.hidden) return;
             this.scrollIntoView();
@@ -74,7 +66,6 @@ class listLabel {
         this.overview.open_tab = undefined;
         this.overview.header = this.overview.html.querySelector(".header");
         for (const title of this.overview.header.querySelectorAll(" [data-id]")) {
-            console.log(title);
             this.overview[title.dataset.id] = {
                 title: title,
                 content: this.overview.html.querySelector(` .menu-info>[data-id="${title.dataset.id}"]`),
@@ -94,6 +85,7 @@ class listLabel {
         })
 
     }
+
     processID(id) {
         if (!this.overview.open_tab) toggleMenu(this.overview.header);
         if (id == this.overview.open_tab) {
@@ -170,23 +162,23 @@ class listLabel {
             case "Parent Array": {
                 let root = this.parentGraph.root;
                 if (root) {
-                    let rez=getParentArrayFromGraph(this.parentGraph, root);
-                    rez.splice(0,1); 
-                    el.value = rez.join("\n").replaceAll("-1","-");
+                    let rez = getParentArrayFromGraph(this.parentGraph, root);
+                    rez.splice(0, 1);
+                    el.value = rez.join("\n").replaceAll("-1", "-");
                     el.parentNode.querySelector("input").value = root;
                 }
                 if (!tab.init) {
                     tab.init = true;
                     el.parentNode.querySelector("input").addEventListener("input", (ev) => {
-                        root = parseInt(ev.target.value) 
-                        if (root&&this.parentGraph.node(root)){
+                        root = parseInt(ev.target.value)
+                        if (root && this.parentGraph.node(root)) {
                             let rez = getParentArrayFromGraph(this.parentGraph, root);
-                            rez.splice(0,1);
-                            el.value = rez.join("\n").replaceAll("-1","-");
+                            rez.splice(0, 1);
+                            el.value = rez.join("\n").replaceAll("-1", "-");
                         }
                     })
-                    YaxisTemplate.slideTarget=el;
-                    tab.Yaxis=new numberLine(tab,YaxisTemplate);
+                    YaxisTemplate.slideTarget = el;
+                    tab.Yaxis = new numberLine(tab, YaxisTemplate);
                 }
                 break;
             }
@@ -232,24 +224,45 @@ class listLabel {
                 break;
             }
             case "Chain": {
-                if(tab.init)break;
-                tab.init=true;
-                let getc=()=>{
-                    let [a,b] = tab.querySelectorAll("input");
-                    a=a.value; b=b.value;
-                    if(!a&&!b)return;
-                    if(a&&b){
-                        let chains=this.parentGraph.chains(a,b);
-                        el.value=chains
+                if (tab.init) break;
+                tab.init = true;
+                let getc = () => {
+                    let [a, b] = tab.querySelectorAll("input");
+                    let area=tab.querySelector(".chains");
+                    a = a.value; b = b.value;
+
+                    selection.clear();
+                    area.innerHTML='';
+                    let chains=this.parentGraph.chains(a,b);
+                    if(!chains)return;
+
+                    let doc=new DocumentFragment();
+                    for(const ch of chains){
+                        doc.appendChild(elementFromHtml(`<div class="chain">${ch.join('-')}</div>`));
                     }
-                }
-                tab.querySelectorAll("input[type=number]").forEach((el)=>{
-                    el.addEventListener("change",(ev)=>getc());
+                    area.appendChild(doc);
+                } 
+                tab.addEventListener("click",(ev)=>{
+                        if(ev.target.classList[0]!="chain")return;
+                        let arr=ev.target.textContent.split("-").map((el)=>el=this.parentGraph.node(parseInt(el)));
+                        for(let i=0; i<arr.length-1; i++){
+                            selection.push(arr[i]);
+                            selection.push(this.parentGraph.edge(arr[i].id,arr[i+1].id));
+                        }
+                        if(arr[0]!=arr.back())selection.push(arr.pop());
+                    })
+                tab.querySelectorAll("input[type=number]").forEach((el) => {
+                    el.addEventListener("change", (ev) => getc());
                 })
 
                 break;
             }
             case "Info": {
+                tab.querySelector(".type").textContent=`Type : ${this.parentGraph.type}`;
+                tab.querySelector(".bipartite").textContent=`Bipartite : ${"coming soon"}`;
+                tab.querySelector(".hamiltonian").textContent=`Hamiltonian : ${"coming soon"}`;
+                tab.querySelector(".eulerian").textContent=`Eulerian : ${"coming soon"}`;
+                tab.querySelector(".conex").textContent=`Conex : ${"coming soon"}`;
                 break;
             }
         }
@@ -314,7 +327,7 @@ class listLabel {
     }
 
     update() {
-        this.chain_menu.info.classList.remove("extend-max-height");
+       
     }
 }
 
@@ -494,7 +507,7 @@ class Graph {
     chains(n1, n2) {
         if (!this.node(n1) && !this.node(n2)) return undefined;
         let sol = [], rez = [], fr = new Array(this.nodeCount() + 1).fill(0), isSol;
-        
+
         if (n1 == n2) {
             isSol = (node) => {
                 if (fr[node] != 2 || sol.length < 2) return false;
@@ -517,8 +530,7 @@ class Graph {
                 sol.pop(); fr[parseInt(x)]--;
             }
         }
-        dfs(n1);
-        console.log(rez);
+        dfs(parseInt(n1));
         return rez;
     }
 
@@ -618,35 +630,37 @@ class Edge {
         addCustomDrag(this.html, {
             onstart: (ev) => {
                 ev.stopPropagation(); ev.stopImmediatePropagation();
-
-                let r = this.parentGraph.nodeSize / 2;
-
-                tracker.distance_offset = 2 * r; tracker.offset = { x: r, y: r };
-                this.parentGraph.html.appendChild(tracker.html);
-
                 pos = { x: ev.pageX, y: ev.pageY };
+                let r = this.parentGraph.nodeSize / 2;
+                tracker.distance_offset = 2 * r; tracker.offset = { x: r, y: r };
+                tracker.html.classList.add("hide");
+                this.parentGraph.html.appendChild(tracker.html);
                 return true;
             },
             onmove: (ev, delta) => {
                 this.html.classList.add("hide");
+                tracker.html.classList.remove("hide");
                 let p = this.parentGraph.node(this.parent).position();
-                let r = this.parentGraph.nodeSize;
+                let r = this.parentGraph.nodeSize / 2;
                 tracker.update(p, { x: ev.pageX - r, y: ev.pageY - r });
             },
             onend: (ev) => {
                 let r = this.parentGraph.nodeSize / 2;
-                if(Math.abs(pos.x - ev.pageX) <= 2 && Math.abs(pos.x - ev.pageX) <= 2){
+                this.parentGraph.html.removeChild(tracker.html);
+                this.html.classList.remove("hide");
+                if ((pos.x - ev.pageX) ** 2 + (pos.y - ev.pageY) ** 2 < 2) {
                     if (ev.which == 3) {
-                        this.html.classList.remove("hide");
                         ev.preventDefault();
                         selection.push(this);
                     }
-                    return true;    
+                    return true;
                 }
+
                 
-                this.parentGraph.html.removeChild(tracker.html);
                 if (ev.target.classList[0] == "node") {
-                    this.parentGraph.addEdge(this.parent, parseInt(ev.target.textContent));
+                    let id=parseInt(ev.target.textContent);
+                    if(id==this.son)return true;
+                    this.parentGraph.addEdge(this.parent, id);
                     selection.clear();
                 } else {
                     let i = this.parentGraph.addNode();
@@ -660,7 +674,6 @@ class Edge {
         })
 
         this.html.addEventListener("contextmenu", (ev) => ev.preventDefault());
-
 
         this.updateLine();
         this.parentGraph.html.appendChild(this.html);
@@ -881,16 +894,28 @@ function getNodeDegree(graph) {
 function getParentArrayFromGraph(graph, root) {
     let n = graph.getLastID(), queue = [root];
     let rez = new Array(n).fill(-1);
-    rez[root]=0;
+    rez[root] = 0;
 
     while (queue.length) {
         let top = queue[0];
         queue.splice(0, 1);
         for (let x in graph.node(top).list) {
-            x=parseInt(x);
+            x = parseInt(x);
             rez[x] = top;
             queue.push(x);
         }
     }
     return rez;
+}
+
+function partition(graph){
+
+}
+
+function hamiltonChain(graph){
+
+}
+
+function eulerianChain(graph){
+
 }
