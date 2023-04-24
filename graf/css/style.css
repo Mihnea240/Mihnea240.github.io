@@ -245,7 +245,7 @@ input[type="checkbox"],input[type="radio"]{
     --neon-color: var(--select-color);
 }
 .default.rainbow :is(.node.selected,.edge.selected) {
-    animation: pulse 15000ms infinite linear alternate;
+    animation: pulse 5000ms infinite linear alternate;
 }
 .selected{
     background: radial-gradient(transparent 30%,var(--neon-color));

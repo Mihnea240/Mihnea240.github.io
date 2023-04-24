@@ -36,10 +36,12 @@ document.body.onload=()=>{
     addCustomDrag(window,{
         onstart: (ev)=>{
             if(ev.which!=3){
+                if(ev.which==2)ev.preventDefault();
                 return true;
             }
         },
         onmove: (ev,delta)=>{
+            ev.preventDefault();
             if(ev.target.id!="line")return;
             let rect=line.getBoundingClientRect();
             let dx=rect.width -delta.x;

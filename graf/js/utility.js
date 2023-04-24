@@ -31,7 +31,7 @@ function matrixToString(mat,x1=0,x2=0,y1=mat.length,y2=mat[0].length){
     return str;
 }
 
-function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=onstart,onend=onstart}){
+function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=ev=>true,onend=ev=>true}){
     let pos={x:0,y:0},delta=pos;
     let moveHandle=(ev)=>{
         delta={x: ev.clientX-pos.x, y: ev.clientY-pos.y};

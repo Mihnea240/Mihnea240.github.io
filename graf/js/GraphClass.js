@@ -728,7 +728,7 @@ class Node {
         let pos = { x: 0, y: 0 };
         addCustomDrag(this.html, {
             onstart: (ev) => {
-                ev.stopPropagation(); ev.stopImmediatePropagation();
+                ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
                 if (ev.which == 3) {
                     pos = { x: ev.pageX, y: ev.pageY };
                     let r = this.parentGraph.nodeSize / 2;
