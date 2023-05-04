@@ -16,9 +16,11 @@
         <ul>
             <li data-check="checkNotNeeded"><button onclick="removeFromSelection()">Remove</button></li>
             <li data-check="invertCheck"><button onclick="reverseEdge()">Invert</button></li>
+            <li data-check="checkNotNeeded"><button onclick="subgraphFromSelection(event)">Extract subgraph</button></li>
         </ul>
         <ul>
             <li data-check="BFScheck"><button onclick="startBFS(event)">BFS</button></li>
+            <li data-check="DFScheck"><button onclick="startDFS()">DFS</button></li>
         </ul>
     </div>
 
@@ -26,7 +28,8 @@
         <div class="menu main" draggable="false">
             <div class="header" onclick="toggleMenu(this,event)" style="justify-content: flex-start;">
                 <button class="fa-thin"><i></i></button>
-                <span contenteditable="true" class="content-edit" style="max-width: 50%;"></span>
+                <!-- <span contenteditable="true" class="content-edit" style="max-width: 50%;"></span> -->
+                <abbr style="max-width: 80%; text-decoration: none;" class="content-edit" contenteditable="true"></abbr>
             </div>
             <div class="menu-info">
                 <div class="menu display-settings">
@@ -88,6 +91,8 @@
                             <option data-id="Edge List"      value="Edge List">Edge List</option>
                             <option data-id="Adjacency List" value="Adjacency List">Adjecency List</option>
                             <option data-id="Parent Array"   value="Parent Array">Parent Array</option>
+                            <option data-id="Transpose List"   value="Transpose List">Transpose List</option>
+                            <option selected>Inputs</option>
                         </select>
                         <button data-id="Info">Info</button>
                         <button data-id="Cost Matrix">Cost Matrix</button>
@@ -97,6 +102,9 @@
                     <div class="menu-info">
                         <div data-id="Matrix" class="tab">
                             <textarea wrap="off">1</textarea>
+                        </div>
+                        <div data-id="Transpose List" class="tab">
+                            <textarea wrap="off"></textarea>
                         </div>
 
                         <div data-id="Edge List" class="tab">
@@ -139,19 +147,32 @@
                         <div data-id="Chain" class="tab">
                             <div class="flex-center-around" style="grid-area: x;">
                                 <input type="number" min="1" max="1000" style="width: 20%;">
-                                <i class="fa-solid fa-arrow-right"></i>
+                                <!-- <i class="fa-solid fa-arrow-right"></i> -->
+                                <select style="padding: 0; margin: 0; background: transparent; font-size: 80%;">
+                                    <option value="elementary">Elementary</option>
+                                    <option value="simple">Simple</option>
+                                </select>
                                 <input type="number" min="1" max="1000" style="width: 20%;">
                             </div>
-                            <div style="display: flex; flex-direction: column; grid-area: content;" class="chains"></div>
+                            <div class="chains-cont"></div>
                         </div>
 
                         <div data-id="Info" class="tab">
-                            <div style="grid-area: content;">
-                                <div class="type"></div><br>
-                                <div class="bipartite"></div><br>
-                                <div class="hamiltonian"></div><br>
-                                <div class="eulerian"></div><br>
-                                <div class="conex"></div><br>
+                            <div class="Info">
+                                <div class="type">
+                                    <div style="max-width: 50%"></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                                <div class="conex"></div>
+                                <div class="bipartite">
+                                    <span>Bipartite : </span>
+                                    <abbr></abbr>
+                                    <abbr></abbr>
+                                </div>
+                                <div class="hamiltonian"></div>
+                                <div class="eulerian"></div>
+                                
 
                             </div>
                         </div>

@@ -4,6 +4,7 @@ var graphs={},Xaxis,Yaxis;
 document.body.onload=()=>{
     //let n=new Graph("0 1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4","Parent array","Ordered");
     let n = new Graph("0 1 1 1 \n 1 0 1 1 \n 1 1 0 1\n1 1 1 0","Matrix","Ordered");
+    //let n= new Graph("123","Nr. of nodes & list of edges","Ordered");
     graphs[n.id]=n;
     //n.label.processID("Chain");
 
@@ -13,7 +14,11 @@ document.body.onload=()=>{
     },false);
     let el=document.querySelector(".overview .header");
     addCustomDrag(el,{
-        onstart: (ev)=>ev.which==1,
+        onstart: (ev)=>{
+            if(ev.which!=1)return;
+            ev.stopPropagation(); ev.stopImmediatePropagation();
+            return true;
+        },
         onmove: (ev,delta)=>el.scrollBy(-delta.x,-delta.y),
     })
 
@@ -35,14 +40,14 @@ document.body.onload=()=>{
     
     addCustomDrag(window,{
         onstart: (ev)=>{
-            if(ev.which!=3){
+            if(ev.target.id!="line")return;
+            if(ev.which!=3){ 
                 if(ev.which==2)ev.preventDefault();
                 return true;
             }
         },
         onmove: (ev,delta)=>{
-            ev.preventDefault();
-            if(ev.target.id!="line")return;
+           
             let rect=line.getBoundingClientRect();
             let dx=rect.width -delta.x;
             let dy=rect.height-delta.y;

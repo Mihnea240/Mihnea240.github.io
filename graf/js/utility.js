@@ -14,8 +14,8 @@ function toggleFullScreen(){
     else document.exitFullscreen();
 }
 
-Array.prototype.back=function(steps=1){
-    return this.at(this.length-steps);
+Array.prototype.back=function(steps=0){
+    return this.at(this.length-steps-1);
 }
 
 function getMatrix(n,m,val=0){
@@ -47,7 +47,7 @@ function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=ev=>true,onend=ev
             if(onend(ev))document.removeEventListener("mousemove",moveHandle);
         },{once:true});
         
-    })
+    },false)
 }
 
 
@@ -71,13 +71,10 @@ function slide(inout){
 }
 
 function copyGraph(id){
-    let input=matrixFromGraph(graphs[id]);
-    let type=graphs[id].type;
-    let n=new Graph(input,"Matrix",type);
-    graphs[n.id]=n;
-    n.label.name_span.textContent="Copy of-"+graphs[id].label.name_span.textContent;
-    document.getElementById("info-area")
-        .insertBefore(n.label.html,document.getElementById(id).nextSibling);
+    let n=graphs[id].copy();
+
+    n.name("Copy of-"+graphs[id].name());
+    document.getElementById("info-area").insertBefore(n.label.html,document.getElementById(id).nextSibling);
 }
 
 function toggleMenu(el,event,force=undefined){
@@ -88,7 +85,7 @@ function toggleMenu(el,event,force=undefined){
 }
 
 function resize(el,ev){
-    ev.preventDefault();
+    ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation();
     if(ev.clientX)el.style.width=ev.clientX*100/window.innerWidth+"vw";
     return false;
 }
