@@ -21,7 +21,7 @@ html{
 :root{
     --accent-bg: linear-gradient(90deg, rgb(137, 50, 130) 0%, rgba(181, 79, 254, 0.947) 51%, rgba(0, 213, 255, 0.262) 100%);
     --accent-bg-reverse:  linear-gradient(270deg, rgb(137, 50, 130) 0%, rgba(181, 79, 254, 0.947) 51%, rgba(0, 213, 255, 0.262) 100%);
-    --accent-color:#e944e9;
+    --accent-color:#e94444;
 }
 
 body{ 
