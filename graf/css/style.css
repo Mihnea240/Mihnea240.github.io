@@ -664,3 +664,15 @@ input[type="checkbox"],input[type="radio"]{
     background-color: transparent;
     /* background-color: rgba(255, 255, 255, 0.201); */
 }
+
+
+.new_graph_menu{
+    position: absolute;
+    left: 25%; top: 25%;
+    width: 50%;
+    height: 50%;
+    
+}
+
+
+
