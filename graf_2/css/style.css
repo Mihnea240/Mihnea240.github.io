@@ -1,0 +1,35 @@
+
+html,body{
+    margin: 0;  padding: 0;
+    width: 100%;   height: 100%;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.menu-strip{
+    flex: 0 0 5%;
+    
+}
+
+.header{
+    flex: 0 1 5%;
+    background-color: rgb(23, 23, 23);
+    color: white;
+}
+
+.tab-area{
+    position: relative;
+    flex: 1 0 auto;
+    background-color: transparent;
+     overflow: hidden;
+}
+
+.tab{
+    padding: 0;
+    width: 100%;    height: 100%;
+   
+    background-color: rgba(36, 36, 36, 0.879);
+}
+
