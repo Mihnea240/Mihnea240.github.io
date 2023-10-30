@@ -6,17 +6,24 @@ html,body{
     display: flex;
     flex-direction: column;
 }
+button{
+    padding: 0;
+    border: none;
+}
+.hide{display: none;}
 
 
 .menu-strip{
     flex: 0 0 5%;
-    
 }
 
 .header{
     flex: 0 1 5%;
+    display: flex;
+    align-items:end ;
     background-color: rgb(23, 23, 23);
     color: white;
+    padding: 0 3rem;
 }
 
 .tab-area{
@@ -31,5 +38,23 @@ html,body{
     width: 100%;    height: 100%;
    
     background-color: rgba(36, 36, 36, 0.879);
+}
+
+.graph-header {
+    height: 70%;
+    border-radius: 5px 5px 0 0;
+    color: inherit;
+    margin: 0 .2vw; padding: .1rem;
+    text-shadow: 0 0 1px black;
+    text-overflow: clip;
+}
+.new-graph{
+    background-color: rgb(36, 36, 36);
+    flex-basis: 5vw;    height: 60%;
+    color: inherit;
+    border-radius: 5px 5px 0 0;
+}
+.new-graph:hover{
+    background-color: rgba(52, 178, 245, 0.544);
 }
 

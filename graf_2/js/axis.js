@@ -1,5 +1,5 @@
 
-const axis_template = /*html*/`
+const _axis_template = /*html*/`
      <style>
         table{
             overflow: hidden;
@@ -38,7 +38,7 @@ class Axis extends HTMLElement{
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML = axis_template;
+        shadow.innerHTML = _axis_template;
         this.table = shadow.querySelector("table");
 
         this.resizeObserver = new ResizeObserver(_=> this.fitElements());

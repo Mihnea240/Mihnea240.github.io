@@ -1,31 +1,5 @@
-function elementFromHtml(html){
-    const template=document.createElement("template");
-    template.innerHTML=html.trim();
-    return template.content.firstElementChild;
-}
 
-function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=ev=>true,onend=ev=>true}){
-    let pos={x:0,y:0},delta=pos;
-    let moveHandle=(ev)=>{
-        delta={x: ev.clientX-pos.x, y: ev.clientY-pos.y};
-        pos = { x: ev.clientX, y: ev.clientY };
-        onmove(ev,delta);
-    }
-    target.addEventListener("mousedown",(ev)=>{
-        pos={x: ev.clientX, y: ev.clientY};
-        
-        if(!onstart(ev))return;
-        target.addEventListener("mousemove",moveHandle);
-        target.addEventListener("mouseup",(ev)=>{
-            onend(ev)
-                target.removeEventListener("mousemove", moveHandle);
-        },{once:true});
-        
-    },false)
-}
-
-
-const tab_template =/*html*/`
+const _tab_template =/*html*/`
     <style>
         :host{
             position: absolute;
@@ -70,13 +44,13 @@ const tab_template =/*html*/`
     </style>
 
     
-    <number-line unit="100px" for="tab"></number-line>
-    <number-line unit="100px" direction="vertical" for="tab"></number-line>
     
     <div id="tab" name="tab">
         <div id="square" draggable="false"></div>
         <slot></slot>
     </div>
+    <number-line unit="100px" for="tab"></number-line>
+    <number-line unit="100px" direction="vertical" for="tab"></number-line>
     
 `
 
@@ -84,7 +58,7 @@ class Tab extends HTMLElement{
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML=tab_template;
+        shadow.innerHTML=_tab_template;
 
         this.square = shadow.getElementById("square");
         const tab = this.shadowRoot.querySelector("#tab");
