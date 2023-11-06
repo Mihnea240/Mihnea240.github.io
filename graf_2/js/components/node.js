@@ -3,6 +3,7 @@ const _node_template = /* html */`
     <style>
         :host{
             position: absolute;
+            z-index: 100;
         }
         div{
             color: var(--node-color);
@@ -37,11 +38,11 @@ class nodeUI extends HTMLElement{
         this.main=shadow.querySelector("[data-state='main']")
         this.pos = { x: 0, y: 0 };
 
-        let offset = { x: 0, y: 0 };
         addCustomDrag(this, {
             onstart: (ev) => {
                 ev.stopPropagation();
                 if (ev.buttons != 1) return false;
+                console.log(this)
                 return true;
             },
             onmove: (ev, delta) => {
@@ -50,19 +51,17 @@ class nodeUI extends HTMLElement{
         })
     }
 
-    position(x,y) {
+    position(x, y) {
         this.pos = {x: x - this.parentRect.left, y: y};
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
-    }
-    connectedCallback() {
-        this.parentRect = this.parentElement.rect;
     }
 
     connectedCallback() {
         let ids = this.id.split('_');
         this.nodeId = parseInt(ids[1]);
         this.graphId = parseInt(ids[0]);
-        this.graph = graphs.get(graphId);
+        this.parentRect = this.getBoundingClientRect(this.parentElement);
+        this.graph = graphs.get(this.graphId);
         this.main.innerHTML = this.nodeId;
     }
 }
