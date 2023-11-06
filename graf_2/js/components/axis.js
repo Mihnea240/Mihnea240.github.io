@@ -33,13 +33,13 @@ const _axis_template = /*html*/`
 
 
 class Axis extends HTMLElement{
-    static td = elementFromHtml(/* html */`<td><div class="h">0</div></td>`);
-    static tr = elementFromHtml(/* html */`<tr><td><div class="v">0</div></td></tr>`);
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _axis_template;
         this.table = shadow.querySelector("table");
+        this.td = elementFromHtml(/* html */`<td><div class="h">0</div></td>`);
+        this.tr = elementFromHtml(/* html */`<tr><td><div class="v">0</div></td></tr>`);
 
         this.resizeObserver = new ResizeObserver(_=> this.fitElements());
         this.resizeObserver.observe(this.table);
@@ -107,12 +107,12 @@ class Axis extends HTMLElement{
         switch (this.getAttribute("direction")) {
             case "horizontal": {
                 size = parseInt(getComputedStyle(this.target).width);
-                lastElement = Axis.td;
+                lastElement = this.td;
                 break;
             }
             case "vertical": {
                 size = parseInt(getComputedStyle(this.target).height);
-                lastElement = Axis.tr;
+                lastElement = this.tr;
                 break;
             }
         }

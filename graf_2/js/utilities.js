@@ -1,6 +1,6 @@
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(random(0,i+1));
         [array[i], array[j]] = [array[j], array[i]];
     }
 }
@@ -11,7 +11,7 @@ function elementFromHtml(html){
     return template.content.firstElementChild;
 }
 
-function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=ev=>true,onend=ev=>true}){
+function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=(ev,delta)=>true,onend=ev=>true}){
     let pos={x:0,y:0},delta=pos;
     let moveHandle=(ev)=>{
         delta={x: ev.clientX-pos.x, y: ev.clientY-pos.y};
@@ -22,10 +22,10 @@ function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=ev=>true,onend=ev
         pos={x: ev.clientX, y: ev.clientY};
         
         if(!onstart(ev))return;
-        target.addEventListener("mousemove",moveHandle);
-        target.addEventListener("mouseup",(ev)=>{
-            onend(ev)
-                target.removeEventListener("mousemove", moveHandle);
+        document.addEventListener("mousemove",moveHandle);
+        document.addEventListener("mouseup",(ev)=>{
+            onend(ev);
+            document.removeEventListener("mousemove", moveHandle);
         },{once:true});
         
     },false)

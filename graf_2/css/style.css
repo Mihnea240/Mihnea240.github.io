@@ -5,6 +5,7 @@ html,body{
     position: absolute;
     display: flex;
     flex-direction: column;
+    background-color: rgb(23, 23, 23);
 }
 button{
     padding: 0;
@@ -12,25 +13,22 @@ button{
 }
 .hide{display: none;}
 
-
-.menu-strip{
-    flex: 0 0 5%;
+/*graph styles*/
+graph-tab{
+    --node-color: white;
+    --node-border: 2px solid white;
+    --node-border-radius: 100%;
+    font-size: 20px;
+    --node-size: 2em;
 }
 
-.header{
-    flex: 0 1 5%;
-    display: flex;
-    align-items:end ;
-    background-color: rgb(23, 23, 23);
-    color: white;
-    padding: 0 3rem;
-}
+/* Tab area */
 
 .tab-area{
     position: relative;
     flex: 1 0 auto;
     background-color: transparent;
-     overflow: hidden;
+    overflow: hidden;
 }
 
 .tab{
@@ -40,21 +38,69 @@ button{
     background-color: rgba(36, 36, 36, 0.879);
 }
 
+/* Headere section*/
+.header{
+    flex: 0 1 2%;
+    display: flex;
+    align-items:end ;
+    background-color: rgb(23, 23, 23);
+    color: white;
+    padding-left: 1vw;
+    border-style: solid;
+    border-width: 3px;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
 .graph-header {
-    height: 70%;
+    height: 80%;
     border-radius: 5px 5px 0 0;
     color: inherit;
-    margin: 0 .2vw; padding: .1rem;
-    text-shadow: 0 0 1px black;
-    text-overflow: clip;
+    margin: 0 .1vw; padding: 0 .5rem;
+    text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
+    min-width: 1%;
+    overflow: hidden;
+    text-wrap: nowrap;
+}
+.graph-header:hover{
+    text-decoration: underline;
+}
+.graph-header.selected{
+    height: 100%;
+    font-weight: bolder;
 }
 .new-graph{
     background-color: rgb(36, 36, 36);
-    flex-basis: 5vw;    height: 60%;
+    flex: 0 0 5vw;    height: 80%;
     color: inherit;
     border-radius: 5px 5px 0 0;
 }
 .new-graph:hover{
     background-color: rgba(52, 178, 245, 0.544);
 }
+
+/* Menu bar */
+
+.menu-bar{
+    flex: 0 1 5%;
+    display: flex;
+    align-items: center;
+    color: white;
+    gap: 2vw;
+    margin-left: 2vw;
+    font-weight: bolder;
+}
+
+.menu-bar button{
+    background-color: inherit;
+    color: inherit;
+    /* padding: .3rem .5rem;
+    border-radius: 10px; */
+}
+.menu-bar button:hover{
+    /* background-color: rgba(52, 178, 245, 0.544);; */
+    border-bottom: 1px double white;
+}
+
 

@@ -48,6 +48,7 @@ const _tab_template =/*html*/`
     <div id="tab" name="tab">
         <div id="square" draggable="false"></div>
         <slot></slot>
+  
     </div>
     <number-line unit="100px" for="tab"></number-line>
     <number-line unit="100px" direction="vertical" for="tab"></number-line>
@@ -73,7 +74,10 @@ class Tab extends HTMLElement{
                 tab.scrollBy(-delta.x, -delta.y);
             }
         })
-
+        this.addEventListener("nodechanged",e=>console.log(e.composedPath()))
+    }
+    connectedCallback() {
+        this.rect = this.getBoundingClientRect();
     }
     
 }
