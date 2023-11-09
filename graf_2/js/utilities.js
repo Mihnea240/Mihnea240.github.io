@@ -43,3 +43,28 @@ function toggleFullScreen(){
 Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
+
+class Point{
+    constructor(x=0,y=0) {
+        this.x = x; this.y = y;
+    }
+    set(x, y) {
+        this.x = x; this.y = y;
+        return this;
+    }
+    translate(x,y) {
+        this.x += x; this.y += y;
+        return this;
+    }
+    dist() { return Math.sqrt(this.x * this.x + this.y * this.y)}
+    distSq() { return (this.x * this.x + this.y * this.y) }
+    multiplyScalar(val) {
+        this.x *= val; this.y *= val;
+    }
+    normalize() {
+        let d = 1/this.dist();
+        this.x *= d; this.y *= d;
+        return this;
+    }
+
+}
