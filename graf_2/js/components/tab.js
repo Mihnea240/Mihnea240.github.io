@@ -10,6 +10,7 @@ const _tab_template =/*html*/`
             width: 100%;  height:100%;
             background-color: transparent;
             user-select: none;
+            z-index: -1;
         }
         #tab{
             position: absolute;
@@ -62,6 +63,7 @@ class Tab extends HTMLElement{
         shadow.innerHTML=_tab_template;
 
         this.square = shadow.getElementById("square");
+        this.css = getComputedStyle(this);
         const tab = this.shadowRoot.querySelector("#tab");
 
         addCustomDrag(this, {

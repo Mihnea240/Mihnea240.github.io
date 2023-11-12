@@ -11,7 +11,7 @@ function getGraphByName(name) {
 }
 
 function createGraph() {
-    let newGraph = new Graph();
+    let newGraph = new Graph("",UNORDERED);
     graphs.set(newGraph.id, newGraph);
 
     newGraph.focus();

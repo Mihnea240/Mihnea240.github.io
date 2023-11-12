@@ -52,7 +52,7 @@ class Point{
         this.x = x; this.y = y;
         return this;
     }
-    translate(x,y) {
+    translate(x=0,y=0) {
         this.x += x; this.y += y;
         return this;
     }

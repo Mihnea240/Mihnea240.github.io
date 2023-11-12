@@ -19,7 +19,10 @@ graph-tab{
     --node-border: 2px solid white;
     --node-border-radius: 100%;
     font-size: 20px;
-    --node-size: 2em;
+    --node-width: 2em;
+    --node-height: 2em;
+    --node-border-radius: 100%;
+    --edge-width: 1px;
 }
 
 /* Tab area */

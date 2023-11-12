@@ -16,9 +16,9 @@ const _node_template = /* html */`
             display: none;
         }
         [name="id"]{
-            width: var(--node-size);
-            aspect-ratio: 1;
-            border-radius: 50%;
+            width: var(--node-width);
+            height: var(--node-height);
+            border-radius: var(--node-border-radius);
             
         }
 
@@ -26,8 +26,6 @@ const _node_template = /* html */`
 
     </style>
     <div name="id" data-state="main"></div>
-    <div class="hide" name="text"></div>
-    <div class="hide" name="img"></div>
 `
 
 class nodeUI extends HTMLElement{
@@ -35,24 +33,59 @@ class nodeUI extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
-        this.main=shadow.querySelector("[data-state='main']")
-        this.pos = { x: 0, y: 0 };
+        this.main = shadow.querySelector("[data-state='main']");
+        this.computedStyles = getComputedStyle(this);
+        this.pos = new Point();
+        this.onmove = _ => true;
+        this.curve = shadow.querySelector("curved-path");
+        let auxP = new Point();
+
 
         addCustomDrag(this, {
             onstart: (ev) => {
-                ev.stopPropagation();
-                if (ev.buttons != 1) return false;
-                console.log(this)
+                ev.stopPropagation();ev.preventDefault();
+                if (ev.buttons == 2) {
+                    this.initCurve();
+                }
                 return true;
             },
             onmove: (ev, delta) => {
-                this.position(this.pos.x + delta.x, this.pos.y + delta.y);
+                console.log(ev.buttons);
+                switch (ev.buttons) {
+                    case 1: {
+                        this.position(this.pos.x + delta.x, this.pos.y + delta.y);
+                        this.onmove(this.nodeId, this.middle());
+                        break;
+                    }
+                    case 2: {
+                        ev.preventDefault();
+                        this.curve.to = auxP.set(ev.pageX-this.parentRect.left, ev.pageY-this.parentRect.top);
+                    } 
+                }
+                
+            },
+            onend: () => {
+                this.curve?.classList.add("hide");
             }
         })
     }
 
+    initCurve() {
+        if (!this.curve) this.curve = this.shadowRoot.appendChild(elementFromHtml('<curved-path></curved-path>'));
+        else this.curve.classList.remove("hide");
+
+        this.curve.from = this.middle();
+    }
+    middle() {
+        return new Point(
+            this.pos.x + parseFloat(this.computedStyles.width) / 2,
+            this.pos.y + parseFloat(this.computedStyles.height) / 2
+        );
+            
+    }
+
     position(x, y) {
-        this.pos = {x: x - this.parentRect.left, y: y};
+        this.pos.set(x,y);
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
     }
 
