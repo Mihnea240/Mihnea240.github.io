@@ -61,6 +61,7 @@ class Graph{
         newNode.onmove = this.hasMoved;
 
         this.positionFunction(this.tab, newNode);
+
         return newNode;
     }
     removeNode(id) {
@@ -94,11 +95,6 @@ class Graph{
 
         let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id}_${x}|${y}"></graph-edge>`));
         edge.from = n1.middle(); edge.to = n2.middle();
-        let sign = edge.from.x < edge.to.x ? 1 : -1;
-        
-        edge.curves[0].p1.pos.translate(sign*100, 0);
-        edge.curves[0].p2.pos.translate(-sign*100, 0);
-        edge.update();
 
         if (this.type == UNORDERED) {
             b.add(x);
@@ -120,5 +116,13 @@ class Graph{
     }
     getEdgeUI(x,y) {
         return document.getElementById("g" + this.id + "_" + x + "|" + y);
+    }
+    positionNodes() {
+        this.tab.classList.add("hide");
+        this.tab.querySelectorAll("graph-node").forEach(node => {
+            this.positionFunction(this.tab, node);
+        });
+        
+        this.tab.classList.remove("hide");
     }
 }

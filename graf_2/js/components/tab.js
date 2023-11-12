@@ -31,6 +31,7 @@ const _tab_template =/*html*/`
             background-color: rgba(0, 0, 0, 0.47);
             border-radius: .2em;
         }
+        .hide{display: none}
         number-line{
             position: absolute; z-index:10;
             font-size: 10px;
@@ -48,6 +49,7 @@ const _tab_template =/*html*/`
     
     <div id="tab" name="tab">
         <div id="square" draggable="false"></div>
+        <curved-path class="hide" style="position: absolute"></curved-path>
         <slot></slot>
   
     </div>
@@ -64,7 +66,8 @@ class Tab extends HTMLElement{
 
         this.square = shadow.getElementById("square");
         this.css = getComputedStyle(this);
-        const tab = this.shadowRoot.querySelector("#tab");
+        const tab = shadow.querySelector("#tab");
+        this.curve = shadow.querySelector("curved-path");
 
         addCustomDrag(this, {
             onmove: (ev,delta)=>{
@@ -76,8 +79,13 @@ class Tab extends HTMLElement{
                 tab.scrollBy(-delta.x, -delta.y);
             }
         })
-        this.addEventListener("nodechanged",e=>console.log(e.composedPath()))
+
+        this.oncontextmenu = (ev)=>{
+            ev.preventDefault();
+        }
     }
+
+
     connectedCallback() {
         this.rect = this.getBoundingClientRect();
     }

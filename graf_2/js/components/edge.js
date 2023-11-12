@@ -24,6 +24,10 @@ class edgeUI extends HTMLElement{
     update() {
         for (let c of this.curves) c.update();
     }
+    lineView() {
+        this.curves[0].p1.set(...this.curves[0].from);
+        this.curves[0].p2.set(...this.curves[1].from);
+    }
 
     set from(point) {
         let sign = (point.x < this.to.x) ? 1 : -1;

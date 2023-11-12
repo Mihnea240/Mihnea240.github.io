@@ -34,11 +34,9 @@ class nodeUI extends HTMLElement{
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
         this.main = shadow.querySelector("[data-state='main']");
-        this.computedStyles = getComputedStyle(this);
         this.pos = new Point();
         this.onmove = _ => true;
-        this.curve = shadow.querySelector("curved-path");
-        let auxP = new Point();
+        this.new_node_protocol = false;
 
 
         addCustomDrag(this, {
@@ -50,36 +48,49 @@ class nodeUI extends HTMLElement{
                 return true;
             },
             onmove: (ev, delta) => {
-                console.log(ev.buttons);
+                
                 switch (ev.buttons) {
                     case 1: {
                         this.position(this.pos.x + delta.x, this.pos.y + delta.y);
-                        this.onmove(this.nodeId, this.middle());
                         break;
                     }
                     case 2: {
-                        ev.preventDefault();
-                        this.curve.to = auxP.set(ev.pageX-this.parentRect.left, ev.pageY-this.parentRect.top);
+                       
+                        this.parentElement.curve.toCoords.translate(delta.x, delta.y);
+                        this.parentElement.curve.p2.pos.translate(delta.x, delta.y);
+                        this.parentElement.curve.update();
                     } 
                 }
                 
             },
-            onend: () => {
-                this.curve?.classList.add("hide");
+            onend: (ev) => {
+                if (this.new_node_protocol) {
+                    this.new_node_protocol = false;
+                    this.parentElement.curve.classList.add("hide");
+
+                    console.log(ev.target);
+                    
+                    let newNode = graphs.get(this.graphId).addNode();
+                    newNode.position(ev.pageX - this.parentRect.left, ev.pageY - this.parentRect.top);
+                }
             }
         })
+
+        this.oncontextmenu = (ev) => {
+            ev.preventDefault();
+        }
     }
 
     initCurve() {
-        if (!this.curve) this.curve = this.shadowRoot.appendChild(elementFromHtml('<curved-path></curved-path>'));
-        else this.curve.classList.remove("hide");
-
-        this.curve.from = this.middle();
+        this.parentElement.curve.classList.remove("hide");
+        this.parentElement.curve.from = this.middle();
+        this.parentElement.curve.to = this.middle();
+        this.new_node_protocol = true;
     }
     middle() {
         return new Point(
-            this.pos.x + parseFloat(this.computedStyles.width) / 2,
-            this.pos.y + parseFloat(this.computedStyles.height) / 2
+            this.pos.x + parseFloat(this.css.width) / 2,
+            this.pos.y + parseFloat(this.css.height) / 2
         );
             
     }
@@ -87,14 +98,15 @@ class nodeUI extends HTMLElement{
     position(x, y) {
         this.pos.set(x,y);
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
+        this.onmove(this.nodeId, this.middle());
     }
 
     connectedCallback() {
         let ids = this.id.split('_');
         this.nodeId = parseInt(ids[1]);
-        this.graphId = parseInt(ids[0]);
+        this.graphId = parseInt(ids[0].slice(1));
         this.parentRect = this.getBoundingClientRect(this.parentElement);
-        this.graph = graphs.get(this.graphId);
+        this.css = getComputedStyle(this);
         this.main.innerHTML = this.nodeId;
     }
 }
