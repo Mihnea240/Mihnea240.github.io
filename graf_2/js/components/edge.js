@@ -30,16 +30,10 @@ class edgeUI extends HTMLElement{
     }
 
     set from(point) {
-        let sign = (point.x < this.to.x) ? 1 : -1;
-        this.curves[0].p1.pos.set(point.x,point.y).translate(100 * sign);
-        this.curves[0].p2.pos.set(this.to.x,this.to.y).translate(-100 * sign);
         this.curves[0].from=point;
     }
     get from(){return this.curves[0].from}
     set to(point) {
-        let sign = (point.x < this.from.x) ? 1 : -1;
-        this.curves[0].p2.pos.set(point.x,point.y).translate(100 * sign);
-        this.curves[0].p1.pos.set(this.from.x,this.from.y).translate(-100 * sign);
         this.curves[0].to=point;
     }
     get to(){return this.curves[0].to}
@@ -65,7 +59,7 @@ const _curve_template =/* html */`
             stroke-width: var(--edge-width);
         }
         .hit-area{
-            stroke-width: calc(4 * var(--edge-width));
+            stroke-width: calc(5 * var(--edge-width));
             stroke-opacity: 0;
         }
         .hit-area:hover{
@@ -76,6 +70,7 @@ const _curve_template =/* html */`
             width: var(--point-width, 10px);
             aspect-ratio: 1;
             background-color: var(--edge-color,red);
+            z-index: 101;
         }
     </style>
 

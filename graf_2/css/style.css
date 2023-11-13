@@ -16,12 +16,13 @@ button{
 /*graph styles*/
 graph-tab{
     --node-color: white;
-    --node-border: 2px solid white;
+    --node-border: 1px solid white;
     --node-border-radius: 100%;
     font-size: 20px;
     --node-width: 2em;
     --node-height: 2em;
     --node-border-radius: 100%;
+    --node-background: rgba(36, 36, 36);
     --edge-width: 1px;
 }
 

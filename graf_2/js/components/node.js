@@ -19,6 +19,7 @@ const _node_template = /* html */`
             width: var(--node-width);
             height: var(--node-height);
             border-radius: var(--node-border-radius);
+            background: var(--node-background);
             
         }
 
@@ -48,6 +49,9 @@ class nodeUI extends HTMLElement{
                 ev.stopPropagation();ev.preventDefault();
                 if (ev.buttons == 2) {
                     this.initCurve();
+                    let p = new Point();
+                    this.parentElement.relativePosition(p.set(ev.clientX, ev.clientY));
+                    this.parentElement.curve.to = p;
                 }
                 return true;
             },
@@ -71,13 +75,19 @@ class nodeUI extends HTMLElement{
                 if (this.new_node_protocol) {
                     this.new_node_protocol = false;
                     this.parentElement.curve.classList.add("hide");
+                    let graph = graphs.get(this.graphId)
 
-                    console.log(ev.target);
+                    if (ev.target.tagName == "GRAPH-NODE") {
+                        graph.addEdge(this.nodeId, ev.target.nodeId);
+                    } else {
+                        let newNode = graph.addNode(), p = new Point(ev.clientX, ev.clientY);
+                        this.parentElement.relativePosition(p);
+                        newNode.position(p.x, p.y);
+                        graph.addEdge(this.nodeId,newNode.nodeId);
+                    }
                     
-                    let graph=graphs.get(this.graphId);
-                    let newNode = graph.addNode();
-                    newNode.position(ev.pageX - this.parentRect.left, ev.pageY - this.parentRect.top);
-                    graph.addEdge(this.nodeId,newNode.nodeId);
+                    
+
                 }
             }
         })
@@ -93,12 +103,11 @@ class nodeUI extends HTMLElement{
         this.parentElement.curve.to = this.middle();
         this.new_node_protocol = true;
     }
-    middle() {
+    middle(x=0.5,y=0.5) {
         return new Point(
-            this.pos.x + parseFloat(this.css.width) / 2,
-            this.pos.y + parseFloat(this.css.height) / 2
-        );
-            
+            this.pos.x + parseFloat(this.css.width)  * x,
+            this.pos.y + parseFloat(this.css.height) * y
+        );   
     }
 
     position(x, y) {

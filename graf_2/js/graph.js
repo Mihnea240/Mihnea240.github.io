@@ -36,8 +36,6 @@ class Graph{
 
 
         this.addNode();
-        this.addNode();
-        this.addEdge(1,2);
     }
 
     unfocus() {

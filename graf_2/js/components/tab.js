@@ -12,7 +12,7 @@ const _tab_template =/*html*/`
             user-select: none;
             z-index: -1;
         }
-        #tab{
+        .tab{
             position: absolute;
             overflow: scroll;
             width: 100%;  height:100%;
@@ -47,7 +47,7 @@ const _tab_template =/*html*/`
 
     
     
-    <div id="tab" name="tab">
+    <div class="tab" name="tab">
         <div id="square" draggable="false"></div>
         <curved-path class="hide" style="position: absolute"></curved-path>
         <slot></slot>
@@ -66,7 +66,7 @@ class Tab extends HTMLElement{
 
         this.square = shadow.getElementById("square");
         this.css = getComputedStyle(this);
-        const tab = shadow.querySelector("#tab");
+        this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
 
         addCustomDrag(this, {
@@ -76,17 +76,18 @@ class Tab extends HTMLElement{
                 let dy=rect.height-delta.y;
 
                 this.square.style.cssText += `width: ${dx}px; height: ${dy}px`;
-                tab.scrollBy(-delta.x, -delta.y);
+                this.tab.scrollBy(-delta.x, -delta.y);
             }
         })
 
         this.oncontextmenu = (ev)=>{
-            ev.preventDefault();
+            //ev.preventDefault();
         }
     }
 
-    relativePosition(point){
-        point.translate(this.sco)
+    relativePosition(point) {
+        
+        point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
     }
 
 
