@@ -85,6 +85,10 @@ class Tab extends HTMLElement{
         }
     }
 
+    relativePosition(point){
+        point.translate(this.sco)
+    }
+
 
     connectedCallback() {
         this.rect = this.getBoundingClientRect();
