@@ -38,6 +38,10 @@ class nodeUI extends HTMLElement{
         this.onmove = _ => true;
         this.new_node_protocol = false;
 
+        let ids = this.id.split('_');
+        this.nodeId = parseInt(ids[1]);
+        this.graphId = parseInt(ids[0].slice(1));
+
 
         addCustomDrag(this, {
             onstart: (ev) => {
@@ -70,8 +74,10 @@ class nodeUI extends HTMLElement{
 
                     console.log(ev.target);
                     
-                    let newNode = graphs.get(this.graphId).addNode();
+                    let graph=graphs.get(this.graphId);
+                    let newNode = graph.addNode();
                     newNode.position(ev.pageX - this.parentRect.left, ev.pageY - this.parentRect.top);
+                    graph.addEdge(this.nodeId,newNode.nodeId);
                 }
             }
         })
@@ -102,9 +108,6 @@ class nodeUI extends HTMLElement{
     }
 
     connectedCallback() {
-        let ids = this.id.split('_');
-        this.nodeId = parseInt(ids[1]);
-        this.graphId = parseInt(ids[0].slice(1));
         this.parentRect = this.getBoundingClientRect(this.parentElement);
         this.css = getComputedStyle(this);
         this.main.innerHTML = this.nodeId;
