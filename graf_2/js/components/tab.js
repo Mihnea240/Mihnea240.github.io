@@ -58,11 +58,11 @@ const _tab_template =/*html*/`
     
 `
 
-class Tab extends HTMLElement{
+class Tab extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML=_tab_template;
+        shadow.innerHTML = _tab_template;
 
         this.square = shadow.getElementById("square");
         this.css = getComputedStyle(this);
@@ -70,23 +70,28 @@ class Tab extends HTMLElement{
         this.curve = shadow.querySelector("curved-path");
 
         addCustomDrag(this, {
-            onmove: (ev,delta)=>{
-                let rect=this.square.getBoundingClientRect();
-                let dx=rect.width -delta.x;
-                let dy=rect.height-delta.y;
+            onstart: (ev) => {
+                if (ev.target.tagName == "GRAPH-EDGE") {
+                }
+                return true;
+            },
+            onmove: (ev, delta) => {
+                let rect = this.square.getBoundingClientRect();
+                let dx = rect.width - delta.x;
+                let dy = rect.height - delta.y;
 
                 this.square.style.cssText += `width: ${dx}px; height: ${dy}px`;
                 this.tab.scrollBy(-delta.x, -delta.y);
             }
         })
 
-        this.oncontextmenu = (ev)=>{
+        this.oncontextmenu = (ev) => {
             //ev.preventDefault();
         }
     }
 
     relativePosition(point) {
-        
+
         point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
     }
 
@@ -94,7 +99,7 @@ class Tab extends HTMLElement{
     connectedCallback() {
         this.rect = this.getBoundingClientRect();
     }
-    
+
 }
 
 customElements.define("graph-tab", Tab);

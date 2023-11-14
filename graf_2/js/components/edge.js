@@ -8,7 +8,7 @@ const _edge_template = /* html */`
     </style>
 `
 
-class edgeUI extends HTMLElement{
+class edgeUI extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -30,13 +30,17 @@ class edgeUI extends HTMLElement{
     }
 
     set from(point) {
-        this.curves[0].from=point;
+        this.curves[0].from = point;
     }
-    get from(){return this.curves[0].from}
+    get from() { return this.curves[0].from }
     set to(point) {
-        this.curves[0].to=point;
+        this.curves[0].to = point;
     }
-    get to(){return this.curves[0].to}
+    get to() { return this.curves[0].to }
+    set selected(flag) {
+        for (let c of this.curves) c.selected = !!flag;
+    }
+    get selected() { return this.select };
 
     connectedCallback() {
     }
@@ -86,7 +90,7 @@ const _curve_template =/* html */`
 
 `
 
-class BezierCurve extends HTMLElement{
+class BezierCurve extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -97,7 +101,7 @@ class BezierCurve extends HTMLElement{
 
         [this.p1, this.p2] = shadow.querySelectorAll("div");
         [this.l1, this.l2] = shadow.querySelectorAll("line");
-       
+
         this.paths = shadow.querySelectorAll("path");
         this.p1.pos = new Point();
         this.p2.pos = new Point();
@@ -127,27 +131,27 @@ class BezierCurve extends HTMLElement{
         this.paths.forEach(p => p.setAttribute("d", new_val));
         this.p1.style.cssText += `left: ${this.p1.pos.x}px; top: ${this.p1.pos.y}px;`
         this.p2.style.cssText += `left: ${this.p2.pos.x}px; top: ${this.p2.pos.y}px;`
-        
-        
+
+
         this.l1.setAttribute("x1", this.fromCoords.x);
         this.l1.setAttribute("y1", this.fromCoords.y);
         this.l1.setAttribute("x2", this.p1.pos.x);
         this.l1.setAttribute("y2", this.p1.pos.y);
-        
+
         this.l2.setAttribute("x1", this.toCoords.x);
         this.l2.setAttribute("y1", this.toCoords.y);
         this.l2.setAttribute("x2", this.p2.pos.x);
         this.l2.setAttribute("y2", this.p2.pos.y);
-        
+
         this.classList.toggle("hide");
     }
-    
+
     set from(position) {
         this.p1.pos.translate(position.x - this.fromCoords.x, position.y - this.fromCoords.y);
         this.fromCoords.set(position.x, position.y);
         this.update();
     }
-    get from(){return this.fromCoords}
+    get from() { return this.fromCoords }
     set to(position) {
         this.p2.pos.translate(position.x - this.toCoords.x, position.y - this.toCoords.y);
         this.toCoords.set(position.x, position.y);
@@ -157,13 +161,13 @@ class BezierCurve extends HTMLElement{
 
     set selected(flag) {
         this.select = !!flag;
-        this.p1.classList.toggle("hide",!flag);
-        this.l1.classList.toggle("hide",!flag);
-        this.p2.classList.toggle("hide",!flag);
-        this.l2.classList.toggle("hide",!flag);
+        this.p1.classList.toggle("hide", !flag);
+        this.l1.classList.toggle("hide", !flag);
+        this.p2.classList.toggle("hide", !flag);
+        this.l2.classList.toggle("hide", !flag);
     }
     get selected() { return this.select }
-    
+
 
 }
 
