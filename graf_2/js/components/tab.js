@@ -9,6 +9,7 @@ const _tab_template =/*html*/`
             position: absolute;
             width: 100%;  height:100%;
             background-color: transparent;
+            pointer-events:none;
             user-select: none;
             z-index: -1;
         }
@@ -17,6 +18,7 @@ const _tab_template =/*html*/`
             overflow: scroll;
             width: 100%;  height:100%;
             background: inherit;
+            z-index: -1;
             
         }
         ::-webkit-scrollbar{
@@ -85,11 +87,19 @@ class Tab extends HTMLElement{
         }
     }
 
-    relativePosition(point) {
-        
-        point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
+    recalculateEdges(nodeId,point) {
+        this.connectedEdges(nodeId).forEach((ed) => {
+            if (ed.fromNode === nodeId) ed.from = point;
+            else if (ed.toNode === nodeId) ed.to = point;
+        })
+    }
+    connectedEdges(nodeId) {
+        return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
     }
 
+    relativePosition(point) {
+        point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
+    }
 
     connectedCallback() {
         this.rect = this.getBoundingClientRect();

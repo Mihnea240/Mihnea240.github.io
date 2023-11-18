@@ -44,6 +44,8 @@ Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
 
+Math.rad2Deg = 57.2957795;
+
 class Point{
     constructor(x=0,y=0) {
         this.x = x; this.y = y;
@@ -60,10 +62,10 @@ class Point{
     distSq() { return (this.x * this.x + this.y * this.y) }
     multiplyScalar(val) {
         this.x *= val; this.y *= val;
+        return this;
     }
     normalize() {
-        let d = 1/this.dist();
-        this.x *= d; this.y *= d;
+        this.multiplyScalar(1 / this.dist());
         return this;
     }
 

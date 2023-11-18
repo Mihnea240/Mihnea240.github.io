@@ -26,12 +26,17 @@ class Graph{
         this.nodes = new Map();
         this.a_nodeId = 1;
         this.hasMoved = (nodeId, point) => {
-            for (let n of this.nodes.get(nodeId)) {
+
+            this.connectedEdges(nodeId).forEach((ed) => {
+                
+            })
+            /*for (let n of this.nodes.get(nodeId)) {
                 let a = this.getEdgeUI(nodeId, n);
                 let b = this.getEdgeUI(n, nodeId);
+                console.log(a,b)
                 if(a)a.from = point;
                 if(b)b.to = point;
-            }
+            }*/
         }
 
 
@@ -55,8 +60,7 @@ class Graph{
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());
-        let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id}_${this.a_nodeId}" ></graph-node>`));
-        newNode.onmove = this.hasMoved;
+        let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id} ${this.a_nodeId}" ></graph-node>`));
 
         this.positionFunction(this.tab, newNode);
 
@@ -80,24 +84,24 @@ class Graph{
         }
     }
     getNodeUI(id) {
-        return document.getElementById("g" + this.id + "_" + id);
+        return document.getElementById("g" + this.id + " " + id);
     }
     addEdge(x, y) {
-        let a = this.nodes.get(x);
-        let b = this.nodes.get(y);
-        if (!(a && b && !a.has(y))) return;
+        if ((x == y) || this.isEdge(x, y) || (this.type == UNORDERED && this.isEdge(y, x))) return;
         
-        a.add(y);
+        this.nodes.get(x).add(y);
         let n1 = this.getNodeUI(x);
         let n2 = this.getNodeUI(y);
-
-        let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id}_${x}|${y}"></graph-edge>`));
+        
+        let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}"></graph-edge>`));
+        /*edge.offset = 0;
+        if (this.type == ORDERED) {
+            edge.offset=10;
+            if (this.getEdgeUI(y, x)) edge.offset=-10;
+        } else */
+        if (this.type == UNORDERED) this.nodes.get(x).add(y);
+        
         edge.from = n1.middle(); edge.to = n2.middle();
-
-        if (this.type == UNORDERED) {
-            b.add(x);
-            //this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id}_${y}|${x}" from=${y} to=${x}></graph-edge>`));
-        }
     }
     removeEdge(x,y) {
         if (!this.isEdge()) return;
@@ -110,10 +114,10 @@ class Graph{
         }
     }
     isEdge(x,y) {
-        return this.get(x)?.has(y);
+        return this.nodes.get(x)?.has(y);
     }
     getEdgeUI(x,y) {
-        return document.getElementById("g" + this.id + "_" + x + "|" + y);
+        return document.getElementById("g" + this.id + " " + x + " " + y);
     }
     positionNodes() {
         this.tab.classList.add("hide");

@@ -39,7 +39,7 @@ class nodeUI extends HTMLElement{
         this.onmove = _ => true;
         this.new_node_protocol = false;
 
-        let ids = this.id.split('_');
+        let ids = this.id.split(' ');
         this.nodeId = parseInt(ids[1]);
         this.graphId = parseInt(ids[0].slice(1));
 
@@ -50,7 +50,7 @@ class nodeUI extends HTMLElement{
                 if (ev.buttons == 2) {
                     this.initCurve();
                     let p = new Point();
-                    this.parentElement.relativePosition(p.set(ev.clientX, ev.clientY));
+                    this.parentElement.relativePosition(p.set(ev.clientX-5, ev.clientY-5));
                     this.parentElement.curve.to = p;
                 }
                 return true;
@@ -103,6 +103,8 @@ class nodeUI extends HTMLElement{
         this.parentElement.curve.to = this.middle();
         this.new_node_protocol = true;
     }
+
+
     middle(x=0.5,y=0.5) {
         return new Point(
             this.pos.x + parseFloat(this.css.width)  * x,
@@ -113,7 +115,7 @@ class nodeUI extends HTMLElement{
     position(x, y) {
         this.pos.set(x,y);
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
-        this.onmove(this.nodeId, this.middle());
+        this.parentElement.recalculateEdges(this.nodeId, this.middle());
     }
 
     connectedCallback() {

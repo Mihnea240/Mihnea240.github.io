@@ -24,6 +24,8 @@ graph-tab{
     --node-border-radius: 100%;
     --node-background: rgba(36, 36, 36);
     --edge-width: 1px;
+    --edge-color: white;
+    z-index: 10;
 }
 
 /* Tab area */
@@ -32,6 +34,7 @@ graph-tab{
     position: relative;
     flex: 1 0 auto;
     background-color: transparent;
+    z-index: 1;
     overflow: hidden;
 }
 
