@@ -45,8 +45,8 @@ graph-tab{
     font-size: 20px;
     --node-width: 2em;
     --node-height: 2em;
-    --node-border-radius: 100%;
     --node-background: rgba(36, 36, 36);
+    --graph-color: rgb(255, 215, 72);
     --edge-width: 1px;
     --edge-color: white;
     z-index: 10;

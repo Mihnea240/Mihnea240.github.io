@@ -5,6 +5,11 @@ const _edge_template = /* html */`
             position: absolute;
             width: 10%;height: 10%;
         }
+        :host(:--selected){
+            box-shadow:
+                0 0 .5rem var(--graph-color),
+                0 0 .3rem var(--graph-color) inset;
+        }
     </style>
 `
 
@@ -13,10 +18,13 @@ class edgeUI extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _edge_template;
+        this._internals = this.attachInternals();
 
         shadow.appendChild(this.curve = document.createElement("curved-path"));
 
         [this.graphId, this.fromNode, this.toNode] = this.id.slice(1).split(" ").map((el) => parseInt(el));
+
+        this.addEventListener("context")
 
     }
 
@@ -43,6 +51,16 @@ class edgeUI extends HTMLElement{
     get to() {
         return this.curve.to;
     }
+    set selected(flag) {
+        if (flag) {
+            this._internals.states.add("--selected");
+            graphs.get(this.graphId).selection.add(this);
+        } else {
+            this._internals.states.delete("--selected");
+            graphs.get(this.graphId).selection.delete(this);
+        }
+    }
+    get selected() {return this._internals.has("--selected");}
     
     connectedCallback() {
         if (graphs.get(this.graphId).type == ORDERED) this.curve.addArrow();

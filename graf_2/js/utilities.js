@@ -44,12 +44,17 @@ Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
 
-function contentEdit(el) {
+function contentEdit(el, {maxSize=0,minSize=0,pattern=""}) {
     el.addEventListener("keydown", (ev) => {
         if (ev.key == "Enter") {
             ev.preventDefault();
             el.blur();
         }
+        let len = el.textContent.length,add=0,remove=0;
+        if (ev.key == "Delete" || ev.key == "Backspace") remove = 1;
+        else add = 1;
+
+        if (len + add > maxSize || len - remove < minSize) ev.preventDefault(); 
     })
     el.addEventListener("blur", (ev) => {
         el.setAttribute("contenteditable", false);

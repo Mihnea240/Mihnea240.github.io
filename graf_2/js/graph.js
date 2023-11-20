@@ -6,6 +6,7 @@ class Graph{
     constructor(input,type) {
         this.id = ++Graph.id;
         this.type = type;
+        this.selection = new Selection();
         createTabUI(this.id);
 
         this.tab = document.getElementById("g" + this.id);
@@ -30,12 +31,6 @@ class Graph{
         tab.classList.remove("hide");
         headerArea.style.borderImage = header.style.background + " 1";
     }
-    rename(newName=0) {
-        if (newName == 0) {
-            this.header = 1;
-        }
-    }
-
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());

@@ -20,7 +20,12 @@ const _node_template = /* html */`
             height: var(--node-height);
             border-radius: var(--node-border-radius);
             background: var(--node-background);
-            
+        }
+        :host(:--selected) div{
+            box-shadow:
+                0 0 .5rem var(--graph-color),
+                0 0 .3rem var(--graph-color) inset
+
         }
 
 
@@ -38,6 +43,7 @@ class nodeUI extends HTMLElement{
         this.pos = new Point();
         this.onmove = _ => true;
         this.new_node_protocol = false;
+        this._internals = this.attachInternals();
 
         let ids = this.id.split(' ');
         this.nodeId = parseInt(ids[1]);
@@ -48,10 +54,10 @@ class nodeUI extends HTMLElement{
             onstart: (ev) => {
                 ev.stopPropagation();ev.preventDefault();
                 if (ev.buttons == 2) {
-                    this.initCurve();
+                    /*this.initCurve();
                     let p = new Point();
                     this.parentElement.relativePosition(p.set(ev.clientX-5, ev.clientY-5));
-                    this.parentElement.curve.to = p;
+                    this.parentElement.curve.to = p;*/
                 }
                 return true;
             },
@@ -63,7 +69,9 @@ class nodeUI extends HTMLElement{
                         break;
                     }
                     case 2: {
-                       
+                        if (this.new_node_protocol == false) {
+                            this.initCurve();
+                        }
                         this.parentElement.curve.toCoords.translate(delta.x, delta.y);
                         this.parentElement.curve.p2.pos.translate(delta.x, delta.y);
                         this.parentElement.curve.update();
@@ -72,6 +80,8 @@ class nodeUI extends HTMLElement{
                 
             },
             onend: (ev) => {
+                ev.stopPropagation(); ev.stopImmediatePropagation();
+                console.log(this.new_node_protocol);
                 if (this.new_node_protocol) {
                     this.new_node_protocol = false;
                     this.parentElement.curve.classList.add("hide");
@@ -83,19 +93,27 @@ class nodeUI extends HTMLElement{
                         let newNode = graph.addNode(), p = new Point(ev.clientX, ev.clientY);
                         this.parentElement.relativePosition(p);
                         newNode.position(p.x, p.y);
-                        graph.addEdge(this.nodeId,newNode.nodeId);
+                        graph.addEdge(this.nodeId, newNode.nodeId);
+                        
                     }
-                    
-                    
-
+                }else if (ev.button == 2) {
+                     this.selected = !this.selected;
                 }
             }
         })
 
-        this.oncontextmenu = (ev) => {
-            ev.preventDefault();
+        this.oncontextmenu = (ev) => ev.preventDefault();
+    }
+    set selected(flag) {
+        if (flag) {
+            this._internals.states.add("--selected");
+            graphs.get(this.graphId).selection.add(this);
+        } else {
+            this._internals.states.delete("--selected");
+            graphs.get(this.graphId).selection.delete(this);
         }
     }
+    get selected() {return this._internals.states.has("--selected");}
 
     initCurve() {
         this.parentElement.curve.classList.remove("hide");

@@ -85,6 +85,13 @@ class Tab extends HTMLElement{
         this.graphId = parseInt(this.id.slice(1));
 
         addCustomDrag(this, {
+            onstart: (ev) => {
+                let selection = graphs.get(this.graphId).selection;
+                if (!selection.empty() && (ev.target.tagName !== "GRAPH-NODE" || ev.target.tagName !== "GRAPH-EDGE")) {
+                    selection.clear();
+                }
+                return true;
+            },
             onmove: (ev,delta)=>{
                 let rect=this.square.getBoundingClientRect();
                 let dx=rect.width -delta.x;
