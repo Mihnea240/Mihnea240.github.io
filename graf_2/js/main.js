@@ -5,15 +5,21 @@ window.onload = () => {
 const graphs = new Map();
 
 function createGraph() {
-    let newGraph = new Graph("",ORDERED);
+    let newGraph = new Graph("",UNORDERED);
     graphs.set(newGraph.id, newGraph);
 
     newGraph.focus();
     graphs.selected = newGraph;
 }
 
-newGraphButton.addEventListener("click", (ev) => {
-    createGraph();
-    ev.stopImmediatePropagation(); ev.stopPropagation();
-})
 
+const keyBindings = {
+    F2: "fullscreen",
+}
+const ACTIONS = {
+    fullscreen: () => toggleFullScreen(),
+}
+
+document.addEventListener("keydown", (ev) => {
+    ACTIONS[keyBindings[ev.key]]?.();
+})

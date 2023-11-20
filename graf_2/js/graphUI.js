@@ -7,26 +7,35 @@ const newGraphButton = document.querySelector(".new-graph");
 const tabArea = document.querySelector(".tab-area");
 const headerArea = document.querySelector(".header");
 const tab_template = elementFromHtml(`<graph-tab class="tab"></graph-tab>`);
-const header_template = elementFromHtml(`<button class="graph-header selected"><span></span></button>`);
-const action_menu = document.querySelector(".action-menu");
+const header_template = elementFromHtml(`
+    <button class="graph-header selected">
+        <span class="text" spellcheck="false"></span>
+    </button>
+`);
 
 newGraphButton.addEventListener("click", (ev) => {
-    createGraph();
-    ev.stopImmediatePropagation(); ev.stopPropagation();
+    
 })
 
 headerArea.addEventListener("click", (ev) => {
-    if (!ev.target.classList.contains("graph-header")) return;
+    if (ev.target.classList.contains("new-graph")) {
+        createGraph();
+        ev.stopImmediatePropagation(); ev.stopPropagation();
+        return;
+    }
+    if (ev.target.classList.contains("header")) return;
     
-    let newSelected = graphs.get(parseInt(ev.target.id.slice(1)));
+    let id = ev.target.tagName == "SPAN" ? ev.target.parentElement.id : ev.target.id;
+    let newSelected = graphs.get(parseInt(id.slice(1)));
     newSelected.focus();
 })
 
 headerArea.addEventListener("dblclick", (ev) => {
-    console.log(ev.target);
+    
     if (ev.target.tagName!=="SPAN") return;
 
     ev.target.setAttribute("contenteditable", true);
+    ev.target.focus();
     
 })
 
@@ -40,6 +49,7 @@ function createTabUI(id) {
     header_template.id = "h" + id;
     let newTab=tabArea.appendChild(tab_template.cloneNode(true));
     let newHeader = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
+    contentEdit(newHeader.querySelector(".text"));
     
     //selectedHeader.style.backgroundColor = colors[colorIndex];
     let gradient = `linear-gradient(45deg,${colors[colorIndex - 1]},${colors[colorIndex]})`;
@@ -52,14 +62,5 @@ function createTabUI(id) {
         colorIndex = 1;
     }
 
-    newHeader.querySelector("span").textContent = "New graph " + id;
+    newHeader.querySelector(".text").textContent = "New graph " + id;
 }
-
-
-
-
-document.addEventListener("click", (ev) => {
-    if (action_menu.open && !action_menu.contains(ev.target)) {
-        action_menu.close();
-    }
-})

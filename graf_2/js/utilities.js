@@ -44,6 +44,19 @@ Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
 
+function contentEdit(el) {
+    el.addEventListener("keydown", (ev) => {
+        if (ev.key == "Enter") {
+            ev.preventDefault();
+            el.blur();
+        }
+    })
+    el.addEventListener("blur", (ev) => {
+        el.setAttribute("contenteditable", false);
+    })
+    return el;
+}
+
 Math.rad2Deg = 57.2957795;
 
 class Point{
