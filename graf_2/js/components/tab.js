@@ -83,7 +83,7 @@ class Tab extends HTMLElement{
         this.curve = shadow.querySelector("curved-path");
         this.positionFunction = PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
-        
+
         addCustomDrag(this, {
             onmove: (ev,delta)=>{
                 let rect=this.square.getBoundingClientRect();

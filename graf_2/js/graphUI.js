@@ -36,10 +36,10 @@ let colorIndex = 1;
 
 
 function createTabUI(id) {
+    tab_template.id = "g" + id;
+    header_template.id = "h" + id;
     let newTab=tabArea.appendChild(tab_template.cloneNode(true));
     let newHeader = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
-    newTab.id = "g" + id
-    newHeader.id = "h" + id;
     
     //selectedHeader.style.backgroundColor = colors[colorIndex];
     let gradient = `linear-gradient(45deg,${colors[colorIndex - 1]},${colors[colorIndex]})`;
