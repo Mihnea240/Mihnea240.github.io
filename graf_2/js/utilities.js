@@ -44,6 +44,26 @@ Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
 
+function contentEdit(el, {maxSize=0,minSize=0,pattern=""}) {
+    el.addEventListener("keydown", (ev) => {
+        if (ev.key == "Enter") {
+            ev.preventDefault();
+            el.blur();
+        }
+        let len = el.textContent.length,add=0,remove=0;
+        if (ev.key == "Delete" || ev.key == "Backspace") remove = 1;
+        else add = 1;
+
+        if (len + add > maxSize || len - remove < minSize) ev.preventDefault(); 
+    })
+    el.addEventListener("blur", (ev) => {
+        el.setAttribute("contenteditable", false);
+    })
+    return el;
+}
+
+Math.rad2Deg = 57.2957795;
+
 class Point{
     constructor(x=0,y=0) {
         this.x = x; this.y = y;
@@ -60,10 +80,10 @@ class Point{
     distSq() { return (this.x * this.x + this.y * this.y) }
     multiplyScalar(val) {
         this.x *= val; this.y *= val;
+        return this;
     }
     normalize() {
-        let d = 1/this.dist();
-        this.x *= d; this.y *= d;
+        this.multiplyScalar(1 / this.dist());
         return this;
     }
 

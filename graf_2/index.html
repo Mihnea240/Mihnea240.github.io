@@ -14,9 +14,11 @@
     <script defer src="js/components/axis.js"></script>
     <script defer src="js/components/node.js"></script>
     <script defer src="js/components/edge.js"></script>
+    <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/components/graphAdditionMenu.js"></script>
+    <script defer src="js/selection.js"></script>
     <script defer src="js/graph.js"></script>
-    <script defer src="js/add.js"></script>
+    <script defer src="js/graphUI.js"></script>
     <script defer src="js/main.js"></script>
     <title>Graph Maker</title>
 </head>
@@ -32,8 +34,12 @@
         <button class="new-graph" style="font-size: 1.3em;">+</button>
     </div>
 
-    <div class="tab-area"></div>
-
+    <div class="tab-area" draggable="false"></div>
+        
+    <pop-menu class="action-menu">
+            <input type="text">
+            <button>Rename</button>
+    </pop-menu>
 </body>
 
 

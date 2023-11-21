@@ -9,6 +9,7 @@ const _tab_template =/*html*/`
             position: absolute;
             width: 100%;  height:100%;
             background-color: transparent;
+            pointer-events:none;
             user-select: none;
             z-index: -1;
         }
@@ -17,6 +18,7 @@ const _tab_template =/*html*/`
             overflow: scroll;
             width: 100%;  height:100%;
             background: inherit;
+            z-index: -1;
             
         }
         ::-webkit-scrollbar{
@@ -58,6 +60,17 @@ const _tab_template =/*html*/`
     
 `
 
+const PositionFunctons = {
+    randomScreen: (graph_tab, node) => {
+        let x_off = graph_tab.scrollLeft;
+        let y_off = graph_tab.scrollTop;
+        let width = random(0, parseFloat(graph_tab.css.width));
+        let height = random(0, parseFloat(graph_tab.css.height));
+
+        node.position(x_off + width, x_off + height);
+    }
+}
+
 class Tab extends HTMLElement {
     constructor() {
         super();
@@ -68,10 +81,14 @@ class Tab extends HTMLElement {
         this.css = getComputedStyle(this);
         this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
+        this.positionFunction = PositionFunctons.randomScreen;
+        this.graphId = parseInt(this.id.slice(1));
 
         addCustomDrag(this, {
             onstart: (ev) => {
-                if (ev.target.tagName == "GRAPH-EDGE") {
+                let selection = graphs.get(this.graphId).selection;
+                if (!selection.empty() && (ev.target.tagName !== "GRAPH-NODE" || ev.target.tagName !== "GRAPH-EDGE")) {
+                    selection.clear();
                 }
                 return true;
             },
@@ -88,6 +105,30 @@ class Tab extends HTMLElement {
         this.oncontextmenu = (ev) => {
             //ev.preventDefault();
         }
+
+        let slot = shadow.querySelector("slot");
+        slot.addEventListener("slotchange", (ev) => {
+            let newEl = slot.assignedNodes().back()
+            if (newEl.tagName === "GRAPH-NODE") {
+                this.positionFunction(this, newEl);
+            }
+        })
+    }
+
+    recalculateEdges(nodeId, point) {
+        this.connectedEdges(nodeId).forEach((ed) => {
+            if (ed.fromNode === nodeId) ed.from = point;
+            else if (ed.toNode === nodeId) ed.to = point;
+        })
+    }
+    connectedEdges(nodeId) {
+        return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
+    }
+    getNode(id) {
+        return document.getElementById("g" + this.graphId + " " + id);
+    }
+    getEdge(x, y) {
+        return document.getElementById("g" + this.graphId + " " + x + " " + y);
     }
 
     relativePosition(point) {
@@ -95,6 +136,13 @@ class Tab extends HTMLElement {
         point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
     }
 
+    positionNodes() {
+        this.classList.add("hide");
+        this.querySelectorAll("graph-node").forEach(node => {
+            this.positionFunction(this.tab, node);
+        });
+        this.classList.remove("hide");
+    }
 
     connectedCallback() {
         this.rect = this.getBoundingClientRect();
