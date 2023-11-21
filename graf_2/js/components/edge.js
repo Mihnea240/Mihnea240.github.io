@@ -5,10 +5,8 @@ const _edge_template = /* html */`
             position: absolute;
             width: 10%;height: 10%;
         }
-        :host(:--selected){
-            box-shadow:
-                0 0 .5rem var(--graph-color),
-                0 0 .3rem var(--graph-color) inset;
+        :host(:--selected) curved-path::part(svg){
+            filter:drop-shadow(0 0 .5rem var(--graph-color));
         }
     </style>
 `
@@ -24,7 +22,11 @@ class edgeUI extends HTMLElement {
 
         [this.graphId, this.fromNode, this.toNode] = this.id.slice(1).split(" ").map((el) => parseInt(el));
 
-        this.addEventListener("context")
+        this.addEventListener("contextmenu", (ev) => {
+            ev.preventDefault();
+            this.selected = !this.selected;
+            console.log(this);
+        })
 
     }
 
@@ -34,9 +36,6 @@ class edgeUI extends HTMLElement {
     lineView() {
         this.curve.p1.set(...this.curve.from);
         this.curve.p2.set(...this.curve.from);
-    }
-    set offset(value) {
-        this.curve.offset = value;
     }
 
     set from(point) {
@@ -60,7 +59,7 @@ class edgeUI extends HTMLElement {
             graphs.get(this.graphId).selection.delete(this);
         }
     }
-    get selected() { return this._internals.has("--selected"); }
+    get selected() { return this._internals.states.has("--selected"); }
 
     connectedCallback() {
         if (graphs.get(this.graphId).type == ORDERED) this.curve.addArrow();
@@ -76,7 +75,9 @@ const _curve_template =/* html */`
             position: absolute;
         }
         .hide{visibility: hidden};
-        svg{ position: absolute;}
+        svg,path{
+            position: absolute;
+        }
 
         .curve path,.curve line{
             fill: none;
@@ -119,7 +120,7 @@ const _curve_template =/* html */`
 
     <div class="point" draggable="false"></div>
     <div class="point" draggable="false"></div>
-    <svg class="curve" draggable="false" fill="none" overflow="visible">
+    <svg class="curve" draggable="false" fill="none" overflow="visible" part="svg">
         <path class="visible"/>
         <path class="hit-area"/>
         <line/>
