@@ -44,18 +44,25 @@ Array.prototype.back=function(steps=0){
     return this.at(this.length-steps-1);
 }
 
-function contentEdit(el, {maxSize=0,minSize=0,pattern=""}) {
+function contentEdit(el, {maxSize=0,minSize=0,empty = "",pattern=new RegExp()}) {
     el.addEventListener("keydown", (ev) => {
-        if (ev.key == "Enter") {
-            ev.preventDefault();
-            el.blur();
+        let len = el.textContent.length, add = 0, remove = 0;
+        switch (ev.key) {
+            case "Enter": {
+                el.blur();
+                ev.preventDefault();
+                if (len - remove == 0) el.textContent = empty;
+                return;
+            }
+            case "ArrowLeft": case "ArrowRight": return;
+            case "Delete": case "Backspace": remove = 1; break;
+            default: add = 1;
         }
-        let len = el.textContent.length,add=0,remove=0;
-        if (ev.key == "Delete" || ev.key == "Backspace") remove = 1;
-        else add = 1;
-
+        
+        
         if (len + add > maxSize || len - remove < minSize) ev.preventDefault(); 
     })
+    el.oninput = (ev) => el.textContent= el.textContent.replace(pattern, "");
     el.addEventListener("blur", (ev) => {
         el.setAttribute("contenteditable", false);
     })

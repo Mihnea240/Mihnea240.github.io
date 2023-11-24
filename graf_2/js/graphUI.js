@@ -12,6 +12,7 @@ const header_template = elementFromHtml(`
         <span class="text" spellcheck="false"></span>
     </button>
 `);
+const graphDialog = document.querySelector("graph-menu");
 
 newGraphButton.addEventListener("click", (ev) => {
     
@@ -19,8 +20,8 @@ newGraphButton.addEventListener("click", (ev) => {
 
 headerArea.addEventListener("click", (ev) => {
     if (ev.target.classList.contains("new-graph")) {
-        createGraph();
         ev.stopImmediatePropagation(); ev.stopPropagation();
+        graphDialog.dialog.showModal();
         return;
     }
     if (ev.target.classList.contains("header")) return;

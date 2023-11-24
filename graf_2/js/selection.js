@@ -22,7 +22,7 @@ class Selection{
 
     clear() {
         for (let n of this.nodeSet) n.selected = false;
-        for (let e of this.nodeSet) e.selected = false;
+        for (let e of this.edgeSet) e.selected = false;
         this.nodeSet.clear();
         this.edgeSet.clear();
     }

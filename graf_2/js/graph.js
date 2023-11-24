@@ -72,7 +72,7 @@ class Graph{
         let rez = this.nodes.get(x)?.delete(y);
         if (rez) {
             this.tab.removeChild(this.tab.getEdge(x, y));
-            if(this.type == UNORDERED)this.get(y).delete(x);
+            if(this.type == UNORDERED)this.nodes.get(y).delete(x);
         }
         return rez;
     }

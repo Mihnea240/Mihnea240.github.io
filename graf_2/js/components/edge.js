@@ -6,7 +6,9 @@ const _edge_template = /* html */`
             width: 10%;height: 10%;
         }
         :host(:--selected) curved-path::part(svg){
-            filter:drop-shadow(0 0 .5rem var(--graph-color));
+            filter:
+                drop-shadow(0 0 .5rem var(--graph-color))
+                drop-shadow(0 0 1px var(--graph-color));
         }
     </style>
 `
@@ -21,12 +23,6 @@ class edgeUI extends HTMLElement {
         shadow.appendChild(this.curve = document.createElement("curved-path"));
 
         [this.graphId, this.fromNode, this.toNode] = this.id.slice(1).split(" ").map((el) => parseInt(el));
-
-        this.addEventListener("contextmenu", (ev) => {
-            ev.preventDefault();
-            this.selected = !this.selected;
-            console.log(this);
-        })
 
     }
 
@@ -144,11 +140,6 @@ class BezierCurve extends HTMLElement {
         this.p1.pos = new Point();
         this.p2.pos = new Point();
         this.offset = 0;
-
-        shadow.querySelector("svg").oncontextmenu = (ev) => {
-            ev.preventDefault();
-            this.selected = !this.selected;
-        }
 
         addCustomDrag(this.p1, {
             onmove: (ev, delta) => {

@@ -49,60 +49,7 @@ class nodeUI extends HTMLElement{
         this.nodeId = parseInt(ids[1]);
         this.graphId = parseInt(ids[0].slice(1));
 
-
-        addCustomDrag(this, {
-            onstart: (ev) => {
-                ev.stopPropagation();ev.preventDefault();
-                if (ev.buttons == 2) {
-                    /*this.initCurve();
-                    let p = new Point();
-                    this.parentElement.relativePosition(p.set(ev.clientX-5, ev.clientY-5));
-                    this.parentElement.curve.to = p;*/
-                }
-                return true;
-            },
-            onmove: (ev, delta) => {
-                
-                switch (ev.buttons) {
-                    case 1: {
-                        this.position(this.pos.x + delta.x, this.pos.y + delta.y);
-                        break;
-                    }
-                    case 2: {
-                        if (this.new_node_protocol == false) {
-                            this.initCurve();
-                        }
-                        this.parentElement.curve.toCoords.translate(delta.x, delta.y);
-                        this.parentElement.curve.p2.pos.translate(delta.x, delta.y);
-                        this.parentElement.curve.update();
-                    } 
-                }
-                
-            },
-            onend: (ev) => {
-                ev.stopPropagation(); ev.stopImmediatePropagation();
-                console.log(this.new_node_protocol);
-                if (this.new_node_protocol) {
-                    this.new_node_protocol = false;
-                    this.parentElement.curve.classList.add("hide");
-                    let graph = graphs.get(this.graphId)
-
-                    if (ev.target.tagName == "GRAPH-NODE") {
-                        graph.addEdge(this.nodeId, ev.target.nodeId);
-                    } else {
-                        let newNode = graph.addNode(), p = new Point(ev.clientX, ev.clientY);
-                        this.parentElement.relativePosition(p);
-                        newNode.position(p.x, p.y);
-                        graph.addEdge(this.nodeId, newNode.nodeId);
-                        
-                    }
-                }else if (ev.button == 2) {
-                     this.selected = !this.selected;
-                }
-            }
-        })
-
-        this.oncontextmenu = (ev) => ev.preventDefault();
+       this.oncontextmenu = (ev) => ev.preventDefault();
     }
     set selected(flag) {
         if (flag) {
@@ -117,8 +64,7 @@ class nodeUI extends HTMLElement{
 
     initCurve() {
         this.parentElement.curve.classList.remove("hide");
-        this.parentElement.curve.from = this.middle();
-        this.parentElement.curve.to = this.middle();
+        this.parentElement.curve.from = this.parentElement.curve.to = this.middle();
         this.new_node_protocol = true;
     }
 
