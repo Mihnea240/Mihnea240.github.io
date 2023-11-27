@@ -58,19 +58,23 @@ const _menu_template = /* html */`
             margin-left: auto;
         }
         [name="rows"], [name="columns"]{
-            outline: 1px solid white;
-            border-radius: 0;
+            box-shadow: 1px 1px 3px black;
         }
         span[contenteditable="true"]{
             outline: none;
             padding: .1rem;
             background-color: var(--ui-select);
-            width: 10px;
+            
         }
         .tabs{
             grid-area: d;
         }
-        table{
+        .tabs [name="Matrix tab"] table{
+            border: 1px solid white;
+            width: 100%; height: 100%;
+        }
+        td{
+
         }
 
         
@@ -81,7 +85,7 @@ const _menu_template = /* html */`
             <div class="main">
                 <label>
                     Name :
-                    <span name="name">New graph</span>
+                    <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
                 </label>
                 <label>
                     Type :
@@ -92,7 +96,7 @@ const _menu_template = /* html */`
                 </label>
                 <label>
                     Input mode :
-                    <select>
+                    <select name="input mode">
                         <option>Matrix</option>
                         <option>Edge list</option>
                         <option>Adjacency list</option>
@@ -100,18 +104,24 @@ const _menu_template = /* html */`
                     </select>
                 </label>
                 <div class ="tabs">
-                    <div class=matrix-tab>
+
+                    <div name="Matrix tab">
                         <label>
-                            Input mode :
-                           <!--  <--<input type="text" name="rows" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                            <input type="text" name="columns" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')"> -->
-                            <span name="rows">1</span>
-                            <span> , </span>
-                            <span name="columns">1</span>
+                            Number of nodes :
+                            <input type="text" name="nodes" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                         </label>
-                        <table></table>
-                        </div>
+                        <table>
+                            <tr>
+                                <td>1</td>
+                            </tr>
+                        </table>
+
                     </div>
+                    <div name="Edge list tab" class="hide"></div>
+                    <div name="Adjacency list tab" class="hide"></div>
+                    <div name="Parent array tab" class="hide"></div>
+                </div>
+                    
                     
     
                 </div>
@@ -137,21 +147,63 @@ class graphAdditionMenu extends HTMLElement{
             createGraph();
         }
 
-        shadow.querySelectorAll(`[name="rows"], [name="columns"]`).forEach((el) => {
-            contentEdit(el, { maxSize: 4, minSize: 0, pattern: /[^0-9]/g , empty: "1"});
-            el.addEventListener("click", (ev) => {
-                el.contentEditable = true;
-                el.focus();
-            })
+        shadow.querySelector("[name='name']").value = "Graph " + (Graph.id + 1);
+        this.modes = {
+            Matrix: {
+                tab: shadow.querySelector("[name='Matrix tab']"),
+                nrNodes: shadow.querySelector("[name='nodes']"),
+                table: shadow.querySelector("[name='Matrix tab'] table"),
+                valueMatrix: createMatrix(2, 2),
+                size: 1
+            },
+            Edge_list: {
+                tab: shadow.querySelector("[name='Edge list tab']"),
+                nrNodes: shadow.querySelector("[name='nodes']"),
+                table: shadow.querySelector("[name='Edge list tab'] table")
+            },
+        };
+
+        this.modeSelection = shadow.querySelector("[name='input mode']");
+        this.selectedMode = "matrix";
+        
+        this.modeSelection.addEventListener("change", (ev) => {
+            this.modes[this.selectedMode].tab.classList.toggle("hide");
+            this.selectedMode = ev.target.value.replaceAll(" ","_");
+            this.modes[this.selectedMode].tab.classList.toggle("hide");            
         })
-        let nameSpan = shadow.querySelector("[name='name']");
-        nameSpan.contentEditable = true;
-        nameSpan.focus();
-        contentEdit(nameSpan, { maxSize: 16, empty: "Graph " + (Graph.id + 1) });
-        nameSpan.addEventListener("click", (ev) => {
-            nameSpan.contentEditable = true;
-            nameSpan.focus();
+
+        this.modes.Matrix.nrNodes.addEventListener("change",(ev) => {
+            //copy values from old to new
+            let oldn = this.modes.Matrix.size;
+            let newn = ev.target.value;
+            if (oldn < newn) {
+                let newMatrix = createMatrix(newn + 1, newn + 1);
+                for (let i = 1; i <= oldn; i++)
+                    for (let j = 1; j <= oldn; j++)newMatrix[i][j] = this.modes.Matrix.valueMatrix[i][j];
+                this.modes.Matrix.valueMatrix = newMatrix;
+            }
+            this.modes.size = newn;
+            
+            let tr = document.createElement("tr");
+            let td = elementFromHtml(`<td><input type="checkbox"></td>`);
+            let table = this.modes.Matrix.table;
+
+            table.classList.add("hide");
+            table.innerHTML = '';
+            //td.contentEditable = true;
+            //td.textContent = "0";
+
+            for (let j = 1; j <= newn; j++){
+                tr.appendChild(td.cloneNode(true));
+            }
+            for (let i = 1; i <= newn; i++){
+                table.appendChild(tr.cloneNode(true));  
+            }
+            
+            table.classList.remove("hide");
         })
+
+
     }
 }
 

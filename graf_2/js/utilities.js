@@ -95,3 +95,10 @@ class Point{
     }
 
 }
+
+function createMatrix(n, m) {
+    let rez = new Array(n);
+    for (let i = 0; i < n; i++)
+        rez[i] = new Array(m).fill(0);
+    return rez;
+}

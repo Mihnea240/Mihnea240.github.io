@@ -15,11 +15,13 @@ function createGraph() {
 
 const keyBindings = {
     F2: "fullscreen",
+    Enter: "blur",
 }
 const ACTIONS = {
     fullscreen: () => toggleFullScreen(),
+    blur: ()=>document.activeElement.blur(),
 }
 
 document.addEventListener("keydown", (ev) => {
-    ACTIONS[keyBindings[ev.key]]?.();
+    ACTIONS[keyBindings[ev.key]]?.(ev);
 })
