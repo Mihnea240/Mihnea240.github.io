@@ -1,33 +1,48 @@
 const _menu_template = /* html */`
     <style>
         :host{
-            color: white;
+            color: inherit;
+            --accent-color: var(--ui-select);
         }
         *{
             color: inherit;
             background-color: inherit;
-        }
-        input{
-            backdrop-filter: blur(5px);
-            width: auto;
-            border: none;
-            outline: none;
-        }
-        input:focus{
-            background-color: var(--ui-select);
-            border-bottom: 1px double white;
-        }
-        select{
-
+            box-sizing: border-box;
         }
         .hide{
             display: none;
         }
+        ::-webkit-scrollbar{
+            background-color: inherit;
+            width: 12px;    height: 12px;
+        }
+        ::-webkit-scrollbar-thumb{
+            background-color: rgba(0, 0, 0, 0.47);
+            border-radius: .2em;
+        }
+        input, textarea{
+            width: auto;
+            border: none;
+            outline: none;
+            box-shadow: 0 0 1px 1px var(--accent-color);
+        }
+        input:focus{
+            background-color: var(--accent-color);
+        }
+        select{
+            border-color: var(--accent-color);
+        }
+        select:focus{
+            outline:none;
+            box-shadow: 0px 0px 5px var(--accent-color);
+        }
+        
         dialog{
-            width: 50%; height: 50%;
+            width: 75%; height: 75%;
             border: none;
             border-radius: 5px;
             background-color: var(--menu-background);
+            padding-bottom: 0;
 
         }
         dialog::backdrop{
@@ -40,53 +55,38 @@ const _menu_template = /* html */`
             height: 100%; width: 100%;
         }
 
-        .footer, .header{
-            margin: 0;
-            flex-basis: 10%;
+        .footer{
+            display: flex;
+            align-items: center;
+            justify-content: end;
+            margin-top: 2px;
         }
-        .main{
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            flex-grow: 1;
-            gap: 10px;
-            grid-template-rows: min-content auto;
-            grid-template-areas: "a b c"
-                                 "d d d";
+        .header,.header input{
+            font-size: 1rem;
         }
-        button[name="submit"]{
-            position: absolute;
-            margin-left: auto;
-        }
-        [name="rows"], [name="columns"]{
-            box-shadow: 1px 1px 3px black;
-        }
-        span[contenteditable="true"]{
-            outline: none;
-            padding: .1rem;
-            background-color: var(--ui-select);
-            
+        .inputs {
+            padding: .7rem 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
         }
         .tabs{
-            grid-area: d;
+            flex: 1;
         }
-        .tabs [name="Matrix tab"] table{
-            border: 1px solid white;
+        textarea{
+            resize: none;
             width: 100%; height: 100%;
         }
-        td{
-
-        }
-
         
     </style>
     <dialog>
         <div class="container">
-            <h2 class="header">Add new graph <hr/></h2>
-            <div class="main">
-                <label>
-                    Name :
-                    <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
-                </label>
+            <div class="header">
+                <span>Add new graph : </span>
+                <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
+                <hr/>
+            </div>
+            <div class="inputs">
                 <label>
                     Type :
                     <select>
@@ -95,7 +95,7 @@ const _menu_template = /* html */`
                     </select>
                 </label>
                 <label>
-                    Input mode :
+                    Input :
                     <select name="input mode">
                         <option>Matrix</option>
                         <option>Edge list</option>
@@ -103,28 +103,16 @@ const _menu_template = /* html */`
                         <option>Parent array</option>
                     </select>
                 </label>
-                <div class ="tabs">
+                <label>
+                    Nodes :
+                    <input type="text" name="nodes" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </label>
+            </div>
 
-                    <div name="Matrix tab">
-                        <label>
-                            Number of nodes :
-                            <input type="text" name="nodes" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                        </label>
-                        <table>
-                            <tr>
-                                <td>1</td>
-                            </tr>
-                        </table>
-
-                    </div>
-                    <div name="Edge list tab" class="hide"></div>
-                    <div name="Adjacency list tab" class="hide"></div>
-                    <div name="Parent array tab" class="hide"></div>
-                </div>
+            <div class ="tabs">
+                <textarea>0</textarea>
+            </div>
                     
-                    
-    
-                </div>
             <div class="footer">
                 <button name="submit">Submit</button>
             </div>
@@ -138,72 +126,56 @@ const _menu_template = /* html */`
 class graphAdditionMenu extends HTMLElement{
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: "open" });
+        const shadow = this.attachShadow({ mode: "open"});
         shadow.innerHTML = _menu_template;
         this.dialog = shadow.querySelector("dialog");
-        
+
+        //stop textarea from being disabled on enter
+        this.dialog.addEventListener("keydown", (ev) => {
+            if(ev.target.tagName==="TEXTAREA") ev.stopPropagation();
+        })
+
+        //close when clicked outside
+        let rect = this.dialog.getBoundingClientRect();
+        this.dialog.addEventListener("click", (ev) => {
+            console.log(ev.target.tagName);
+            if (ev.target.tagName !== "DIALOG") return;
+            if ((ev.clientX > rect.left + rect.width || ev.clientX < rect.left) &&
+                ((ev.clientY > rect.top + rect.height || ev.clientY < rect.top))) this.close();
+        })
+
         shadow.querySelector(`button[name="submit"]`).onclick = (ev) => {
-            this.dialog.close();
+            this.close();
             createGraph();
         }
 
-        shadow.querySelector("[name='name']").value = "Graph " + (Graph.id + 1);
-        this.modes = {
-            Matrix: {
-                tab: shadow.querySelector("[name='Matrix tab']"),
-                nrNodes: shadow.querySelector("[name='nodes']"),
-                table: shadow.querySelector("[name='Matrix tab'] table"),
-                valueMatrix: createMatrix(2, 2),
-                size: 1
-            },
-            Edge_list: {
-                tab: shadow.querySelector("[name='Edge list tab']"),
-                nrNodes: shadow.querySelector("[name='nodes']"),
-                table: shadow.querySelector("[name='Edge list tab'] table")
-            },
-        };
+        let name = shadow.querySelector("[name='name']");
+        name.value = "Graph " + (Graph.id + 1);
+        name.select();
 
-        this.modeSelection = shadow.querySelector("[name='input mode']");
-        this.selectedMode = "matrix";
+        this.data = {
+            nameI: shadow.querySelector("[name='name']"),
+            typeI: shadow.querySelector("[name='input mode']"),
+            nrNodes: shadow.querySelector("[name='nodes']"),
+            textarea: shadow.querySelector("textarea")
+        }
+    }
+    open() {
+        this.dialog.showModal();
+    }
+    close() {
+        this.dialog.close();
+    }
+    format(text) {
         
-        this.modeSelection.addEventListener("change", (ev) => {
-            this.modes[this.selectedMode].tab.classList.toggle("hide");
-            this.selectedMode = ev.target.value.replaceAll(" ","_");
-            this.modes[this.selectedMode].tab.classList.toggle("hide");            
-        })
-
-        this.modes.Matrix.nrNodes.addEventListener("change",(ev) => {
-            //copy values from old to new
-            let oldn = this.modes.Matrix.size;
-            let newn = ev.target.value;
-            if (oldn < newn) {
-                let newMatrix = createMatrix(newn + 1, newn + 1);
-                for (let i = 1; i <= oldn; i++)
-                    for (let j = 1; j <= oldn; j++)newMatrix[i][j] = this.modes.Matrix.valueMatrix[i][j];
-                this.modes.Matrix.valueMatrix = newMatrix;
-            }
-            this.modes.size = newn;
-            
-            let tr = document.createElement("tr");
-            let td = elementFromHtml(`<td><input type="checkbox"></td>`);
-            let table = this.modes.Matrix.table;
-
-            table.classList.add("hide");
-            table.innerHTML = '';
-            //td.contentEditable = true;
-            //td.textContent = "0";
-
-            for (let j = 1; j <= newn; j++){
-                tr.appendChild(td.cloneNode(true));
-            }
-            for (let i = 1; i <= newn; i++){
-                table.appendChild(tr.cloneNode(true));  
-            }
-            
-            table.classList.remove("hide");
-        })
-
-
+    }
+    info() {
+        return {
+            type: this.data.typeI.value,
+            nrNodes: this.data.nrNodes.value,
+            name: this.data.nameI.value,
+            text: this.data.textarea.value
+        }; 
     }
 }
 

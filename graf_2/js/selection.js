@@ -1,22 +1,31 @@
-class Selection{
+class GraphSelection{
     constructor() {
+        /**@type {Set<nodeUI>}*/
         this.nodeSet = new Set();
+
+        /**@type {Set<edgeUI>}*/
         this.edgeSet = new Set();
     }
 
-    add(el) {
+    toggle(el) {
         if (el.tagName === "GRAPH-NODE") {
+            if (this.nodeSet.has(el)) {
+                this.nodeSet.delete(el);
+                el.selected = false;
+                return false;
+            }
             this.nodeSet.add(el);
+            el.selected = true;
+            return true;
         }else if (el.tagName === "GRAPH-EDGE") {
+            if (this.edgeSet.has(el)) {
+                this.edgeSet.delete(el);
+                el.selected = false;
+                return false;
+            } 
             this.edgeSet.add(el);
-        }
-    }
-
-    delete(el) {
-        if (el.tagName === "GRAPH-NODE") {
-            this.nodeSet.delete(el);
-        }else if (el.tagName === "GRAPH-edge") {
-            this.edgeSet.delete(el);
+            el.selected = true;
+            return true;
         }
     }
 

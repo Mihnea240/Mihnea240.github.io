@@ -6,9 +6,10 @@ class Graph{
     constructor(input,type) {
         this.id = ++Graph.id;
         this.type = type;
-        this.selection = new Selection();
+        this.selection = new GraphSelection();
         createTabUI(this.id);
 
+        /**@type {Tab} */
         this.tab = document.getElementById("g" + this.id);
         this.header = document.getElementById("h" + this.id);
         
@@ -35,6 +36,7 @@ class Graph{
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());
         let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id} ${this.a_nodeId}" ></graph-node>`));
+        this.tab.positionFunction(this.tab, newNode);
         return newNode;
     }
     removeNode(id) {
@@ -43,8 +45,11 @@ class Graph{
             if (ed.fromNode == id) this.nodes.get(ed.toNode).delete(id);
             else this.nodes.get(ed.fromNode).delete(id);
             this.tab.removeChild(ed);
+            if(ed.selected)this.selection.toggle(ed);
         })
-        this.tab.removeChild(this.tab.getNode(id));
+        let n = this.tab.getNode(id);
+        this.tab.removeChild(n);
+        if(n.selected)this.selection.toggle(n);
         this.tab.classList.remove("hide");
 
         let rez = this.nodes.delete(id);
@@ -71,7 +76,9 @@ class Graph{
     removeEdge(x, y) {
         let rez = this.nodes.get(x)?.delete(y);
         if (rez) {
-            this.tab.removeChild(this.tab.getEdge(x, y));
+            let e = this.tab.getEdge(x, y);
+            this.tab.removeChild(e);
+            if (e.selected) this.selection.toggle(e);
             if(this.type == UNORDERED)this.nodes.get(y).delete(x);
         }
         return rez;

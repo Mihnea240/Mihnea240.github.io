@@ -3,7 +3,7 @@ const _edge_template = /* html */`
     <style>
         :host{
             position: absolute;
-            width: 10%;height: 10%;
+            width: 0;height: 0;
         }
         :host(:--selected) curved-path::part(svg){
             filter:
@@ -47,13 +47,8 @@ class edgeUI extends HTMLElement {
         return this.curve.to;
     }
     set selected(flag) {
-        if (flag) {
-            this._internals.states.add("--selected");
-            graphs.get(this.graphId).selection.add(this);
-        } else {
-            this._internals.states.delete("--selected");
-            graphs.get(this.graphId).selection.delete(this);
-        }
+        if (flag) this._internals.states.add("--selected");
+        else this._internals.states.delete("--selected");
     }
     get selected() { return this._internals.states.has("--selected"); }
 

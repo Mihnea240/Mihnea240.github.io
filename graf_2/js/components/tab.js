@@ -113,10 +113,11 @@ const dragHandle = {
                 originalNode.parentElement.relativePosition(p);
                 newNode.position(p.x, p.y);
                 graph.addEdge(originalNode.nodeId, newNode.nodeId);
+                ev.stopPropagation(); ev.stopImmediatePropagation();
                 
             }
-        }else if (ev.button == 2) {
-            originalNode.selected = !originalNode.selected;
+        } else if (ev.button == 2) {
+            graphs.get(ev.target.graphId).selection.toggle(ev.target);
         }
     },
     edgeDrag: (target,ev,delta) => {
@@ -131,7 +132,7 @@ const dragHandle = {
         c.p2.pos.translate(delta.x, delta.y);
         c.update();
     },
-    edgeGragEnd: (originalEdge,ev) => {
+    edgeDragEnd: (originalEdge,ev) => {
         if (storage.fromNode?.new_node_protocol) {
             storage.fromNode.new_node_protocol = false;
 
@@ -156,7 +157,9 @@ const dragHandle = {
             graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
             storage.fromNode = undefined;
         } else if (ev.button == 2) {
-            originalEdge.selected = !originalEdge.selected
+            console.log(ev.target);
+            console.log(graphs.get(ev.target.graphId).selection.toggle(ev.target));
+            
         } else if (ev.button == 0) {
             if (!ev.composedPath()[0].classList.contains("point"))
             originalEdge.curve.selected = !originalEdge.curve.selected;
@@ -198,30 +201,27 @@ class Tab extends HTMLElement {
             onend: (ev) => {
                 switch (evTarget.tagName) {
                     case "GRAPH-NODE": dragHandle.nodeDragEnd(evTarget, ev); break;
-                    case "GRAPH-EDGE": dragHandle.edgeGragEnd(evTarget, ev); break;
+                    case "GRAPH-EDGE": dragHandle.edgeDragEnd(evTarget, ev); break;
                     
                 }
             }
 
         })
 
-        this.oncontextmenu = (ev) => ev.preventDefault();
+        this.oncontextmenu = (ev) => ev.preventDefault()
         this.addEventListener("click", (ev) => {
-            if (ev.button == 2) {
-                //To do
-            }
+            console.log(ev.target);
             if (ev.target.tagName !== "GRAPH-NODE" && ev.target.tagName !== "GRAPH-EDGE") {
                 let selection = graphs.get(this.graphId).selection;
                 if(!selection.empty())selection.clear();
             }
         })
 
-        let slot = shadow.querySelector("slot");
-        slot.addEventListener("slotchange", (ev) => {
-            let newEl = slot.assignedNodes().back()
-            if (newEl.tagName === "GRAPH-NODE") {
-                this.positionFunction(this, newEl);
-            }
+        let zoom = 1, scale=0.1;
+        this.addEventListener("wheel", (ev) => {
+           /*  zoom += ev.deltaY < 0 ? - scale : scale;
+            if (zoom < 0) zoom = scale;
+            this.style.scale = zoom; */
         })
     }
 

@@ -2,6 +2,10 @@ window.onload = () => {
     createGraph();
 }
 
+/**
+ * @type {Map<string , Graph>} 
+ * 
+*/
 const graphs = new Map();
 
 function createGraph() {
@@ -16,10 +20,26 @@ function createGraph() {
 const keyBindings = {
     F2: "fullscreen",
     Enter: "blur",
+    Escape: "closeModal",
+    Delete: "deleteSelection"
 }
 const ACTIONS = {
     fullscreen: () => toggleFullScreen(),
-    blur: ()=>document.activeElement.blur(),
+    blur: (ev) => { document.activeElement.blur() },
+    closeModal: (ev) => { graphDialog.close(); },
+    deleteSelection: (ev) => {
+        /**@type {Graph} */
+        let g = graphs.selected;
+        
+        console.log(g.selection);
+        if (g.selection.empty()) return;
+        let { nodeSet, edgeSet} = g.selection;
+        console.log(nodeSet, edgeSet);
+
+        for (let n of nodeSet) g.removeNode(n.nodeId);
+        for (let e of edgeSet) g.removeEdge(e.fromNode, e.toNode);
+        g.selection.clear();
+    }
 }
 
 document.addEventListener("keydown", (ev) => {

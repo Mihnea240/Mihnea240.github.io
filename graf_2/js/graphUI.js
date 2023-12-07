@@ -14,14 +14,11 @@ const header_template = elementFromHtml(`
 `);
 const graphDialog = document.querySelector("graph-menu");
 
-newGraphButton.addEventListener("click", (ev) => {
-    
-})
 
 headerArea.addEventListener("click", (ev) => {
     if (ev.target.classList.contains("new-graph")) {
         ev.stopImmediatePropagation(); ev.stopPropagation();
-        graphDialog.dialog.showModal();
+        graphDialog.open();
         return;
     }
     if (ev.target.classList.contains("header")) return;
