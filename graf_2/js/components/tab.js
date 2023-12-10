@@ -4,6 +4,7 @@ const _tab_template =/*html*/`
         :host{
             position: absolute;
             width: 100%;  height:100%;
+            zoom: 1;
         }
         #square{
             position: absolute;
@@ -19,7 +20,6 @@ const _tab_template =/*html*/`
             width: 100%;  height:100%;
             background: inherit;
             z-index: -1;
-            
         }
         ::-webkit-scrollbar{
             background-color: inherit;
@@ -36,7 +36,7 @@ const _tab_template =/*html*/`
         .hide{display: none}
         number-line{
             position: absolute; z-index:10;
-            font-size: 10px;
+            font-size: 1rem;
             border: .1px solid white;
         }
         number-line[direction="horizontal"]{
@@ -52,22 +52,23 @@ const _tab_template =/*html*/`
     <div class="tab" name="tab">
         <div id="square" draggable="false"></div>
         <curved-path class="hide" style="position: absolute"></curved-path>
-        <slot></slot>
+        <slot name="nodes"></slot>
+        <slot name="edges"></slot>
   
     </div>
-    <number-line unit="100px" for="tab"></number-line>
-    <number-line unit="100px" direction="vertical" for="tab"></number-line>
+    <!-- <number-line unit="100px" for="tab"></number-line>
+    <number-line unit="100px" direction="vertical" for="tab"></number-line> -->
     
 `
 
 const PositionFunctons = {
     randomScreen: (graph_tab, node) => {
-        let x_off = graph_tab.scrollLeft;
-        let y_off = graph_tab.scrollTop;
+        let x_off = graph_tab.tab.scrollLeft;
+        let y_off = graph_tab.tab.scrollTop;
         let width = random(0, parseFloat(graph_tab.css.width));
         let height = random(0, parseFloat(graph_tab.css.height));
 
-        node.position(x_off + width, x_off + height);
+        node.position(x_off + width, y_off + height);
     }
 }
 const storage = {
@@ -77,10 +78,9 @@ const dragHandle = {
     
     tabDrag: (target, delta) => {
         let rect = target.square.getBoundingClientRect();
-        let dx = rect.width - delta.x;
-        let dy = rect.height - delta.y;
+        storage.point.set(rect.width - delta.x, rect.height - delta.y);
 
-        target.square.style.cssText += `width: ${dx}px; height: ${dy}px`;
+        target.square.style.cssText += `width: ${storage.point.x}px; height: ${storage.point.y}px`;
         
         target.tab.scrollBy(-delta.x, -delta.y);
     },
@@ -109,9 +109,11 @@ const dragHandle = {
             if (ev.target.tagName == "GRAPH-NODE") {
                 graph.addEdge(originalNode.nodeId, ev.target.nodeId);
             } else {
-                let newNode = graph.addNode(), p = new Point(ev.clientX, ev.clientY);
-                originalNode.parentElement.relativePosition(p);
-                newNode.position(p.x, p.y);
+                let newNode = graph.addNode();
+                storage.point.set(ev.clientX, ev.clientY);
+                originalNode.parentElement.screenToWorld(storage.point);
+
+                newNode.position(storage.point.x, storage.point.y);
                 graph.addEdge(originalNode.nodeId, newNode.nodeId);
                 ev.stopPropagation(); ev.stopImmediatePropagation();
                 
@@ -122,10 +124,11 @@ const dragHandle = {
     },
     edgeDrag: (target,ev,delta) => {
         let tab = target.parentElement, c = tab.curve;
+
         if (storage.fromNode.new_node_protocol == false) {
             target.classList.add("hide");
             storage.fromNode.initCurve();
-            tab.relativePosition(storage.point.set(ev.clientX, ev.clientY));
+            tab.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
             c.to=storage.point;
         }
         c.toCoords.translate(delta.x, delta.y);
@@ -149,7 +152,7 @@ const dragHandle = {
                 }
             } else {
                 let newNode = graph.addNode();
-                originalEdge.parentElement.relativePosition(storage.point.set(ev.clientX, ev.clientY));
+                originalEdge.parentElement.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
                 newNode.position(storage.point.x, storage.point.y);
                 graph.addEdge(storage.fromNode.nodeId, newNode.nodeId);
             }
@@ -157,9 +160,8 @@ const dragHandle = {
             graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
             storage.fromNode = undefined;
         } else if (ev.button == 2) {
-            console.log(ev.target);
-            console.log(graphs.get(ev.target.graphId).selection.toggle(ev.target));
-            
+            graphs.get(ev.target.graphId).selection.toggle(ev.target);
+
         } else if (ev.button == 0) {
             if (!ev.composedPath()[0].classList.contains("point"))
             originalEdge.curve.selected = !originalEdge.curve.selected;
@@ -210,18 +212,50 @@ class Tab extends HTMLElement {
 
         this.oncontextmenu = (ev) => ev.preventDefault()
         this.addEventListener("click", (ev) => {
-            console.log(ev.target);
             if (ev.target.tagName !== "GRAPH-NODE" && ev.target.tagName !== "GRAPH-EDGE") {
                 let selection = graphs.get(this.graphId).selection;
                 if(!selection.empty())selection.clear();
             }
         })
 
-        let zoom = 1, scale=0.1;
+        this.zoom = 1;
+        let scale = 0.1, sign,oldZoom;
+        let lastPointer = new Point();
+        let currentPointer = new Point();
+        let tabPos = new Point();
+        
         this.addEventListener("wheel", (ev) => {
-           /*  zoom += ev.deltaY < 0 ? - scale : scale;
-            if (zoom < 0) zoom = scale;
-            this.style.scale = zoom; */
+            ev.preventDefault();
+            sign = ev.deltaY < 0 ? -1 : 1;
+            
+            oldZoom = this.zoom
+            this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
+
+            this.zoom += sign * scale;
+            if (this.zoom < 2 * scale) this.zoom = 2 * scale;
+            
+            this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
+
+            this.classList.add("hide");
+            for (let n of this.children) {
+                if (n.tagName === "GRAPH-NODE")
+                    n.position(
+                        n.pos.x + currentPointer.x - lastPointer.x,
+                        n.pos.y + currentPointer.y - lastPointer.y
+                    );
+            }
+        
+        
+            this.style.zoom = this.zoom;
+            this.classList.remove("hide");
+            
+        })
+
+        this.sizeObserver = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                entry.target.size.x = entry.borderBoxSize[0].inlineSize;
+                entry.target.size.y = entry.borderBoxSize[0].blockSize;
+            }
         })
     }
 
@@ -241,9 +275,18 @@ class Tab extends HTMLElement {
         return document.getElementById("g" + this.graphId + " " + x + " " + y);
     }
 
-    relativePosition(point) {
+    /**@param {Point} point*/
+    screenToWorld(point) {
+        return point.translate(-this.rect.left, -this.rect.top)
+            .multiplyScalar(1 / this.zoom)
+            .translate(this.tab.scrollLeft, this.tab.scrollTop)
+           
+    }
 
-        point.translate(this.tab.scrollLeft - this.rect.left, this.tab.scrollTop - this.rect.top);
+    updateNodes(nodeIter=this.shadowRoot.querySelector("slot[name='nodes']").assignedNodes()) {
+        for (let n of nodeIter) {
+            
+        }
     }
 
     positionNodes() {

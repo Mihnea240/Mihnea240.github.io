@@ -65,18 +65,20 @@ const _curve_template =/* html */`
         :host{
             position: absolute;
         }
-        .hide{visibility: hidden};
+        .hide{display: none};
         svg,path{
             position: absolute;
+            pointer-events: stroke;
         }
 
         .curve path,.curve line{
-            fill: none;
+            fill: transparent;
             stroke: var(--edge-color);
             z-index: 200;
         }
         .visible{
             stroke-width: var(--edge-width);
+            z-index: 1;
         }
         .hit-area{
             stroke-width: calc(5*var(--edge-width));
@@ -154,12 +156,11 @@ class BezierCurve extends HTMLElement {
     }
 
     update() {
-        this.classList.toggle("hide");
         let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
+        
         this.paths.forEach(p => p.setAttribute("d", new_val));
         this.p1.style.cssText += `left: ${this.p1.pos.x}px; top: ${this.p1.pos.y}px;`
         this.p2.style.cssText += `left: ${this.p2.pos.x}px; top: ${this.p2.pos.y}px;`
-
 
         this.l1.setAttribute("x1", this.fromCoords.x);
         this.l1.setAttribute("y1", this.fromCoords.y);
@@ -173,12 +174,12 @@ class BezierCurve extends HTMLElement {
 
         if (this.arrow) {
             let middle = this.f(0.5), slope = this.df(0.5);
-            this.arrow.style.cssText =
-                `left: ${middle.x}px; top: ${middle.y}px; 
-            transform-origin: 0 0;
-            transform: rotate(${Math.atan2(slope.y, slope.x) * Math.rad2Deg}deg) translate(-50%,-50%);`;
+            this.arrow.style.cssText = `
+                left: ${middle.x}px; top: ${middle.y}px; 
+                transform-origin: 0 0;
+                transform: rotate(${Math.atan2(slope.y, slope.x) * Math.rad2Deg}deg) translate(-50%,-50%);
+            `;
         }
-        this.classList.toggle("hide");
     }
 
     set from(position) {

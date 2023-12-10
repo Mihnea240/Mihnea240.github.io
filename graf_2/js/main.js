@@ -45,3 +45,9 @@ const ACTIONS = {
 document.addEventListener("keydown", (ev) => {
     ACTIONS[keyBindings[ev.key]]?.(ev);
 })
+
+
+function test(n, g = 1) {
+    let G = graphs.get(g);
+    for (let i = 1; i < n; i++)G.addNode();
+}

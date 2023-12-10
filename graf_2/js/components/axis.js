@@ -73,6 +73,7 @@ class Axis extends HTMLElement{
         if (!this.getAttribute("unit")) this.setAttribute("unit", "10px");
         this.target = this.parentNode.querySelector(`[name=${this.getAttribute("for")}]`);
         
+
         this.target.addEventListener("scroll", (ev) => {
             let unit = 1 / parseInt(this.getAttribute("unit")),value;
             

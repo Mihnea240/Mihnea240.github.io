@@ -11,15 +11,18 @@ function elementFromHtml(html){
     return template.content.firstElementChild;
 }
 
+/**@param {HTMLElement} target */
 function addCustomDrag(target,{onstart=(ev,delta)=>true,onmove=(ev,delta)=>true,onend=ev=>true}){
-    let pos={x:0,y:0},delta=pos;
-    let moveHandle=(ev)=>{
-        delta={x: ev.clientX-pos.x, y: ev.clientY-pos.y};
-        pos = { x: ev.clientX, y: ev.clientY };
+    let pos = new Point(), delta = new Point();
+    let zoom = 1;
+    let moveHandle = (ev) => {
+        delta.set(ev.clientX-pos.x, ev.clientY-pos.y).multiplyScalar(1/zoom);
+        pos.set(ev.clientX, ev.clientY);
         onmove(ev,delta);
     }
     target.addEventListener("mousedown",(ev)=>{
-        pos={x: ev.clientX, y: ev.clientY};
+        pos.set(ev.clientX, ev.clientY);
+        zoom = (+target.style.zoom) || 1;
         
         if(!onstart(ev))return;
         document.addEventListener("mousemove",moveHandle);

@@ -35,7 +35,8 @@ class Graph{
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());
-        let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id} ${this.a_nodeId}" ></graph-node>`));
+        let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id} ${this.a_nodeId}" slot="nodes" ></graph-node>`));
+        this.tab.sizeObserver.observe(newNode);
         this.tab.positionFunction(this.tab, newNode);
         return newNode;
     }
@@ -63,13 +64,10 @@ class Graph{
         let n1 = this.tab.getNode(x);
         let n2 = this.tab.getNode(y);
         
-        let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}"></graph-edge>`));
-        /*edge.offset = 0;
-        if (this.type == ORDERED) {
-            edge.offset=10;
-            if (this.getEdgeUI(y, x)) edge.offset=-10;
-        } else */
-        if (this.type == UNORDERED) this.nodes.get(x).add(y);
+        let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}" slot="edges"></graph-edge>`));
+        
+        if (this.type == UNORDERED) this.nodes.get(y).add(x);
+        else this.nodes.get(y).add(-x);
         
         edge.from = n1.middle(); edge.to = n2.middle();
     }

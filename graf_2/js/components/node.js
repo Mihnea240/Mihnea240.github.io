@@ -41,6 +41,7 @@ class nodeUI extends HTMLElement{
         shadow.innerHTML = _node_template;
         this.main = shadow.querySelector("[data-state='main']");
         this.pos = new Point();
+        this.size = new Point(38, 38);
         this.onmove = _ => true;
         this.new_node_protocol = false;
         this._internals = this.attachInternals();
@@ -64,17 +65,18 @@ class nodeUI extends HTMLElement{
     }
 
 
-    middle(x=0.5,y=0.5) {
+    middle(x = 0.5, y = 0.5) {
         return new Point(
-            this.pos.x + parseFloat(this.css.width)  * x,
-            this.pos.y + parseFloat(this.css.height) * y
+            this.pos.x + this.size.x  * x,
+            this.pos.y + this.size.y * y
         );   
     }
 
-    position(x, y) {
+    position(x, y , updateEdges=true) {
         this.pos.set(x,y);
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
-        this.parentElement.recalculateEdges(this.nodeId, this.middle());
+
+        if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
     }
 
     connectedCallback() {
