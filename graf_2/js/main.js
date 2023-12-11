@@ -13,6 +13,7 @@ function createGraph() {
     graphs.set(newGraph.id, newGraph);
 
     newGraph.focus();
+    newGraph.addNode();
     graphs.selected = newGraph;
 }
 

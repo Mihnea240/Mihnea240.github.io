@@ -260,18 +260,33 @@ class Tab extends HTMLElement {
     }
 
     recalculateEdges(nodeId, point) {
+
+        this.forConnectedEdges(nodeId,(edge)=>{
+            if (edge.fromNode === nodeId) edge.from = point;
+            else if (edge.toNode === nodeId) edge.to = point;
+        })
+        return; 
         this.connectedEdges(nodeId).forEach((ed) => {
             if (ed.fromNode === nodeId) ed.from = point;
             else if (ed.toNode === nodeId) ed.to = point;
         })
     }
-    connectedEdges(nodeId) {
-        return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
+    forConnectedEdges(nodeId,callBack) {
+        let G=graphs.get(this.graphId);
+        let neighbourSet=G.nodes.get(nodeId);
+
+        for(let node of neighbourSet){
+            let e=this.getEdge(nodeId,Math.abs(node));
+            console.log(nodeId,node);
+            callBack(e);
+        }
+        //return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
     }
     getNode(id) {
         return document.getElementById("g" + this.graphId + " " + id);
     }
     getEdge(x, y) {
+        if(x>y)[x,y]=[y,x];
         return document.getElementById("g" + this.graphId + " " + x + " " + y);
     }
 

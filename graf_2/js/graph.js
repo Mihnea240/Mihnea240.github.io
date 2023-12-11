@@ -15,8 +15,6 @@ class Graph{
         
         this.nodes = new Map();
         this.a_nodeId = 1;
-
-        this.addNode();
     }
 
     unfocus() {
@@ -76,12 +74,14 @@ class Graph{
         if (rez) {
             let e = this.tab.getEdge(x, y);
             this.tab.removeChild(e);
+
             if (e.selected) this.selection.toggle(e);
             if(this.type == UNORDERED)this.nodes.get(y).delete(x);
+            else this.nodes.get(y).delete(-x);
         }
         return rez;
     }
     isEdge(x,y) {
-        return this.nodes.get(x)?.has(y);
+        return this.nodes.get(x)?.has(y) > 0;
     }
 }
