@@ -86,16 +86,38 @@ class Point{
         this.x += x; this.y += y;
         return this;
     }
-    dist() { return Math.sqrt(this.x * this.x + this.y * this.y)}
-    distSq() { return (this.x * this.x + this.y * this.y) }
+    mag() { return Math.sqrt(this.x * this.x + this.y * this.y)}
+    magSq() { return (this.x * this.x + this.y * this.y) }
     multiplyScalar(val) {
         this.x *= val; this.y *= val;
         return this;
     }
     normalize() {
-        this.multiplyScalar(1 / this.dist());
-        return this;
+        return this.multiplyScalar(1 / this.mag());
     }
+    copy({x,y}) {
+        return this.set(x, y);
+    }
+    sub({ x, y }) {
+        return this.translate(-x, -y);
+    }
+    add({ x, y }) {
+        return this.translate(x, y);
+    }
+    mult({ x, y }) {
+        return this.x * x + this.y * y;
+    }
+    rotateAround({x,y},angle) {
+        //cos -sin x
+        //sin  cos y
+        let sin = Math.sin(angle), cos = Math.cos(angle);
+        let tx = this.x - x, ty = this.y - y;
+        return this.set(tx * cos - ty * sin + x, tx * sin + ty * cos + y);
+    }
+    static angle(v1,v2) {
+        return Math.acos(v1.mult(v2) / (v1.mag() * v2.mag()));
+    }
+
 
 }
 

@@ -189,6 +189,7 @@ class Tab extends HTMLElement {
         this.css = getComputedStyle(this);
         this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
+        this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
         this.positionFunction = PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
 

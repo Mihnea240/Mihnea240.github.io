@@ -127,16 +127,18 @@ class BezierCurve extends HTMLElement {
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _curve_template;
 
-        this.fromCoords = new Point();
-        this.toCoords = new Point();
+        this.fromCoords = new Point(10,10);
+        this.toCoords = new Point(10,10);
+        this.lfrom = new Point(10,10);
+        this.lto = new Point(10,10);
 
         [this.p1, this.p2] = shadow.querySelectorAll("div");
         [this.l1, this.l2] = shadow.querySelectorAll("line");
 
         this.paths = shadow.querySelectorAll("path");
-        this.p1.pos = new Point();
-        this.p2.pos = new Point();
-        this.offset = 0;
+        this.p1.pos = new Point(10,10);
+        this.p2.pos = new Point(10,10);
+        this.tf = BezierCurve.translationFunctions.relativeTranslation;
 
         addCustomDrag(this.p1, {
             onmove: (ev, delta) => {
@@ -152,8 +154,10 @@ class BezierCurve extends HTMLElement {
                 this.update();
             }
         })
+
         this.selected = false;
     }
+
 
     update() {
         let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
@@ -181,16 +185,46 @@ class BezierCurve extends HTMLElement {
             `;
         }
     }
+    addArrow() {
+        this.arrow = this.shadowRoot.appendChild(
+            elementFromHtml(`
+            <svg viewBox="0 0 256 512" class="arrow">
+                <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128"/>
+            </svg>
+            `)
+        );
+        this.update();
+    }
 
-    set from(position) {
-        this.p1.pos.translate(position.x - this.fromCoords.x, position.y - this.fromCoords.y);
-        this.fromCoords.set(position.x, position.y);
+    f(t=0) {
+        if (t > 1) t = 1;
+        return new Point(
+            ((1 - t) ** 3) * this.from.x + 3*t * ((1 - t) ** 2) * this.p1.pos.x + 3*(t ** 2) * (1 - t) * this.p2.pos.x + (t ** 3) * this.to.x,
+            ((1 - t) ** 3) * this.from.y + 3*t * ((1 - t) ** 2) * this.p1.pos.y + 3*(t ** 2) * (1 - t) * this.p2.pos.y + (t ** 3) * this.to.y,
+        )
+    }
+
+    df(t = 0) {
+        return new Point(
+            ((3 * (1 - t) ** 2) * (this.p1.pos.x - this.from.x) + 6 * (1 - t) * t * (this.p2.pos.x - this.p1.pos.x) + 3 * t ** 3 * (this.to.x - this.p2.pos.x)),
+            ((3 * (1 - t) ** 2) * (this.p1.pos.y - this.from.y) + 6 * (1 - t) * t * (this.p2.pos.y - this.p1.pos.y) + 3 * t ** 3 * (this.to.y - this.p2.pos.y))
+        )
+    }
+
+
+
+
+    set from({ x, y }) {
+        this.lfrom.copy(this.fromCoords);
+        this.fromCoords.set(x, y);
+        this.tf(this,0);
         this.update();
     }
     get from() { return this.fromCoords }
-    set to(position) {
-        this.p2.pos.translate(position.x - this.toCoords.x, position.y - this.toCoords.y);
-        this.toCoords.set(position.x, position.y);
+    set to({ x, y }) {
+        this.lto.copy(this.toCoords);
+        this.toCoords.set(x, y);
+        this.tf(this,1);
         this.update();
     }
     get to() { return this.toCoords };
@@ -205,6 +239,34 @@ class BezierCurve extends HTMLElement {
     get selected() { return this.select }
 
 
+}
+
+BezierCurve.translationFunctions = {
+    /**@param {BezierCurve} curve */
+    absoluteTranslation: (curve, p) => {
+        if (p == 0)curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
+        else curve.p2.pos.translate(curve.toCoords.x - curve.lto.x, curve.toCoords.y - curve.lto.y);
+    },
+    /**@param {BezierCurve} curve */
+    relativeTranslation: (curve,p) => {
+        let dir = new Point().copy(curve.lfrom).sub(curve.lto).normalize();
+        let new_dir = new Point().copy(curve.toCoords).sub(curve.fromCoords).normalize();
+
+        let p1 = new Point().copy(curve.p1.pos).sub(curve.lfrom);
+        let p2 = new Point().copy(curve.p2.pos).sub(curve.lto);
+
+        let a1 = Point.angle(dir, p1)/100;
+        let a2 = Point.angle(dir, p2);
+        
+        console.log(p1);
+        if (!a1 || !a2) return;
+        let origin = new Point();
+        curve.p1.pos.copy(curve.fromCoords).add(new_dir.rotateAround(origin,a1).multiplyScalar(p1.mag()));
+        
+
+
+
+    },
 }
 
 customElements.define("curved-path", BezierCurve);

@@ -39,17 +39,15 @@ class Graph{
         return newNode;
     }
     removeNode(id) {
-        this.tab.classList.add("hide");
-        this.tab.connectedEdges(id).forEach(ed => {
-            if (ed.fromNode == id) this.nodes.get(ed.toNode).delete(id);
-            else this.nodes.get(ed.fromNode).delete(id);
-            this.tab.removeChild(ed);
-            if(ed.selected)this.selection.toggle(ed);
-        })
+        
         let n = this.tab.getNode(id);
         this.tab.removeChild(n);
-        if(n.selected)this.selection.toggle(n);
-        this.tab.classList.remove("hide");
+        if (n.selected) this.selection.toggle(n);
+        
+        for (let n1 of this.nodes.get(id)) {
+            if (n1 < 0) this.removeEdge(-n1, id);
+            else this.removeEdge(id, n1);
+        }
 
         let rez = this.nodes.delete(id);
         if (rez && id < this.a_nodeId) this.a_nodeId = id;

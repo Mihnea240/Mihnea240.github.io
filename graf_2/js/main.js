@@ -9,7 +9,7 @@ window.onload = () => {
 const graphs = new Map();
 
 function createGraph() {
-    let newGraph = new Graph("",UNORDERED);
+    let newGraph = new Graph("",ORDERED);
     graphs.set(newGraph.id, newGraph);
 
     newGraph.focus();
