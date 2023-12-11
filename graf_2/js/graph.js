@@ -59,14 +59,15 @@ class Graph{
         if ((x == y) || this.isEdge(x, y) || (this.type == UNORDERED && this.isEdge(y, x))) return;
         
         this.nodes.get(x).add(y);
-        let n1 = this.tab.getNode(x);
-        let n2 = this.tab.getNode(y);
         
         let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}" slot="edges"></graph-edge>`));
         
-        if (this.type == UNORDERED) this.nodes.get(y).add(x);
-        else this.nodes.get(y).add(-x);
+        let sim = this.nodes.get(y);
+        if (!sim) this.nodes.set(y, new Set());
+        sim.add(this.type == UNORDERED ? x : -x);
         
+        let n1 = this.tab.getNode(x);
+        let n2 = this.tab.getNode(y);
         edge.from = n1.middle(); edge.to = n2.middle();
     }
     removeEdge(x, y) {

@@ -47,7 +47,9 @@ function createTabUI(id) {
     header_template.id = "h" + id;
     let newTab=tabArea.appendChild(tab_template.cloneNode(true));
     let newHeader = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
-    contentEdit(newHeader.querySelector(".text"),{maxSize: 16});
+    contentEdit(newHeader.querySelector(".text"), { maxSize: 16 });
+    
+    newTab.style.setProperty("--graph-color", colors[colorIndex - 1]);
     
     //selectedHeader.style.backgroundColor = colors[colorIndex];
     let gradient = `linear-gradient(45deg,${colors[colorIndex - 1]},${colors[colorIndex]})`;

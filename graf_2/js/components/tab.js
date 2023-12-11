@@ -76,7 +76,16 @@ const storage = {
 }
 const dragHandle = {
     
-    tabDrag: (target, delta) => {
+    tabDrag: (target, ev, delta) => {
+        if (ev.buttons == 4) {
+            ev.preventDefault();
+            let g = target.getGraph();
+            for (let n of g.selection.nodeSet) {
+                n.position(n.pos.x + delta.x, n.pos.y + delta.y);
+            }
+            return;
+        }
+
         let rect = target.square.getBoundingClientRect();
         storage.point.set(rect.width - delta.x, rect.height - delta.y);
 
@@ -187,14 +196,13 @@ class Tab extends HTMLElement {
         addCustomDrag(this, {
             onstart: (ev) => {
                 evTarget = ev.target;
-                if (ev.target.tagName === "GRAPH-EDGE") {
-                    storage.fromNode = this.getNode(ev.target.fromNode);
-                }
+                if (ev.target.tagName === "GRAPH-EDGE") storage.fromNode = this.getNode(ev.target.fromNode);
+                if (ev.buttons == 4 && ev.target.tagName === "GRAPH-NODE")ev.preventDefault(), evTarget = this;
                 return true;
             },
             onmove: (ev, delta) => {
                 switch (evTarget.tagName) {
-                    case "GRAPH-TAB": dragHandle.tabDrag(this, delta); break;
+                    case "GRAPH-TAB": dragHandle.tabDrag(this, ev, delta); break;
                     case "GRAPH-NODE": dragHandle.nodeDrag(evTarget, ev, delta); break;
                     case "GRAPH-EDGE": dragHandle.edgeDrag(evTarget, ev, delta); break;
                 }
@@ -214,24 +222,22 @@ class Tab extends HTMLElement {
         this.addEventListener("click", (ev) => {
             if (ev.target.tagName !== "GRAPH-NODE" && ev.target.tagName !== "GRAPH-EDGE") {
                 let selection = graphs.get(this.graphId).selection;
-                if(!selection.empty())selection.clear();
+                if (!selection.empty()) selection.clear();
             }
         })
 
         this.zoom = 1;
-        let scale = 0.1, sign,oldZoom;
+        let scale = 0.1;
         let lastPointer = new Point();
         let currentPointer = new Point();
         let tabPos = new Point();
         
         this.addEventListener("wheel", (ev) => {
             ev.preventDefault();
-            sign = ev.deltaY < 0 ? -1 : 1;
             
-            oldZoom = this.zoom
             this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
 
-            this.zoom += sign * scale;
+            this.zoom += ev.deltaY < 0 ? -scale : scale;
             if (this.zoom < 2 * scale) this.zoom = 2 * scale;
             
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
@@ -244,7 +250,6 @@ class Tab extends HTMLElement {
                         n.pos.y + currentPointer.y - lastPointer.y
                     );
             }
-        
         
             this.style.zoom = this.zoom;
             this.classList.remove("hide");
@@ -265,20 +270,17 @@ class Tab extends HTMLElement {
             if (edge.fromNode === nodeId) edge.from = point;
             else if (edge.toNode === nodeId) edge.to = point;
         })
-        return; 
-        this.connectedEdges(nodeId).forEach((ed) => {
-            if (ed.fromNode === nodeId) ed.from = point;
-            else if (ed.toNode === nodeId) ed.to = point;
-        })
     }
     forConnectedEdges(nodeId,callBack) {
         let G=graphs.get(this.graphId);
-        let neighbourSet=G.nodes.get(nodeId);
+        let neighbourSet = G.nodes.get(nodeId),e;
 
-        for(let node of neighbourSet){
-            let e=this.getEdge(nodeId,Math.abs(node));
-            console.log(nodeId,node);
-            callBack(e);
+        for (let node of neighbourSet) {
+            node = Math.abs(node);
+            e = this.getEdge(node, nodeId);
+            if (e) callBack(e);
+            e = this.getEdge(nodeId, node);
+            if (e) callBack(e);
         }
         //return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
     }
@@ -286,8 +288,10 @@ class Tab extends HTMLElement {
         return document.getElementById("g" + this.graphId + " " + id);
     }
     getEdge(x, y) {
-        if(x>y)[x,y]=[y,x];
         return document.getElementById("g" + this.graphId + " " + x + " " + y);
+    }
+    getGraph() {
+        return graphs.get(this.graphId);
     }
 
     /**@param {Point} point*/
@@ -298,18 +302,16 @@ class Tab extends HTMLElement {
            
     }
 
-    updateNodes(nodeIter=this.shadowRoot.querySelector("slot[name='nodes']").assignedNodes()) {
-        for (let n of nodeIter) {
-            
-        }
-    }
-
     positionNodes() {
         this.classList.add("hide");
         this.querySelectorAll("graph-node").forEach(node => {
             this.positionFunction(this.tab, node);
         });
         this.classList.remove("hide");
+    }
+
+    hide(flag) {
+        this.classList.toggle("hide", flag);
     }
 
     connectedCallback() {
