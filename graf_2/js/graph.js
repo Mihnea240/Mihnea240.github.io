@@ -1,9 +1,9 @@
 const ORDERED = 1;
 const UNORDERED = 0;
 
-class Graph{
+class Graph {
     static id = 0;
-    constructor(input,type) {
+    constructor(input, type) {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection();
@@ -12,7 +12,7 @@ class Graph{
         /**@type {Tab} */
         this.tab = document.getElementById("g" + this.id);
         this.header = document.getElementById("h" + this.id);
-        
+
         this.nodes = new Map();
         this.a_nodeId = 1;
     }
@@ -22,7 +22,7 @@ class Graph{
         this.tab?.classList.add("hide");
     }
     focus() {
-        let header = this.header,tab = this.tab;
+        let header = this.header, tab = this.tab;
         graphs.selected?.unfocus();
         graphs.selected = this;
 
@@ -39,11 +39,11 @@ class Graph{
         return newNode;
     }
     removeNode(id) {
-        
+
         let n = this.tab.getNode(id);
         this.tab.removeChild(n);
         if (n.selected) this.selection.toggle(n);
-        
+
         for (let n1 of this.nodes.get(id)) {
             if (n1 < 0) this.removeEdge(-n1, id);
             else this.removeEdge(id, n1);
@@ -55,18 +55,19 @@ class Graph{
     }
     addEdge(x, y) {
         if ((x == y) || this.isEdge(x, y) || (this.type == UNORDERED && this.isEdge(y, x))) return;
-        
+
         this.nodes.get(x).add(y);
-        
+
         let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}" slot="edges"></graph-edge>`));
-        
+
         let sim = this.nodes.get(y);
         if (!sim) this.nodes.set(y, new Set());
         sim.add(this.type == UNORDERED ? x : -x);
-        
+
         let n1 = this.tab.getNode(x);
         let n2 = this.tab.getNode(y);
-        edge.from = n1.middle(); edge.to = n2.middle();
+        //edge.from = n1.middle(); edge.to = n2.middle();
+        edge.initialPos(n1.middle(), n2.middle());
     }
     removeEdge(x, y) {
         let rez = this.nodes.get(x)?.delete(y);
@@ -75,12 +76,12 @@ class Graph{
             this.tab.removeChild(e);
 
             if (e.selected) this.selection.toggle(e);
-            if(this.type == UNORDERED)this.nodes.get(y).delete(x);
+            if (this.type == UNORDERED) this.nodes.get(y).delete(x);
             else this.nodes.get(y).delete(-x);
         }
         return rez;
     }
-    isEdge(x,y) {
+    isEdge(x, y) {
         return this.nodes.get(x)?.has(y) > 0;
     }
 }

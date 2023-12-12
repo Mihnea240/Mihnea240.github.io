@@ -33,12 +33,22 @@ class edgeUI extends HTMLElement {
         this.curve.p1.set(...this.curve.from);
         this.curve.p2.set(...this.curve.from);
     }
+    initialPos(v1, v2) {
+        this.curve.fromCoords.set(v1.x, v1.y);
+        this.curve.p1.pos.set(v1.x, v1.y);
+        this.curve.lfrom.set(v1.x, v1.y);
+
+        this.curve.toCoords.set(v2.x, v2.y);
+        this.curve.p2.pos.set(v2.x, v2.y);
+        this.curve.lto.set(v2.x, v2.y);
+        this.curve.update();
+    }
 
     set from(point) {
         this.curve.from = point;
     }
     get from() {
-        this.curve.from;
+        return this.curve.from;
     }
     set to(point) {
         this.curve.to = point;
@@ -127,17 +137,17 @@ class BezierCurve extends HTMLElement {
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _curve_template;
 
-        this.fromCoords = new Point(10,10);
-        this.toCoords = new Point(10,10);
-        this.lfrom = new Point(10,10);
-        this.lto = new Point(10,10);
+        this.fromCoords = new Point(0, 0);
+        this.toCoords = new Point(0, 0);
+        this.lfrom = new Point(0, 0);
+        this.lto = new Point(0, 0);
 
         [this.p1, this.p2] = shadow.querySelectorAll("div");
         [this.l1, this.l2] = shadow.querySelectorAll("line");
 
         this.paths = shadow.querySelectorAll("path");
-        this.p1.pos = new Point(10,10);
-        this.p2.pos = new Point(10,10);
+        this.p1.pos = new Point(0, 0);
+        this.p2.pos = new Point(0, 0);
         this.tf = BezierCurve.translationFunctions.relativeTranslation;
 
         addCustomDrag(this.p1, {
@@ -161,7 +171,7 @@ class BezierCurve extends HTMLElement {
 
     update() {
         let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
-        
+
         this.paths.forEach(p => p.setAttribute("d", new_val));
         this.p1.style.cssText += `left: ${this.p1.pos.x}px; top: ${this.p1.pos.y}px;`
         this.p2.style.cssText += `left: ${this.p2.pos.x}px; top: ${this.p2.pos.y}px;`
@@ -196,11 +206,11 @@ class BezierCurve extends HTMLElement {
         this.update();
     }
 
-    f(t=0) {
+    f(t = 0) {
         if (t > 1) t = 1;
         return new Point(
-            ((1 - t) ** 3) * this.from.x + 3*t * ((1 - t) ** 2) * this.p1.pos.x + 3*(t ** 2) * (1 - t) * this.p2.pos.x + (t ** 3) * this.to.x,
-            ((1 - t) ** 3) * this.from.y + 3*t * ((1 - t) ** 2) * this.p1.pos.y + 3*(t ** 2) * (1 - t) * this.p2.pos.y + (t ** 3) * this.to.y,
+            ((1 - t) ** 3) * this.from.x + 3 * t * ((1 - t) ** 2) * this.p1.pos.x + 3 * (t ** 2) * (1 - t) * this.p2.pos.x + (t ** 3) * this.to.x,
+            ((1 - t) ** 3) * this.from.y + 3 * t * ((1 - t) ** 2) * this.p1.pos.y + 3 * (t ** 2) * (1 - t) * this.p2.pos.y + (t ** 3) * this.to.y,
         )
     }
 
@@ -217,14 +227,14 @@ class BezierCurve extends HTMLElement {
     set from({ x, y }) {
         this.lfrom.copy(this.fromCoords);
         this.fromCoords.set(x, y);
-        this.tf(this,0);
+        this.tf(this, 0);
         this.update();
     }
     get from() { return this.fromCoords }
     set to({ x, y }) {
         this.lto.copy(this.toCoords);
         this.toCoords.set(x, y);
-        this.tf(this,1);
+        this.tf(this, 1);
         this.update();
     }
     get to() { return this.toCoords };
@@ -244,28 +254,23 @@ class BezierCurve extends HTMLElement {
 BezierCurve.translationFunctions = {
     /**@param {BezierCurve} curve */
     absoluteTranslation: (curve, p) => {
-        if (p == 0)curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
+        if (p == 0) curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
         else curve.p2.pos.translate(curve.toCoords.x - curve.lto.x, curve.toCoords.y - curve.lto.y);
     },
     /**@param {BezierCurve} curve */
-    relativeTranslation: (curve,p) => {
-        let dir = new Point().copy(curve.lfrom).sub(curve.lto).normalize();
-        let new_dir = new Point().copy(curve.toCoords).sub(curve.fromCoords).normalize();
+    relativeTranslation: (curve, p) => {
+        let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
+        let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
+        let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
 
         let p1 = new Point().copy(curve.p1.pos).sub(curve.lfrom);
         let p2 = new Point().copy(curve.p2.pos).sub(curve.lto);
 
-        let a1 = Point.angle(dir, p1)/100;
-        let a2 = Point.angle(dir, p2);
-        
-        console.log(p1);
-        if (!a1 || !a2) return;
-        let origin = new Point();
-        curve.p1.pos.copy(curve.fromCoords).add(new_dir.rotateAround(origin,a1).multiplyScalar(p1.mag()));
-        
+        let origin = new Point(), a = Math.PI / 3;
+        let mp1 = p1.mag(), mp2 = p2.mag();
 
-
-
+        curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(origin, a).multiplyScalar(mp1));
+        curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(origin, a).multiplyScalar(mp2));
     },
 }
 
