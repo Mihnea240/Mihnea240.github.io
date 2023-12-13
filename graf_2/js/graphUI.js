@@ -6,6 +6,7 @@ const colors = [
 const newGraphButton = document.querySelector(".new-graph");
 const tabArea = document.querySelector(".tab-area");
 const headerArea = document.querySelector(".header");
+const menuBar = document.querySelector(".menu-bar");
 const tab_template = elementFromHtml(`<graph-tab class="tab"></graph-tab>`);
 const header_template = elementFromHtml(`
     <button class="graph-header selected">
@@ -64,3 +65,14 @@ function createTabUI(id) {
 
     newHeader.querySelector(".text").textContent = "New graph " + id;
 }
+
+const greatMenus = {}
+function initGreatMenus() {
+    for (let button of menuBar.children) {
+        button.addEventListener("click", (ev) => {
+            
+        })
+    }
+    
+}
+

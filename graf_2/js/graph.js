@@ -66,8 +66,9 @@ class Graph {
 
         let n1 = this.tab.getNode(x);
         let n2 = this.tab.getNode(y);
-        //edge.from = n1.middle(); edge.to = n2.middle();
-        edge.initialPos(n1.middle(), n2.middle());
+        edge.initialPos(n1.middle(), n2.middle(), new Point(0, 100), new Point(0,-100));
+        //edge.update();
+       
     }
     removeEdge(x, y) {
         let rez = this.nodes.get(x)?.delete(y);

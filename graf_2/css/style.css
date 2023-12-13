@@ -47,9 +47,11 @@ graph-tab{
     --node-width: 38px;
     --node-height: 38px;
     --node-background: rgba(36, 36, 36);
+    --node-emission: .5rem;
     --graph-color: rgb(255, 215, 72);
     --edge-width: 1px;
     --edge-color: white;
+    --edge-emission: .5rem;
     z-index: 10;
 }
 

@@ -56,8 +56,8 @@ const _tab_template =/*html*/`
         <slot name="edges"></slot>
   
     </div>
-    <!-- <number-line unit="100px" for="tab"></number-line>
-    <number-line unit="100px" direction="vertical" for="tab"></number-line> -->
+    <number-line unit="100px" for="tab"></number-line>
+    <number-line unit="100px" direction="vertical" for="tab"></number-line>
     
 `
 
@@ -225,6 +225,10 @@ class Tab extends HTMLElement {
                 let selection = graphs.get(this.graphId).selection;
                 if (!selection.empty()) selection.clear();
             }
+            if (ev.target.tagName !== "GRAPH-EDGE" && this.curvesArray.size) {
+                for (let c of this.curvesArray) c.selected=false
+                this.curvesArray.clear();
+            }
         })
 
         this.zoom = 1;
@@ -262,6 +266,11 @@ class Tab extends HTMLElement {
                 entry.target.size.x = entry.borderBoxSize[0].inlineSize;
                 entry.target.size.y = entry.borderBoxSize[0].blockSize;
             }
+        })
+
+        this.curvesArray = new Set();
+        this.addEventListener("curveselect", (ev) => {
+            if (ev.detail.selected) this.curvesArray.add(ev.composedPath()[0]);
         })
     }
 

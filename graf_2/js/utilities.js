@@ -100,6 +100,9 @@ class Point {
     copy({ x, y }) {
         return this.set(x, y);
     }
+    clone() {
+        return new Point(this.x, this.y);
+    }
     sub({ x, y }) {
         return this.translate(-x, -y);
     }
@@ -109,7 +112,10 @@ class Point {
     mult({ x, y }) {
         return this.x * x + this.y * y;
     }
-    rotateAround({ x, y }, angle) {
+    cross({ x, y }) {
+        return this.x * y - x * this.y;
+    }
+    rotateAround(angle, { x, y }=Point.ORIGIN) {
         //cos -sin x
         //sin  cos y
         let sin = Math.sin(angle), cos = Math.cos(angle);
@@ -117,8 +123,19 @@ class Point {
         return this.set(tx * cos - ty * sin + x, tx * sin + ty * cos + y);
     }
     static angle(v1, v2) {
-        return Math.acos(v1.mult(v2) / (v1.mag() * v2.mag()));
+        return Math.acos(v1.mult(v2) / Math.sqrt(v1.magSq() * v2.magSq()));
     }
+    static angle2(v1, v2) {
+        let a = Point.angle(v1, v2);
+        let sign = v1.cross(v2);
+        if (sign < 0) return 2 * Math.PI - a;
+        return a;
+    }
+    static ORIGIN = new Point();
+    static RIGHT = new Point(1, 0);
+    static LEFT = new Point(-1, 0);
+    static TOP = new Point(0, 1);
+    static DOWN = new Point(0, -1);
 
 
 }

@@ -5,10 +5,10 @@ const _edge_template = /* html */`
             position: absolute;
             width: 0;height: 0;
         }
-        :host(:--selected) curved-path::part(svg){
+        :host(:--selected) {
             filter:
-                drop-shadow(0 0 .5rem var(--graph-color))
-                drop-shadow(0 0 1px var(--graph-color));
+                drop-shadow(0 0 var(--edge-emission) var(--graph-color))
+                drop-shadow(0 0 calc(var(--edge-emission)* .5) var(--graph-color));
         }
     </style>
 `
@@ -27,13 +27,9 @@ class edgeUI extends HTMLElement {
     }
 
     update() {
-        for (let c of this.curves) c.update();
+        this.curve.update();
     }
-    lineView() {
-        this.curve.p1.set(...this.curve.from);
-        this.curve.p2.set(...this.curve.from);
-    }
-    initialPos(v1, v2) {
+    initialPos(v1, v2,offset1=Point.ORIGIN,offset2=offset1) {
         this.curve.fromCoords.set(v1.x, v1.y);
         this.curve.p1.pos.set(v1.x, v1.y);
         this.curve.lfrom.set(v1.x, v1.y);
@@ -41,6 +37,16 @@ class edgeUI extends HTMLElement {
         this.curve.toCoords.set(v2.x, v2.y);
         this.curve.p2.pos.set(v2.x, v2.y);
         this.curve.lto.set(v2.x, v2.y);
+        
+        if (this.curve.tf === BezierCurve.translationFunctions.relativeTranslation) {
+            let i = this.curve.lto.clone().sub(this.curve.lfrom).normalize()
+            let j = i.clone().rotateAround(Math.PI / 2), aux = offset1.clone();
+            
+            this.curve.p1.pos.translate(offset1.x * i.x + offset1.y * j.x, offset1.y * i.y + offset1.y * j.y);
+            this.curve.p2.pos.translate(offset2.x * i.x + offset2.y * j.x, offset2.y * i.y + offset2.y * j.y);
+            this.curve.updateP1();  this.curve.updateP2();
+
+        }
         this.curve.update();
     }
 
@@ -148,12 +154,22 @@ class BezierCurve extends HTMLElement {
         this.paths = shadow.querySelectorAll("path");
         this.p1.pos = new Point(0, 0);
         this.p2.pos = new Point(0, 0);
+        this.p1.mag = 0;
+        this.p2.mag = 0;
         this.tf = BezierCurve.translationFunctions.relativeTranslation;
+        this.symetry = true;
 
+        this.auxP = new Point();
+        this.auxPP = new Point();
         addCustomDrag(this.p1, {
             onmove: (ev, delta) => {
                 ev.stopPropagation(); ev.stopImmediatePropagation();
                 this.p1.pos.translate(delta.x, delta.y);
+                this.updateP1();
+                if (this.symetry) {
+                    this.p2.pos.translate(-delta.x, -delta.y);
+                    this.updateP2();
+                }
                 this.update();
             }
         })
@@ -161,13 +177,30 @@ class BezierCurve extends HTMLElement {
             onmove: (ev, delta) => {
                 ev.stopPropagation(); ev.stopImmediatePropagation();
                 this.p2.pos.translate(delta.x, delta.y);
+                this.updateP2();
+                if (this.symetry) {
+                    this.p1.pos.translate(-delta.x, -delta.y);
+                    this.updateP1();
+                }
                 this.update();
             }
         })
-
+        this.selectEvent = new CustomEvent("curveselect", {
+            composed: true,
+            bubbles: true,
+            detail: {}
+        })
         this.selected = false;
     }
 
+    updateP1() {
+        this.p1.mag = this.auxP.copy(this.p1.pos).sub(this.fromCoords).mag();
+        this.p1.angle = Point.angle2(this.auxPP.copy(this.toCoords).sub(this.fromCoords),this.auxP) || 0;
+    }
+    updateP2() {
+        this.p2.mag = this.auxP.copy(this.p2.pos).sub(this.toCoords).mag();
+        this.p2.angle = Point.angle2(this.auxPP.copy(this.fromCoords).sub(this.toCoords),this.auxP) || 0;
+    }
 
     update() {
         let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
@@ -195,6 +228,7 @@ class BezierCurve extends HTMLElement {
             `;
         }
     }
+
     addArrow() {
         this.arrow = this.shadowRoot.appendChild(
             elementFromHtml(`
@@ -241,6 +275,9 @@ class BezierCurve extends HTMLElement {
 
     set selected(flag) {
         this.select = !!flag;
+        this.selectEvent.detail.selected = this.select;
+        this.dispatchEvent(this.selectEvent);
+
         this.p1.classList.toggle("hide", !flag);
         this.l1.classList.toggle("hide", !flag);
         this.p2.classList.toggle("hide", !flag);
@@ -262,15 +299,9 @@ BezierCurve.translationFunctions = {
         let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
         let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
         let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
-
-        let p1 = new Point().copy(curve.p1.pos).sub(curve.lfrom);
-        let p2 = new Point().copy(curve.p2.pos).sub(curve.lto);
-
-        let origin = new Point(), a = Math.PI / 3;
-        let mp1 = p1.mag(), mp2 = p2.mag();
-
-        curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(origin, a).multiplyScalar(mp1));
-        curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(origin, a).multiplyScalar(mp2));
+        
+        curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(curve.p1.angle || 0).multiplyScalar(curve.p1.mag));
+        curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(curve.p2.angle || 0).multiplyScalar(curve.p2.mag));
     },
 }
 

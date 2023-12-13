@@ -14,7 +14,6 @@
     <script defer src="js/components/axis.js"></script>
     <script defer src="js/components/node.js"></script>
     <script defer src="js/components/edge.js"></script>
-    <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/graph.js"></script>
     <script defer src="js/components/graphAdditionMenu.js"></script>
     <script defer src="js/selection.js"></script>
@@ -26,9 +25,9 @@
 <body>
     <div class="menu-bar"> 
         <button>File</button>
-        <button>View</button>
-        <button>Chains</button>
-        <button>Settings</button>
+        <button name="nodeMenu">Node View</button>
+        <button name="edgeMenu">Edge View</button>
+        <button name="graphMenu">Graph View</button>
     </div>
     <div class="header">
         <button class="new-graph" style="font-size: 1.3em;">+</button>
@@ -37,6 +36,7 @@
     <div class="tab-area" draggable="false"></div>
         
     <graph-menu></graph-menu>
+
 </body>
 
 

@@ -4,6 +4,8 @@ const _node_template = /* html */`
         :host{
             position: absolute;
             z-index: 100;
+            width: calc(var(--node-width)*1.5);
+            height: calc(var(--node-height)*1.5);
         }
         div{
             color: var(--node-color);
@@ -15,17 +17,18 @@ const _node_template = /* html */`
         .hide{
             display: none;
         }
+
         [name="id"]{
             width: var(--node-width);
             height: var(--node-height);
             border-radius: var(--node-border-radius);
             background: var(--node-background);
+           
         }
         :host(:--selected) div{
             box-shadow:
-                0 0 .5rem var(--graph-color),
-                0 0 .3rem var(--graph-color) inset
-
+                0 0 var(--node-emission) var(--graph-color),
+                0 0 calc(var(--node-emission) *0.9) var(--graph-color) inset;
         }
 
 
