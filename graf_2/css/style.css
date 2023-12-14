@@ -6,11 +6,12 @@ html,body{
     display: flex;
     flex-direction: column;
     background:var(--background);
+    font-family: 'Roboto', sans-serif;
 }
 :root{
     --background:  rgb(29, 25, 25);
     --tab-background:  rgba(36, 36, 36, 0.879);
-    --menu-background: var(--background);
+    --menu-background: rgb(40,40,40);
     --ui-select: rgba(52, 178, 245, 0.544);
     color: white;
 }
@@ -18,20 +19,55 @@ html,body{
     color: inherit;
     user-select: none;
 }
+input{
+    border: none;
+    outline: none;
+    padding: 0; margin: 0;
+    box-shadow: 0 0 1px 1px var(--ui-select);
+}
+input[type=color] { 
+	background-color: transparent;
+    width: 5rem; height: 1rem;
+    box-shadow: none;
+	&::-webkit-color-swatch {
+        outline: none;
+        box-shadow: 2px 1px 4px 1pxs var(--background);
+        border: none;
+	}
+	&::-webkit-color-swatch-wrapper {
+		padding: 0;
+	}
+}
 button{
     padding: 0;
     border: none;
     background: inherit;
 }
-input[type="text"]{
-    background-color: inherit;
-    width: auto;
-    border: none;
-    outline: none;
+input[type=text] {
+	appearance: none;
+	background: inherit;
+    &:focus{
+        background-color: var(--ui-select);
+    }
 }
-input[type="text"]:focus{
-    border-bottom: 1px solid black;
-
+input[type=range] {
+	appearance: none;
+	background: transparent;
+	width: 8em;
+	&::-webkit-slider-thumb{
+		appearance: none;
+		width: 1.5em;
+		height: 1.5em;
+		border-radius: 50%;
+		background: transparent;
+		border: .2em solid #E91E63;
+	}
+	&::-webkit-slider-runnable-track{
+		background: #E91E63;
+		width: 100%;
+		border-radius: 1vmin;
+		height: .5em;
+	}
 }
 
 
@@ -137,14 +173,26 @@ span[contenteditable="true"]{
     border-bottom: 1px double white;
 }
 
-.action-menu{
-    position: absolute;
-    z-index: 200;
+pop-menu{
+    background-color: var(--menu-background);
+    box-shadow: 2px 2px 5px 1px rgba(255, 255, 255, 0.222);
+    font-weight: 100;
+    border-radius: 4px;
+    padding: .5rem;
+    border: 1px solid rgba(255, 255, 255, 0.251);
+    z-index: 300;
 }
-.menu-default , .action-menu::part(wrapper){
-    background: var(--menu-background);
-    box-shadow: 1px 1px 5px black;
-    border-radius: .1rem;
+pop-menu > *{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    &:hover{
+        
+    }
+}
+pop-menu input{
+    margin-left: .4rem;
 }
     
     

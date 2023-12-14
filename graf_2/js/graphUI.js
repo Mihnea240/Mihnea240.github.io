@@ -68,9 +68,12 @@ function createTabUI(id) {
 
 const greatMenus = {}
 function initGreatMenus() {
-    for (let button of menuBar.children) {
+    for (let button of menuBar.querySelectorAll("button")) {
         button.addEventListener("click", (ev) => {
-            
+            ev.stopPropagation();
+            let rect = button.getBoundingClientRect();
+            console.log(rect);
+            button.nextElementSibling.toggle(rect.x, rect.bottom);
         })
     }
     

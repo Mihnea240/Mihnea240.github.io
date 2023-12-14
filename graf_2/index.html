@@ -9,11 +9,16 @@
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
+
     <script defer src="js/utilities.js"></script>
     <script defer src="js/components/tab.js"></script>
     <script defer src="js/components/axis.js"></script>
     <script defer src="js/components/node.js"></script>
     <script defer src="js/components/edge.js"></script>
+    <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/graph.js"></script>
     <script defer src="js/components/graphAdditionMenu.js"></script>
     <script defer src="js/selection.js"></script>
@@ -26,7 +31,16 @@
     <div class="menu-bar"> 
         <button>File</button>
         <button name="nodeMenu">Node View</button>
+
         <button name="edgeMenu">Edge View</button>
+        <pop-menu>
+            <label>Color<input type="color"></label>
+            <label>Emission<input type="color"></label>
+            <label>Emission strength
+                <input type="text" name="nodes" value="1" maxLength="3" size="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </label>
+        </pop-menu>
+
         <button name="graphMenu">Graph View</button>
     </div>
     <div class="header">

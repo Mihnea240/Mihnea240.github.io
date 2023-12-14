@@ -2,29 +2,21 @@
 
 const _pop_menu_template =/* html */`
     <style>
-        .wrapper {
+        :host{
+            all: inherit;
+            display: none;
             position: absolute;
-            transform: scaleY(0);
-            transform-origin: 0 0;
-            transition: transform 100ms ease-out;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            width: max-content;
+            margin: 0;
+            --direction: column;
         }
-        
-        .wrapper.open {
-            transform: scaleY(1);
-            transition: transform 0.5s ease-out;
+        :host(:--open){
+            display: flex;
+            flex-direction: var(--direction);
         }
     </style>
-
-    <div class="header">
-        <slot name="title"></slot>
-    </div>
     
-    <div class="wrapper" part="wrapper">
-        <slot></slot>
-    </div>      
+    <slot></slot>    
 `
 
 
@@ -33,10 +25,16 @@ class PopMenu extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _pop_menu_template;
+        console.log(this.shadowRoot)
         this.open = false;
+        this.tabIndex = 0;
 
         this._internals = this.attachInternals();
-        this.wrapper = shadow.querySelector(".wrapper");        
+        this.wrapper = shadow.querySelector(".wrapper");  
+
+        document.addEventListener("click", (ev) => {
+            if(this.open && !this.contains(ev.target))this.close();
+        },false)
     }
 
     static observedAttributes = ["position","open"];
@@ -54,16 +52,14 @@ class PopMenu extends HTMLElement{
     show(x,y) {
         this.open = true;
         this._internals.states.add("--open");
-        this.wrapper.classList.add("open");
         if (x !== undefined && y !== undefined) {
-            this.wrapper.style.cssText += `left: ${x}px; top: ${y}px`;
+            this.style.cssText += `left: ${x}px; top: ${y}px`;
         }
     }
     
     close() {
         this.open = false;
         this._internals.states.delete("--open");
-        this.wrapper.classList.remove("open");
     }
 
     toggle(x,y) {
