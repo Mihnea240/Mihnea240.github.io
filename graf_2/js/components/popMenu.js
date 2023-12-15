@@ -28,12 +28,16 @@ class PopMenu extends HTMLElement{
         console.log(this.shadowRoot)
         this.open = false;
         this.tabIndex = 0;
+        this.closedEvent=new CustomEvent("menuclosed",{bubbles: true});
 
         this._internals = this.attachInternals();
         this.wrapper = shadow.querySelector(".wrapper");  
 
         document.addEventListener("click", (ev) => {
-            if(this.open && !this.contains(ev.target))this.close();
+            if(this.open && !this.contains(ev.target)){
+                this.dispatchEvent(this.closedEvent);
+                this.close();
+            }
         },false)
     }
 

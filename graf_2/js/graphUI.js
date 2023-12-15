@@ -72,10 +72,13 @@ function initGreatMenus() {
         button.addEventListener("click", (ev) => {
             ev.stopPropagation();
             let rect = button.getBoundingClientRect();
-            console.log(rect);
             button.nextElementSibling.toggle(rect.x, rect.bottom);
         })
     }
+
+    menuBar.addEventListener("menuclosed",(ev)=>{
+        console.log(ev.target)
+    })
     
 }
 

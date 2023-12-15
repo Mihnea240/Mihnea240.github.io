@@ -34,11 +34,17 @@
 
         <button name="edgeMenu">Edge View</button>
         <pop-menu>
-            <label>Color<input type="color"></label>
-            <label>Emission<input type="color"></label>
+            <label>Color   <input name="--edge-color" type="color"></label>
             <label>Emission strength
-                <input type="text" name="nodes" value="1" maxLength="3" size="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                <input type="text" name="--edge-emission" value="1" maxLength="3" size="1" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             </label>
+            <label>Angle control
+                <select name="angle-control">
+                    <option>Symetric</option>
+                    <option>Disjoined</option>
+                </select>
+            </label>
+            <label></label>
         </pop-menu>
 
         <button name="graphMenu">Graph View</button>

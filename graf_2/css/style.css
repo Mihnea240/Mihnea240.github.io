@@ -69,6 +69,14 @@ input[type=range] {
 		height: .5em;
 	}
 }
+select, select:focus{
+    color: inherit;
+    outline: none;
+    background-color: transparent;
+}
+option, option:focus{
+    background-color:  var(--menu-background);
+}
 
 
 
@@ -191,7 +199,7 @@ pop-menu > *{
         
     }
 }
-pop-menu input{
+pop-menu input, pop-menu select{
     margin-left: .4rem;
 }
     
