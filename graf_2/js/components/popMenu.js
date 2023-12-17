@@ -7,7 +7,7 @@ const _pop_menu_template =/* html */`
             display: none;
             position: absolute;
             width: max-content;
-            margin: 0;
+            margin: 0; padding: 0; gap:0;
             --direction: column;
         }
         :host(:--open){
@@ -23,15 +23,13 @@ const _pop_menu_template =/* html */`
 class PopMenu extends HTMLElement{
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML = _pop_menu_template;
-        console.log(this.shadowRoot)
         this.open = false;
-        this.tabIndex = 0;
         this.closedEvent=new CustomEvent("menuclosed",{bubbles: true});
 
+
+        const shadow = this.attachShadow({ mode: "open" });
+        shadow.innerHTML = _pop_menu_template;
         this._internals = this.attachInternals();
-        this.wrapper = shadow.querySelector(".wrapper");  
 
         document.addEventListener("click", (ev) => {
             if(this.open && !this.contains(ev.target)){
@@ -51,7 +49,9 @@ class PopMenu extends HTMLElement{
             }
         }
     }
-    get header(){return this.shadowRoot.querySelector("header")}
+    connectedCallback() {
+        
+    }
 
     show(x,y) {
         this.open = true;

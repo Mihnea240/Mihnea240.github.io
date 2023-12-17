@@ -22,7 +22,7 @@ function addCustomDrag(target, { onstart = (ev, delta) => true, onmove = (ev, de
     }
     target.addEventListener("mousedown", (ev) => {
         pos.set(ev.clientX, ev.clientY);
-        zoom = (+target.style.zoom) || 1;
+        zoom = getComputedStyle(target).zoom || 1;
 
         if (!onstart(ev)) return;
         document.addEventListener("mousemove", moveHandle);

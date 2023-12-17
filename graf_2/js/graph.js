@@ -3,16 +3,19 @@ const UNORDERED = 0;
 
 class Graph {
     static id = 0;
-    constructor(input, type) {
+    constructor(input, type,settings) {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection();
+        this.settings = createGraphSettings(this);
+        
         createTabUI(this.id);
-
         /**@type {Tab} */
         this.tab = document.getElementById("g" + this.id);
         this.header = document.getElementById("h" + this.id);
-
+        
+        
+        /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
     }
@@ -33,10 +36,7 @@ class Graph {
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());
-        let newNode = this.tab.appendChild(elementFromHtml(`<graph-node id="g${this.id} ${this.a_nodeId}" slot="nodes" ></graph-node>`));
-        this.tab.sizeObserver.observe(newNode);
-        this.tab.positionFunction(this.tab, newNode);
-        return newNode;
+        return  this.tab.addNode({ id: this.a_nodeId });
     }
     removeNode(id) {
 
@@ -56,18 +56,28 @@ class Graph {
     addEdge(x, y) {
         if ((x == y) || this.isEdge(x, y) || (this.type == UNORDERED && this.isEdge(y, x))) return;
 
-        this.nodes.get(x).add(y);
+        let reverse = false;
+        let xSet = this.nodes.get(x);
+        let ySet = this.nodes.get(y);
+        
+        if (xSet.has(-y)) {
+            xSet.delete(-y);
+            reverse = true;
+        } else ySet.add(-x);
 
-        let edge = this.tab.appendChild(elementFromHtml(`<graph-edge id="g${this.id} ${x} ${y}" slot="edges"></graph-edge>`));
+        if (this.type == UNORDERED) ySet.add(x);
+        xSet.add(y);
 
-        let sim = this.nodes.get(y);
-        if (!sim) this.nodes.set(y, new Set());
-        sim.add(this.type == UNORDERED ? x : -x);
-
-        let n1 = this.tab.getNode(x);
-        let n2 = this.tab.getNode(y);
-        edge.initialPos(n1.middle(), n2.middle(), new Point(0, 100), new Point(0,-100));
-        //edge.update();
+        let offset = this.settings.edge.cp_offset;
+        return this.tab.addEdge({
+            from: x,
+            to: y,
+            type: this.type,
+            cp_offset: new Point(offset[0],offset[1]),
+            cp_symmetry: this.settings.edge.cp_symmetry,
+            mode: this.settings.edge.mode,
+            reverse 
+        })
        
     }
     removeEdge(x, y) {

@@ -6,24 +6,25 @@ html,body{
     display: flex;
     flex-direction: column;
     background:var(--background);
-    font-family: 'Roboto', sans-serif;
+    color: var(--color);
 }
 :root{
-    --background:  rgb(29, 25, 25);
-    --tab-background:  rgba(36, 36, 36, 0.879);
-    --menu-background: rgb(40,40,40);
+    --background:  rgb(23, 23, 23);
+    --tab-background:  rgba(36, 36, 36);
+    --menu-background: #2c2c2c;
     --ui-select: rgba(52, 178, 245, 0.544);
-    color: white;
+    --color: white;
 }
 *{
     color: inherit;
     user-select: none;
+    box-sizing: border-box;
 }
-input{
-    border: none;
-    outline: none;
+input:not([type="range"], [type="checkbox"]){
+    border: none;   outline: none;
     padding: 0; margin: 0;
-    box-shadow: 0 0 1px 1px var(--ui-select);
+    box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.619) inset ;
+    background-color: #1D1C1C;
 }
 input[type=color] { 
 	background-color: transparent;
@@ -38,6 +39,27 @@ input[type=color] {
 		padding: 0;
 	}
 }
+input[type="range"]{
+    position: relative;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    height: 2px;
+    background-color: black;
+    &::-webkit-slider-thumb{
+        -webkit-appearance: none;
+        background-color: #1D1C1C;
+        width: .4rem;
+        height: .8rem;
+    }
+}
+input[type="range"]::after{
+    content: attr(value);
+    position: absolute;
+    left: calc(101%);
+    translate: 0 -50%;
+}
 button{
     padding: 0;
     border: none;
@@ -45,29 +67,9 @@ button{
 }
 input[type=text] {
 	appearance: none;
-	background: inherit;
     &:focus{
         background-color: var(--ui-select);
     }
-}
-input[type=range] {
-	appearance: none;
-	background: transparent;
-	width: 8em;
-	&::-webkit-slider-thumb{
-		appearance: none;
-		width: 1.5em;
-		height: 1.5em;
-		border-radius: 50%;
-		background: transparent;
-		border: .2em solid #E91E63;
-	}
-	&::-webkit-slider-runnable-track{
-		background: #E91E63;
-		width: 100%;
-		border-radius: 1vmin;
-		height: .5em;
-	}
 }
 select, select:focus{
     color: inherit;
@@ -84,18 +86,21 @@ option, option:focus{
 
 /*graph styles*/
 graph-tab{
-    --node-color: white;
-    --node-border: 1px solid white;
+    --node-color: #ffffff;
+    --node-border-width: 1px;
+    --node-border-style: solid;
+    --node-border-color: white;
+    --node-border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     --node-border-radius: 100%;
     font-size: 20px;
     --node-width: 38px;
-    --node-height: 38px;
-    --node-background: rgba(36, 36, 36);
-    --node-emission: .5rem;
-    --graph-color: rgb(255, 215, 72);
+    --node-height: var(--node-width);
+    --node-background: #242424;
+    --node-emission: 10px;
     --edge-width: 1px;
     --edge-color: white;
-    --edge-emission: .5rem;
+    --edge-emission: 10px;
+    --zoom: 1;
     z-index: 10;
 }
 
@@ -183,24 +188,58 @@ span[contenteditable="true"]{
 
 pop-menu{
     background-color: var(--menu-background);
-    box-shadow: 2px 2px 5px 1px rgba(255, 255, 255, 0.222);
+    box-shadow: 1px 1px 7px 4px rgba(30, 30, 30, 0.904);
     font-weight: 100;
-    border-radius: 4px;
-    padding: .5rem;
-    border: 1px solid rgba(255, 255, 255, 0.251);
+    border: 1px solid rgba(255, 255, 255, 0.305);
     z-index: 300;
 }
-pop-menu > *{
+pop-menu  > *{
     width: 100%;
     display: flex;
     justify-content: space-between;
-
+    align-items: center;
+    text-transform: capitalize;
+    font-weight: lighter;
+    padding: .3rem 1rem;
     &:hover{
-        
+        background-color: hsl(from var(--ui-select) h 80% 40%);
+    }
+}
+pop-menu > div{
+    border-bottom: 1px solid rgba(255, 255, 255, 0.425);
+    margin: .5rem 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    &:hover{
+        background-color: inherit;
     }
 }
 pop-menu input, pop-menu select{
     margin-left: .4rem;
+    text-decoration: none !important;
+}
+
+[data-tooltip]{
+
+    position: relative;
+    text-decoration: underline dashed white 1px;
+    &::after{
+        position: absolute;
+        text-transform: none;
+        top: 100%;
+        left: 11%;
+        background-color: purple;
+        font-size: 70%;
+        padding: 3px;
+        text-wrap: nowrap;
+        content: attr(data-tooltip);
+        transition-delay: 1200ms;
+        transition: opacity 500ms ease-in; 
+        opacity: 0;
+    }
+    &:hover::after{
+        opacity: 1;
+    }
 }
     
     

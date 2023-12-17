@@ -28,7 +28,7 @@ const _axis_template = /*html*/`
     </style>
 
     <table draggable="false" sel></table>
-`
+`.trim();
 
 
 

@@ -4,7 +4,7 @@ const _tab_template =/*html*/`
         :host{
             position: absolute;
             width: 100%;  height:100%;
-            zoom: 1;
+            zoom: var(--zoom);
         }
         #square{
             position: absolute;
@@ -62,13 +62,13 @@ const _tab_template =/*html*/`
 `
 
 const PositionFunctons = {
-    randomScreen: (graph_tab, node) => {
+    randomScreen: (graph_tab, node, recalculateEdges) => {
         let x_off = graph_tab.tab.scrollLeft;
         let y_off = graph_tab.tab.scrollTop;
         let width = random(0, parseFloat(graph_tab.css.width));
         let height = random(0, parseFloat(graph_tab.css.height));
 
-        node.position(x_off + width, y_off + height);
+        node.position(x_off + width, y_off + height,recalculateEdges);
     }
 }
 const storage = {
@@ -131,7 +131,8 @@ const dragHandle = {
             graphs.get(ev.target.graphId).selection.toggle(ev.target);
         }
     },
-    edgeDrag: (target,ev,delta) => {
+    edgeDrag: (target, ev, delta) => {
+        if (delta.magSq() < defaultSettings.edge.min_drag_dist) return;
         let tab = target.parentElement, c = tab.curve;
 
         if (storage.fromNode.new_node_protocol == false) {
@@ -225,13 +226,13 @@ class Tab extends HTMLElement {
                 let selection = graphs.get(this.graphId).selection;
                 if (!selection.empty()) selection.clear();
             }
-            if (ev.target.tagName !== "GRAPH-EDGE" && this.curvesArray.size) {
+            if (ev.target.tagName !== "GRAPH-EDGE"&&ev.target.tagName!=="GRAPH-NODE" && this.curvesArray.size) {
                 for (let c of this.curvesArray) c.selected=false
                 this.curvesArray.clear();
             }
         })
 
-        this.zoom = 1;
+        
         let scale = 0.1;
         let lastPointer = new Point();
         let currentPointer = new Point();
@@ -239,7 +240,7 @@ class Tab extends HTMLElement {
         
         this.addEventListener("wheel", (ev) => {
             ev.preventDefault();
-            
+            this.zoom = this.settings.graph.zoom;
             this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
 
             this.zoom += ev.deltaY < 0 ? -scale : scale;
@@ -256,7 +257,7 @@ class Tab extends HTMLElement {
                     );
             }
         
-            this.style.zoom = this.zoom;
+            this.settings.graph.zoom = this.zoom;
             this.classList.remove("hide");
             
         })
@@ -265,6 +266,7 @@ class Tab extends HTMLElement {
             for (let entry of entries) {
                 entry.target.size.x = entry.borderBoxSize[0].inlineSize;
                 entry.target.size.y = entry.borderBoxSize[0].blockSize;
+                this.recalculateEdges(entry.target.nodeId); 
             }
         })
 
@@ -273,10 +275,19 @@ class Tab extends HTMLElement {
             if (ev.detail.selected) this.curvesArray.add(ev.composedPath()[0]);
         })
     }
+    loadSettings(settings) {
+        this.settings
+    }
 
     recalculateEdges(nodeId, point) {
-
-        this.forConnectedEdges(nodeId,(edge)=>{
+        if (arguments.length == 0) {
+            let eArray = this.shadowRoot.querySelector("slot[name='edges']").assignedNodes();
+            for (let edge of eArray) edge.update();
+            return;
+        }
+        this.forConnectedEdges(nodeId, (edge) => {
+            if (point === undefined) return edge.update();
+            
             if (edge.fromNode === nodeId) edge.from = point;
             else if (edge.toNode === nodeId) edge.to = point;
         })
@@ -294,6 +305,24 @@ class Tab extends HTMLElement {
         }
         //return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
     }
+
+    addNode(props) {
+        let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.id}" slot="nodes"></graph-node>`));
+        this.sizeObserver.observe(newNode);
+        this.positionFunction(this, newNode,false);
+        return newNode;
+    }
+    addEdge(props) {
+        let n1 = this.getNode(props.from);
+        let n2 = this.getNode(props.to);
+        let edge = this.appendChild(
+            elementFromHtml(`<graph-edge id="g${this.graphId} ${props.from} ${props.to}" symmetry=${props.cp_symmetry} mode="${props.mode}" slot="edges"></graph-edge>`)
+        );
+
+        edge.initPos(n1.middle(), n2.middle(), props.cp_offset, props.cp_offset.clone().multiplyScalar(-1));
+        return edge;
+    }
+    
     getNode(id) {
         return document.getElementById("g" + this.graphId + " " + id);
     }

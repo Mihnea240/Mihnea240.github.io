@@ -8,12 +8,15 @@ const _edge_template = /* html */`
         :host(:--selected) {
             filter:
                 drop-shadow(0 0 var(--edge-emission) var(--graph-color))
-                drop-shadow(0 0 calc(var(--edge-emission)* .5) var(--graph-color));
+                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-color))
+                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-color))
+                ;
         }
     </style>
-`
+`.trim();
 
 class edgeUI extends HTMLElement {
+    static observedAttributes = ["symmetry","mode"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -24,12 +27,26 @@ class edgeUI extends HTMLElement {
 
         [this.graphId, this.fromNode, this.toNode] = this.id.slice(1).split(" ").map((el) => parseInt(el));
 
+        if (!this.symmetry) this.symmetry = false;
+        if (!this.mode) this.mode = "absolute";
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name == "symmetry") this.curve.symmetry = newValue, this.symmetry=newValue;
+        if (name == "mode") {
+            if (newValue = "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
+            else if (newValue = "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
+            this.mode = newValue;
+        }
     }
 
     update() {
+        let n1 = this.parentElement.getNode(this.fromNode), n2 = this.parentElement.getNode(this.toNode);
+        this.curve.from = n1.middle();
+        this.curve.to = n2.middle();
         this.curve.update();
     }
-    initialPos(v1, v2,offset1=Point.ORIGIN,offset2=offset1) {
+    initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
+        console.log(...arguments)
         this.curve.fromCoords.set(v1.x, v1.y);
         this.curve.p1.pos.set(v1.x, v1.y);
         this.curve.lfrom.set(v1.x, v1.y);
@@ -45,7 +62,10 @@ class edgeUI extends HTMLElement {
             this.curve.p1.pos.translate(offset1.x * i.x + offset1.y * j.x, offset1.y * i.y + offset1.y * j.y);
             this.curve.p2.pos.translate(offset2.x * i.x + offset2.y * j.x, offset2.y * i.y + offset2.y * j.y);
             this.curve.updateP1();  this.curve.updateP2();
-
+        } else {
+            console.log(offset1,offset2)
+            this.curve.p1.pos.add(offset1);
+            this.curve.p2.pos.add(offset2);
         }
         this.curve.update();
     }
@@ -156,8 +176,8 @@ class BezierCurve extends HTMLElement {
         this.p2.pos = new Point(0, 0);
         this.p1.mag = 0;
         this.p2.mag = 0;
-        this.tf = BezierCurve.translationFunctions.relativeTranslation;
-        this.symetry = true;
+        this.tf = BezierCurve.translationFunctions.absoluteTranslation;
+        this.symmetry = true;
 
         this.auxP = new Point();
         this.auxPP = new Point();
@@ -166,7 +186,7 @@ class BezierCurve extends HTMLElement {
                 ev.stopPropagation(); ev.stopImmediatePropagation();
                 this.p1.pos.translate(delta.x, delta.y);
                 this.updateP1();
-                if (this.symetry) {
+                if (this.symmetry) {
                     this.p2.pos.translate(-delta.x, -delta.y);
                     this.updateP2();
                 }
@@ -178,7 +198,7 @@ class BezierCurve extends HTMLElement {
                 ev.stopPropagation(); ev.stopImmediatePropagation();
                 this.p2.pos.translate(delta.x, delta.y);
                 this.updateP2();
-                if (this.symetry) {
+                if (this.symmetry) {
                     this.p1.pos.translate(-delta.x, -delta.y);
                     this.updateP1();
                 }

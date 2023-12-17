@@ -1,7 +1,7 @@
 const colors = [
-    "blueviolet", "brown", "lightsalmon", "indigo", "aquamarine", "lightseagreen",
-    "darkslategray", "darkmagenta", "cornflowerblue", "crimson", "chocolate",
-    "slateblue", "pink", "mediumseagreen","slategrey"
+    "blueviolet", "brown", "lightsalmon", "indigo", "aquamarine", "lightseagreen"
+    , "darkmagenta", "cornflowerblue", "crimson", "chocolate",
+    "slateblue", "pink", "mediumseagreen"
 ];
 const newGraphButton = document.querySelector(".new-graph");
 const tabArea = document.querySelector(".tab-area");
@@ -72,13 +72,22 @@ function initGreatMenus() {
         button.addEventListener("click", (ev) => {
             ev.stopPropagation();
             let rect = button.getBoundingClientRect();
-            button.nextElementSibling.toggle(rect.x, rect.bottom);
+            console.log(button.nextElementSibling);
+            menuBar.querySelector(`[name=${button.getAttribute("for")}]`).toggle(rect.x, rect.bottom);
         })
     }
+    greatMenus.viewMenu = createOptionsMenu(defaultSettings,"view");
+    console.log(menuBar.appendChild(greatMenus.viewMenu));
 
     menuBar.addEventListener("menuclosed",(ev)=>{
         console.log(ev.target)
     })
+
     
+    greatMenus.viewMenu.addEventListener("input", (ev) => {
+        let c = ev.target.parentElement.previousElementSibling;
+        while (!c.matches(".category") && c != greatMenus.viewMenu) c = c.previousElementSibling;
+        graphs.selected.settings[c.getAttribute("name")][ev.target.getAttribute("name")] = ev.target.value;
+    })
 }
 

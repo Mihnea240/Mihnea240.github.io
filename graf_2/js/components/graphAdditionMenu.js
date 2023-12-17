@@ -20,11 +20,11 @@ const _menu_template = /* html */`
             background-color: rgba(0, 0, 0, 0.47);
             border-radius: .2em;
         }
-        input, textarea{
-            width: auto;
-            border: none;
-            outline: none;
-            box-shadow: 0 0 1px 1px var(--accent-color);
+        input:not([type="range"]), textarea,select{
+            border: none;   outline: none;
+            padding: 0; margin: 0;
+            box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.619);
+            background-color: #1D1C1C;
         }
         input:focus{
             background-color: var(--accent-color);

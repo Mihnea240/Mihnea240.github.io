@@ -4,8 +4,6 @@ const _node_template = /* html */`
         :host{
             position: absolute;
             z-index: 100;
-            width: calc(var(--node-width)*1.5);
-            height: calc(var(--node-height)*1.5);
         }
         div{
             color: var(--node-color);
@@ -23,7 +21,7 @@ const _node_template = /* html */`
             height: var(--node-height);
             border-radius: var(--node-border-radius);
             background: var(--node-background);
-           
+            font-size: calc(var(--node-width) * 0.5); 
         }
         :host(:--selected) div{
             box-shadow:
@@ -35,7 +33,7 @@ const _node_template = /* html */`
 
     </style>
     <div name="id" data-state="main"></div>
-`
+`.trim();
 
 class nodeUI extends HTMLElement{
     constructor() {
