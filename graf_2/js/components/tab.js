@@ -193,6 +193,7 @@ class Tab extends HTMLElement {
         this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
         this.positionFunction = PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
+        this.zoom = 1;
 
         let evTarget;
         addCustomDrag(this, {
@@ -243,8 +244,9 @@ class Tab extends HTMLElement {
             this.zoom = this.settings.graph.zoom;
             this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
 
+            this.zoom = this.settings.graph.zoom;
             this.zoom += ev.deltaY < 0 ? -scale : scale;
-            if (this.zoom < 2 * scale) this.zoom = 2 * scale;
+            if (this.zoom < 0.1) this.zoom =  scale;
             
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
@@ -257,6 +259,7 @@ class Tab extends HTMLElement {
                     );
             }
         
+            console.log(this.zoom);
             this.settings.graph.zoom = this.zoom;
             this.classList.remove("hide");
             
@@ -275,24 +278,21 @@ class Tab extends HTMLElement {
             if (ev.detail.selected) this.curvesArray.add(ev.composedPath()[0]);
         })
     }
-    loadSettings(settings) {
-        this.settings
-    }
 
     recalculateEdges(nodeId, point) {
-        if (arguments.length == 0) {
-            let eArray = this.shadowRoot.querySelector("slot[name='edges']").assignedNodes();
-            for (let edge of eArray) edge.update();
-            return;
-        }
-        this.forConnectedEdges(nodeId, (edge) => {
+        this.forEdges((edge) => {
             if (point === undefined) return edge.update();
             
             if (edge.fromNode === nodeId) edge.from = point;
             else if (edge.toNode === nodeId) edge.to = point;
-        })
+        }, nodeId);
     }
-    forConnectedEdges(nodeId,callBack) {
+    forEdges(callBack, nodeId) {
+        if (nodeId === undefined) {
+            let eArray = this.shadowRoot.querySelector("slot[name='edges']").assignedNodes();
+            for (let edge of eArray) callBack(edge);
+            return;
+        }
         let G=graphs.get(this.graphId);
         let neighbourSet = G.nodes.get(nodeId),e;
 
@@ -303,7 +303,6 @@ class Tab extends HTMLElement {
             e = this.getEdge(nodeId, node);
             if (e) callBack(e);
         }
-        //return this.querySelectorAll(`graph-edge[id~='${nodeId}']`);
     }
 
     addNode(props) {
@@ -329,6 +328,7 @@ class Tab extends HTMLElement {
     getEdge(x, y) {
         return document.getElementById("g" + this.graphId + " " + x + " " + y);
     }
+    /**@returns {Graph} */
     getGraph() {
         return graphs.get(this.graphId);
     }

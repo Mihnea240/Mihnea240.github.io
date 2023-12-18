@@ -42,28 +42,26 @@ headerArea.addEventListener("dblclick", (ev) => {
 shuffleArray(colors);
 let colorIndex = 1;
 
+/**@param {Graph} graph */
+function createTabUI(graph) {
+    tab_template.id = "g" + graph.id;
+    header_template.id = "h" + graph.id;
+    graph.tab=tabArea.appendChild(tab_template.cloneNode(true));
+    graph.header = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
 
-function createTabUI(id) {
-    tab_template.id = "g" + id;
-    header_template.id = "h" + id;
-    let newTab=tabArea.appendChild(tab_template.cloneNode(true));
-    let newHeader = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
-    contentEdit(newHeader.querySelector(".text"), { maxSize: 16 });
+    contentEdit(graph.header.querySelector(".text"), { maxSize: parseInt(defaultSettingsTemplate.graph.name.maxLength) });
     
-    newTab.style.setProperty("--graph-color", colors[colorIndex - 1]);
-    
-    //selectedHeader.style.backgroundColor = colors[colorIndex];
-    let gradient = `linear-gradient(45deg,${colors[colorIndex - 1]},${colors[colorIndex]})`;
-    colorIndex++;
-    newHeader.style.cssText +=`background: ${gradient};`;
+    graph.loadSettings();
+    graph.settings.graph.name ||= "New graph " + graph.id;
+    graph.settings.graph.main_color = standardize_color(colors[colorIndex - 1]);
+    graph.settings.graph.secondary_color = standardize_color(colors[colorIndex++]);
+    graph.tab.settings = graph.settings;
+    graph.tab.zoom = graph.settings.graph.zoom;
 
-    headerArea.style.cssText += `border-image: ${gradient} 1`;
     if (colorIndex >= colors.length) {
         shuffleArray(colors);
         colorIndex = 1;
     }
-
-    newHeader.querySelector(".text").textContent = "New graph " + id;
 }
 
 const greatMenus = {}
@@ -72,22 +70,15 @@ function initGreatMenus() {
         button.addEventListener("click", (ev) => {
             ev.stopPropagation();
             let rect = button.getBoundingClientRect();
-            console.log(button.nextElementSibling);
             menuBar.querySelector(`[name=${button.getAttribute("for")}]`).toggle(rect.x, rect.bottom);
         })
     }
-    greatMenus.viewMenu = createOptionsMenu(defaultSettings,"view");
-    console.log(menuBar.appendChild(greatMenus.viewMenu));
+    greatMenus.viewMenu = createOptionsMenu(defaultSettingsTemplate,"view");
+    menuBar.appendChild(greatMenus.viewMenu);
 
-    menuBar.addEventListener("menuclosed",(ev)=>{
-        console.log(ev.target)
-    })
-
-    
-    greatMenus.viewMenu.addEventListener("input", (ev) => {
-        let c = ev.target.parentElement.previousElementSibling;
-        while (!c.matches(".category") && c != greatMenus.viewMenu) c = c.previousElementSibling;
-        graphs.selected.settings[c.getAttribute("name")][ev.target.getAttribute("name")] = ev.target.value;
-    })
+    greatMenus.viewMenu.addEventListener("propertychanged", (ev) => {
+        let { category, property, originalTarget } = ev.detail;
+        graphs.selected.settings[category][property] = originalTarget.value;
+    });
 }
 

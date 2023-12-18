@@ -7,7 +7,6 @@ const _node_template = /* html */`
         }
         div{
             color: var(--node-color);
-            border: var(--node-border);
             display: grid;
             place-content: center;
             user-select: none;
@@ -20,13 +19,14 @@ const _node_template = /* html */`
             width: var(--node-width);
             height: var(--node-height);
             border-radius: var(--node-border-radius);
+            border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
             background: var(--node-background);
             font-size: calc(var(--node-width) * 0.5); 
         }
         :host(:--selected) div{
             box-shadow:
-                0 0 var(--node-emission) var(--graph-color),
-                0 0 calc(var(--node-emission) *0.9) var(--graph-color) inset;
+                0 0 var(--node-emission) var(--graph-main-color),
+                0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
         }
 
 

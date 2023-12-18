@@ -10,12 +10,11 @@ window.onload = () => {
 const graphs = new Map();
 
 function createGraph() {
-    let newGraph = new Graph("",ORDERED);
+    let newGraph = new Graph("", UNORDERED);
     graphs.set(newGraph.id, newGraph);
 
     newGraph.focus();
     newGraph.addNode();
-    graphs.selected = newGraph;
 }
 
 

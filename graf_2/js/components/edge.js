@@ -7,10 +7,10 @@ const _edge_template = /* html */`
         }
         :host(:--selected) {
             filter:
-                drop-shadow(0 0 var(--edge-emission) var(--graph-color))
-                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-color))
-                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-color))
-                ;
+                drop-shadow(0 0 var(--edge-emission) var(--graph-main-color))
+                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color))
+                drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color))
+            ;
         }
     </style>
 `.trim();
@@ -31,10 +31,19 @@ class edgeUI extends HTMLElement {
         if (!this.mode) this.mode = "absolute";
     }
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name == "symmetry") this.curve.symmetry = newValue, this.symmetry=newValue;
+        if (name == "symmetry") {
+            let val = false;
+            if (newValue == "true") val = true;
+            else if (newValue == "false") val = false;
+            else if (newValue) val = true;
+
+            this.curve.symmetry = val;
+            this.symmetry = val;
+        }
+        console.log(this.curve.symmetry);
         if (name == "mode") {
-            if (newValue = "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
-            else if (newValue = "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
+            if (newValue == "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
+            else if (newValue == "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
             this.mode = newValue;
         }
     }

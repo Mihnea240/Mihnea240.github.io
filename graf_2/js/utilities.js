@@ -146,3 +146,10 @@ function createMatrix(n, m) {
         rez[i] = new Array(m).fill(0);
     return rez;
 }
+
+
+function standardize_color(str){
+    var ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = str;
+    return ctx.fillStyle;
+}

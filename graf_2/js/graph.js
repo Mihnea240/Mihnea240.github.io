@@ -8,16 +8,17 @@ class Graph {
         this.type = type;
         this.selection = new GraphSelection();
         this.settings = createGraphSettings(this);
-        
-        createTabUI(this.id);
-        /**@type {Tab} */
-        this.tab = document.getElementById("g" + this.id);
-        this.header = document.getElementById("h" + this.id);
-        
-        
+        createTabUI(this);
+       
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
+    }
+    loadSettings(settings = defaultSettings) {
+        for (let category in settings) {
+            let items = settings[category];
+            for (let i in items) if (i !== "category") this.settings[category][i] = items[i];
+        }
     }
 
     unfocus() {
@@ -25,13 +26,21 @@ class Graph {
         this.tab?.classList.add("hide");
     }
     focus() {
-        let header = this.header, tab = this.tab;
+        if (graphs.selected === this) return;
+        console.log(graphs);
         graphs.selected?.unfocus();
         graphs.selected = this;
 
-        header.classList.add("selected")
-        tab.classList.remove("hide");
-        headerArea.style.borderImage = header.style.background + " 1";
+        this.header.classList.add("selected");
+        this.tab.classList.remove("hide");
+
+        for (let category in this.settings) {
+            let items = this.settings[category];
+            
+            for (let prop in items) {
+                if (prop !== "category") greatMenus.viewMenu.set(category, prop, items[prop]);
+            }
+        }
     }
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;

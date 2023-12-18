@@ -23,7 +23,8 @@ html,body{
 input:not([type="range"], [type="checkbox"]){
     border: none;   outline: none;
     padding: 0; margin: 0;
-    box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.619) inset ;
+    box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.619) inset;
+    padding: .1rem;
     background-color: #1D1C1C;
 }
 input[type=color] { 
@@ -90,7 +91,6 @@ graph-tab{
     --node-border-width: 1px;
     --node-border-style: solid;
     --node-border-color: white;
-    --node-border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     --node-border-radius: 100%;
     font-size: 20px;
     --node-width: 38px;
@@ -121,7 +121,7 @@ graph-tab{
     background: var(--tab-background);
 }
 
-/* Headere section*/
+/* Header section*/
 .header{
     flex: 0 1 2%;
     display: flex;
@@ -193,30 +193,25 @@ pop-menu{
     border: 1px solid rgba(255, 255, 255, 0.305);
     z-index: 300;
 }
-pop-menu  > *{
+pop-menu  .category{
     width: 100%;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     text-transform: capitalize;
-    font-weight: lighter;
-    padding: .3rem 1rem;
-    &:hover{
-        background-color: hsl(from var(--ui-select) h 80% 40%);
+
+    & > div{
+        border-bottom: 1px solid rgba(255, 255, 255, 0.425);
+        font-size: 1.2rem;
+        padding: .5rem;
+        margin: 0;
+        font-weight: 900;
     }
-}
-pop-menu > div{
-    border-bottom: 1px solid rgba(255, 255, 255, 0.425);
-    margin: .5rem 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-    &:hover{
-        background-color: inherit;
+    & > *{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: .3rem 2rem;
     }
-}
-pop-menu input, pop-menu select{
-    margin-left: .4rem;
-    text-decoration: none !important;
 }
 
 [data-tooltip]{
