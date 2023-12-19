@@ -3,13 +3,13 @@ const UNORDERED = 0;
 
 class Graph {
     static id = 0;
-    constructor(input, type,settings) {
+    constructor(input, type, settings) {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection();
         this.settings = createGraphSettings(this);
         createTabUI(this);
-       
+
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
@@ -36,7 +36,7 @@ class Graph {
 
         for (let category in this.settings) {
             let items = this.settings[category];
-            
+
             for (let prop in items) {
                 if (prop !== "category") greatMenus.viewMenu.set(category, prop, items[prop]);
             }
@@ -45,7 +45,7 @@ class Graph {
     addNode() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         this.nodes.set(this.a_nodeId, new Set());
-        return  this.tab.addNode({ id: this.a_nodeId });
+        return this.tab.addNode({ id: this.a_nodeId });
     }
     removeNode(id) {
 
@@ -68,26 +68,32 @@ class Graph {
         let reverse = false;
         let xSet = this.nodes.get(x);
         let ySet = this.nodes.get(y);
-        
-        if (xSet.has(-y)) {
-            xSet.delete(-y);
-            reverse = true;
-        } else ySet.add(-x);
 
-        if (this.type == UNORDERED) ySet.add(x);
-        xSet.add(y);
+        switch (this.type) {
+            case ORDERED: {
+                if (xSet.has(-y)) {
+                    xSet.delete(-y);
+                    reverse = true;
+                } else ySet.add(-x);
+                xSet.add(y);
+                break;
+            } case UNORDERED: {
+                xSet.add(y);
+                ySet.add(x)
+            }
+        }
 
         let offset = this.settings.edge.cp_offset;
         return this.tab.addEdge({
             from: x,
             to: y,
             type: this.type,
-            cp_offset: new Point(offset[0],offset[1]),
+            cp_offset: new Point(offset[0], offset[1]),
             cp_symmetry: this.settings.edge.cp_symmetry,
             mode: this.settings.edge.mode,
-            reverse 
+            reverse
         })
-       
+
     }
     removeEdge(x, y) {
         let rez = this.nodes.get(x)?.delete(y);

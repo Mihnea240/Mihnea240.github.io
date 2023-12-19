@@ -1,6 +1,6 @@
 const defaultSettings = {
     graph: {
-        name:  "",
+        name: "",
         main_color: "#ffd748",
         secondary_color: "#ffd748",
         zoom: 1,
@@ -46,7 +46,7 @@ const defaultSettingsTemplate = {
             update(graph) {
                 let a = `linear-gradient(45deg,${graph.settings.graph.main_color},${graph.settings.graph.secondary_color})`;
                 graph.header.style.background = a
-                headerArea.style.borderImage = a + " 1";                
+                headerArea.style.borderImage = a + " 1";
             }
         },
         secondary_color: {
@@ -64,7 +64,7 @@ const defaultSettingsTemplate = {
             unit: "none",
             property: "--zoom"
         }
-        
+
     },
     node: {
         size: {
@@ -79,13 +79,14 @@ const defaultSettingsTemplate = {
         },
         color: {
             type: "color",
-            property: "--node-color"
+            property: "--node-color",
+            display: "Font color"
         },
         border_color: {
             type: "color",
             property: "--node-border-color"
         },
-        border_radius :{
+        border_radius: {
             type: "range",
             max: "50", unit: "%",
             property: "--node-border-radius"
@@ -97,7 +98,7 @@ const defaultSettingsTemplate = {
         },
         border_style: {
             type: "select",
-            options: ["solid","dashed","double"],
+            options: ["solid", "dashed", "double"],
             property: "--node-border-style"
         },
         emission: {
@@ -121,6 +122,7 @@ const defaultSettingsTemplate = {
         color: {
             type: "color",
             property: "--edge-color",
+
         },
         cp_symmetry: {
             type: "checkbox",
@@ -134,7 +136,7 @@ const defaultSettingsTemplate = {
             type: "select",
             options: ["absolute", "relative"],
             description: "Controls the motion of the control points when moving a node",
-            update(graph){
+            update(graph) {
                 graph.tab.forEdges((edge) => {
                     edge.setAttribute("mode", graph.settings.edge.mode);
                 })
@@ -144,9 +146,9 @@ const defaultSettingsTemplate = {
         cp_offset: [0, 0],
     }
 }, dummy = {
-    graph: {category: "graph"},
-    node: {category: "node"},
-    edge: {category: "edge"},
+    graph: { category: "graph" },
+    node: { category: "node" },
+    edge: { category: "edge" },
 }
 
 
@@ -158,12 +160,11 @@ function createGraphSettings(graph, object = JSON.parse(JSON.stringify(dummy))) 
             return target[prop];
         },
         set(target, prop, value) {
-            console.log(prop)
             if (target[prop] == value) return true;
-            
+
             if (graphs.selected === graph) greatMenus.viewMenu.set(target.category, prop, value);
 
-            let c = target.category, template=defaultSettingsTemplate[c][prop];
+            let c = target.category, template = defaultSettingsTemplate[c][prop];
             if (template.property) {
                 let unit = "";
                 if (template.unit !== "none" && template.type == "range" || template.type == "number") unit = template.unit || "px";
@@ -182,14 +183,14 @@ function createGraphSettings(graph, object = JSON.parse(JSON.stringify(dummy))) 
 }
 
 
-function createOptionsMenu(options,name) {
+function createOptionsMenu(options, name) {
     let menu = document.createElement("pop-menu");
-    let rangeUpdate = (ev) => { ev.target.setAttribute("value", ev.target.value)};
+    let rangeUpdate = (ev) => { ev.target.setAttribute("value", ev.target.value) };
     let checkBoxupdate = (ev) => { ev.target.setAttribute("value", ev.target.checked) };
     if (name) menu.setAttribute("name", name);
 
     for (let category in options) {
-        let c=elementFromHtml(`<div class="category" name=${category}><div>${category}</div></div>`);
+        let c = elementFromHtml(`<div class="category" name=${category}><div>${category}</div></div>`);
 
         let items = options[category];
         for (let i in items) {
@@ -197,7 +198,7 @@ function createOptionsMenu(options,name) {
             let value = items[i].value || '';
 
             let name = items[i].display || i.replace("_", " "), element;
-            
+
             if (items[i].type !== "select") {
                 element = c.appendChild(
                     elementFromHtml(`<label>${name} <input type="${items[i].type}" name=${i} value="${value}"></label>`)
@@ -213,11 +214,11 @@ function createOptionsMenu(options,name) {
                     break;
                 }
                 case "checkbox": {
-                    element.firstElementChild.setAttribute("checked", value); 
+                    element.firstElementChild.setAttribute("checked", value);
                     element.firstElementChild.oninput = checkBoxupdate;
                     break;
                 }
-                case "select" :{
+                case "select": {
                     let select = elementFromHtml(`<select name=${i}></select>`);
                     element = elementFromHtml(`<label>${name}</label>`);
                     for (let opt of (items[i].options || [items[i].value])) select.appendChild(elementFromHtml(`<option>${opt}</option>`));
@@ -241,15 +242,15 @@ function createOptionsMenu(options,name) {
 
     menu.set = (category, prop, value) => {
         let el = menu.querySelector(`.category[name=${category}] [name=${prop}]`);
-        if (el && el.value !==undefined) {
+        if (el && el.value !== undefined) {
             el.value = value;
             el.setAttribute("value", value);
         }
     }
-    menu.get = (category,prop) => {
+    menu.get = (category, prop) => {
         return menu.querySelector(`.category[name=${category}] [name=${prop}]`).value;
     }
-    let inputEvent = new CustomEvent("propertychanged", { detail: {}, bubbles: true,composed:true });
+    let inputEvent = new CustomEvent("propertychanged", { detail: {}, bubbles: true, composed: true });
     menu.addEventListener("input", (ev) => {
         ev.stopPropagation();
         let c = ev.target.closest(".category").getAttribute("name");
@@ -258,6 +259,6 @@ function createOptionsMenu(options,name) {
         inputEvent.detail.property = prop;
         inputEvent.detail.originalTarget = ev.target;
         menu.dispatchEvent(inputEvent);
-    })  
+    })
     return menu;
 }

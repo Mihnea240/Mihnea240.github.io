@@ -1,4 +1,4 @@
-class GraphSelection{
+class GraphSelection {
     constructor() {
         /**@type {Set<nodeUI>}*/
         this.nodeSet = new Set();
@@ -17,12 +17,12 @@ class GraphSelection{
             this.nodeSet.add(el);
             el.selected = true;
             return true;
-        }else if (el.tagName === "GRAPH-EDGE") {
+        } else if (el.tagName === "GRAPH-EDGE") {
             if (this.edgeSet.has(el)) {
                 this.edgeSet.delete(el);
                 el.selected = false;
                 return false;
-            } 
+            }
             this.edgeSet.add(el);
             el.selected = true;
             return true;
@@ -38,5 +38,8 @@ class GraphSelection{
 
     empty() {
         return (this.nodeSet.size + this.edgeSet.size) == 0;
+    }
+    nodeArray() {
+        return Array.from(this.nodeSet);
     }
 }

@@ -16,7 +16,7 @@ const _edge_template = /* html */`
 `.trim();
 
 class edgeUI extends HTMLElement {
-    static observedAttributes = ["symmetry","mode"];
+    static observedAttributes = ["symmetry", "mode"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -55,7 +55,6 @@ class edgeUI extends HTMLElement {
         this.curve.update();
     }
     initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
-        console.log(...arguments)
         this.curve.fromCoords.set(v1.x, v1.y);
         this.curve.p1.pos.set(v1.x, v1.y);
         this.curve.lfrom.set(v1.x, v1.y);
@@ -63,16 +62,15 @@ class edgeUI extends HTMLElement {
         this.curve.toCoords.set(v2.x, v2.y);
         this.curve.p2.pos.set(v2.x, v2.y);
         this.curve.lto.set(v2.x, v2.y);
-        
+
         if (this.curve.tf === BezierCurve.translationFunctions.relativeTranslation) {
             let i = this.curve.lto.clone().sub(this.curve.lfrom).normalize()
             let j = i.clone().rotateAround(Math.PI / 2), aux = offset1.clone();
-            
+
             this.curve.p1.pos.translate(offset1.x * i.x + offset1.y * j.x, offset1.y * i.y + offset1.y * j.y);
             this.curve.p2.pos.translate(offset2.x * i.x + offset2.y * j.x, offset2.y * i.y + offset2.y * j.y);
-            this.curve.updateP1();  this.curve.updateP2();
+            this.curve.updateP1(); this.curve.updateP2();
         } else {
-            console.log(offset1,offset2)
             this.curve.p1.pos.add(offset1);
             this.curve.p2.pos.add(offset2);
         }
@@ -224,11 +222,11 @@ class BezierCurve extends HTMLElement {
 
     updateP1() {
         this.p1.mag = this.auxP.copy(this.p1.pos).sub(this.fromCoords).mag();
-        this.p1.angle = Point.angle2(this.auxPP.copy(this.toCoords).sub(this.fromCoords),this.auxP) || 0;
+        this.p1.angle = Point.angle2(this.auxPP.copy(this.toCoords).sub(this.fromCoords), this.auxP) || 0;
     }
     updateP2() {
         this.p2.mag = this.auxP.copy(this.p2.pos).sub(this.toCoords).mag();
-        this.p2.angle = Point.angle2(this.auxPP.copy(this.fromCoords).sub(this.toCoords),this.auxP) || 0;
+        this.p2.angle = Point.angle2(this.auxPP.copy(this.fromCoords).sub(this.toCoords), this.auxP) || 0;
     }
 
     update() {
@@ -328,7 +326,7 @@ BezierCurve.translationFunctions = {
         let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
         let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
         let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
-        
+
         curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(curve.p1.angle || 0).multiplyScalar(curve.p1.mag));
         curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(curve.p2.angle || 0).multiplyScalar(curve.p2.mag));
     },
