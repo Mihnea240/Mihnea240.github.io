@@ -3,7 +3,7 @@ const _edge_template = /* html */`
     <style>
         :host{
             position: absolute;
-            width: 0;height: 0;
+            pointer-events: stroke;
         }
         :host(:--selected) {
             filter:
@@ -40,7 +40,6 @@ class edgeUI extends HTMLElement {
             this.curve.symmetry = val;
             this.symmetry = val;
         }
-        console.log(this.curve.symmetry);
         if (name == "mode") {
             if (newValue == "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
             else if (newValue == "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
@@ -77,6 +76,10 @@ class edgeUI extends HTMLElement {
         this.curve.update();
     }
 
+    getBoundingClientRect() {
+        return this.curve.paths[0].getBoundingClientRect();
+    }
+
     set from(point) {
         this.curve.from = point;
     }
@@ -94,10 +97,6 @@ class edgeUI extends HTMLElement {
         else this._internals.states.delete("--selected");
     }
     get selected() { return this._internals.states.has("--selected"); }
-
-    connectedCallback() {
-        if (graphs.get(this.graphId).type == ORDERED) this.curve.addArrow();
-    }
 }
 
 customElements.define("graph-edge", edgeUI);
@@ -107,17 +106,16 @@ const _curve_template =/* html */`
      <style>
         :host{
             position: absolute;
+            
         }
         .hide{display: none};
-        svg,path{
+        .curve,svg,path{
             position: absolute;
             pointer-events: stroke;
         }
-
         .curve path,.curve line{
-            fill: transparent;
+            background-color: rgba(255,255,255);
             stroke: var(--edge-color);
-            z-index: 200;
         }
         .visible{
             stroke-width: var(--edge-width);
@@ -156,13 +154,13 @@ const _curve_template =/* html */`
 
     <div class="point" draggable="false"></div>
     <div class="point" draggable="false"></div>
-    <svg class="curve" draggable="false" fill="none" overflow="visible" part="svg">
+    <svg class="curve" width="40" height="20" draggable="false" fill="none" overflow="visible" part="svg" >
         <path class="visible"/>
-        <path class="hit-area"/>
+        <path class="hit-area" />
         <line/>
         <line/>
     </svg>
-`
+`.trim();
 
 class BezierCurve extends HTMLElement {
     constructor() {

@@ -20,7 +20,9 @@
     <script defer src="js/components/edge.js"></script>
     <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/settings.js"></script>
+    <script defer src="js/commandPattern.js"></script>
     <script defer src="js/graph.js"></script>
+    <script defer src="js/collision.js"></script>
     <script defer src="js/components/graphAdditionMenu.js"></script>
     <script defer src="js/selection.js"></script>
     <script defer src="js/graphUI.js"></script>
@@ -30,9 +32,27 @@
 
 <body>
     <div class="menu-bar"> 
-        <button>File</button>
+        <button for="file">File</button>
         <button for="view">View</button>
         <button>Key Bindings</button>
+        <pop-menu name="file">
+            <label>Load from file<input type="file" accept=".json" onchange="loadPotrocol(this)"></label>
+            <button onclick="savePotrocol()">Save</button>
+        </pop-menu>
+        <dialog id="file-dialog">
+            <div class="h">
+                <div>Select graphs</div>
+                <label>All
+                    <input 
+                    type="checkbox" 
+                    checked
+                    onchange="this.closest('dialog').querySelectorAll(`.list input[type='checkbox']`).forEach((el)=>el.checked=this.checked)">
+                </label>
+                <button>Save</button>
+            </div>
+            <div class="list"></div>
+            
+        </dialog>
     </div>
     <div class="header">
         <button class="new-graph" style="font-size: 1.3em;">+</button>

@@ -1,34 +1,3 @@
-const defaultSettings = {
-    graph: {
-        name: "",
-        main_color: "#ffd748",
-        secondary_color: "#ffd748",
-        zoom: 1,
-        category: "graph",
-    },
-    node: {
-        size: "25",
-        bg: "#242424",
-        color: "#ffffff",
-        border_radius: "50",
-        border_width: "1",
-        border_style: "solid",
-        border_color: "#ffffff",
-        emission: "10",
-        category: "node"
-    },
-    edge: {
-        width: "1",
-        emission: "3",
-        color: "#ffffff",
-        cp_symmetry: true,
-        mode: "absolute",
-        min_drag_dist: 5,
-        cp_offset: [0, 0],
-        category: "edge",
-    }
-}
-
 
 const defaultSettingsTemplate = {
     graph: {
@@ -129,7 +98,6 @@ const defaultSettingsTemplate = {
             display: "Control point symmetry",
             update(graph) {
                 graph.tab.forEdges((edge) => edge.setAttribute("symmetry", graph.settings.edge.cp_symmetry))
-                console.log(graph.settings.edge.cp_symmetry);
             }
         },
         mode: {
@@ -145,16 +113,17 @@ const defaultSettingsTemplate = {
         min_drag_dist: 5,
         cp_offset: [0, 0],
     }
-}, dummy = {
-    graph: { category: "graph" },
-    node: { category: "node" },
-    edge: { category: "edge" },
 }
 
 
 
 /**@param {Graph} graph*/
-function createGraphSettings(graph, object = JSON.parse(JSON.stringify(dummy))) {
+function createGraphSettings(graph) {
+    let object = {
+        graph: { category: "graph" },
+        node: { category: "node" },
+        edge: { category: "edge" },
+    }
     let handler = {
         get(target, prop) {
             return target[prop];
@@ -176,6 +145,7 @@ function createGraphSettings(graph, object = JSON.parse(JSON.stringify(dummy))) 
             return true;
         },
     }
+    
     for (let category in object) {
         object[category] = new Proxy(object[category], handler);
     }
@@ -183,14 +153,14 @@ function createGraphSettings(graph, object = JSON.parse(JSON.stringify(dummy))) 
 }
 
 
-function createOptionsMenu(options, name) {
+function createOptionsMenu(options, name, categoryCollapse=true) {
     let menu = document.createElement("pop-menu");
     let rangeUpdate = (ev) => { ev.target.setAttribute("value", ev.target.value) };
     let checkBoxupdate = (ev) => { ev.target.setAttribute("value", ev.target.checked) };
     if (name) menu.setAttribute("name", name);
 
     for (let category in options) {
-        let c = elementFromHtml(`<div class="category" name=${category}><div>${category}</div></div>`);
+        let c = elementFromHtml(`<div class="category" name="${category}"><div>${category} ${categoryCollapse?`<input type="checkbox">`:''}</div></div>`);
 
         let items = options[category];
         for (let i in items) {
@@ -230,11 +200,15 @@ function createOptionsMenu(options, name) {
                     if (items[i].maxLength) element.firstElementChild.setAttribute("maxLength", items[i].maxLength);
                     break;
                 }
+                case "button": {
+                    let el = element.querySelector("input");
+                    if (items[i].onclick) el.addEventListener("click", items[i].onclick, false);
+                    el.style.display = "none";
+                    break;
+                }
             }
 
-            if (items[i].description) {
-                element.setAttribute("data-tooltip", items[i].description);
-            }
+            if (items[i].description) element.setAttribute("title", items[i].description);
             menu.appendChild(c);
 
         }
@@ -252,6 +226,7 @@ function createOptionsMenu(options, name) {
     }
     let inputEvent = new CustomEvent("propertychanged", { detail: {}, bubbles: true, composed: true });
     menu.addEventListener("input", (ev) => {
+        if (!ev.target.name) return;
         ev.stopPropagation();
         let c = ev.target.closest(".category").getAttribute("name");
         let prop = ev.target.getAttribute("name");
@@ -260,5 +235,21 @@ function createOptionsMenu(options, name) {
         inputEvent.detail.originalTarget = ev.target;
         menu.dispatchEvent(inputEvent);
     })
+
+    menu.validate = () => {
+        menu.querySelectorAll(".category").forEach(c => {
+            let childArray = c.children;
+            for (let i = 1; i < c.childElementCount; i++) {
+                let el = childArray[i];
+                el.classList.remove("hide");
+
+                let category = c.getAttribute("name");
+                let prop = el.querySelector("input").getAttribute("name");
+                
+                let validationFunction = options[category][prop].condition;
+                if (validationFunction && !validationFunction()) el.classList.add("hide");
+            }
+        })
+    }
     return menu;
 }

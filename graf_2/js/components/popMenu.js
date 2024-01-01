@@ -24,6 +24,7 @@ class PopMenu extends HTMLElement{
     constructor() {
         super();
         this.open = false;
+        this.cnt = 0;
         this.closedEvent=new CustomEvent("menuclosed",{bubbles: true});
 
 
@@ -32,11 +33,12 @@ class PopMenu extends HTMLElement{
         this._internals = this.attachInternals();
 
         document.addEventListener("click", (ev) => {
-            if(this.open && !this.contains(ev.target)){
-                this.dispatchEvent(this.closedEvent);
+            this.dispatchEvent(this.closedEvent);
+            if(!this.cnt && this.open && !this.contains(ev.target)){
                 this.close();
             }
-        },false)
+            this.cnt = 0;
+        })
     }
 
     static observedAttributes = ["position","open"];
@@ -59,6 +61,7 @@ class PopMenu extends HTMLElement{
         if (x !== undefined && y !== undefined) {
             this.style.cssText += `left: ${x}px; top: ${y}px`;
         }
+        this.cnt = 1;
     }
     
     close() {

@@ -54,7 +54,7 @@ class nodeUI extends HTMLElement{
        this.oncontextmenu = (ev) => ev.preventDefault();
     }
     set selected(flag) {
-        if (flag) this._internals.states.add("--selected");
+        if (flag)this._internals.states.add("--selected");
         else this._internals.states.delete("--selected");
     }
     get selected() {return this._internals.states.has("--selected");}
@@ -78,6 +78,10 @@ class nodeUI extends HTMLElement{
         this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
 
         if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
+    }
+
+    focus() {
+        this.parentElement.focus(this.pos);
     }
 
     connectedCallback() {

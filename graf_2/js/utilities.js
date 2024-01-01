@@ -29,9 +29,9 @@ function addCustomDrag(target, { onstart = (ev, delta) => true, onmove = (ev, de
         document.addEventListener("mouseup", (ev) => {
             onend(ev);
             document.removeEventListener("mousemove", moveHandle);
-        }, { once: true });
+        }, { once: true, capture: true });
 
-    }, false)
+    })
 }
 
 function random(min, max) {
@@ -41,10 +41,6 @@ function random(min, max) {
 function toggleFullScreen() {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
-}
-
-Array.prototype.back = function (steps = 0) {
-    return this.at(this.length - steps - 1);
 }
 
 function contentEdit(el, { maxSize = 0, minSize = 0, empty = "", pattern = new RegExp() }) {
