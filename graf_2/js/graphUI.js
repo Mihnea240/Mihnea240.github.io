@@ -19,7 +19,7 @@ const graphDialog = document.querySelector("graph-menu");
 headerArea.addEventListener("click", (ev) => {
     if (ev.target.classList.contains("new-graph")) {
         ev.stopImmediatePropagation(); ev.stopPropagation();
-        graphDialog.open();
+        newGraphDialog.showModal();
         return;
     }
     if (ev.target.classList.contains("header")) return;
@@ -81,16 +81,22 @@ function initGreatMenus() {
 
     greatMenus.viewMenu.addEventListener("propertychanged", (ev) => {
         let { category, property, originalTarget } = ev.detail;
+        let top = graphs.selected.settingsStack.top();
+        console.log(top?.acumulate);
+        if (top?.acumulate) {
+            top.newValue = originalTarget.value;
+        } else {
+            let c = graphs.selected.settingsStack.push(new SettingsChangedCommand(category, property, graphs.selected.settings[category][property]));
+            c.acumulate = true;
+        }
         graphs.selected.settings[category][property] = originalTarget.value;
     });
-    greatMenus.viewMenu.addEventListener("change", (ev) => {
-        let c = ev.target.closest(".category").getAttribute("name");
-        let prop = ev.target.getAttribute("name");
-        let oldValue = graphs.selected.settings[c][prop];
-        let newValue = ev.target.value;
-        graphs.selected.settingsStack.push(new SettingsChangedCommand(c, prop, oldValue, newValue));
-    })
 
+    greatMenus.viewMenu.addEventListener("change", (ev) => {
+        let top = graphs.selected.settingsStack.top();
+        if(top)top.acumulate = false;
+    })
+    
     greatMenus.fileMenu = menuBar.querySelector("pop-menu[name='file']");
 }
 

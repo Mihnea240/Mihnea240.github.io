@@ -37,6 +37,9 @@ html,body{
     background-color: rgba(0, 0, 0, 0.47);
     border-radius: .2em;
 }
+::-webkit-scrollbar-corner{
+    display: none;
+}
 input:not([type="range"], [type="checkbox"]){
     border: none;   outline: none;
     padding: 0; margin: 0;
@@ -71,12 +74,12 @@ input[type="range"]{
         width: .4rem;
         height: .8rem;
     }
-}
-input[type="range"]::after{
-    content: attr(value);
-    position: absolute;
-    left: calc(101%);
-    translate: 0 -50%;
+    &::after{
+        content: attr(value);
+        position: absolute;
+        left: calc(101%);
+        translate: 0 -50%;
+    }
 }
 input[type="file"]{
     display: none;
@@ -99,6 +102,12 @@ select, select:focus{
 }
 option, option:focus{
     background-color:  var(--menu-background);
+}
+textarea,select{
+    border: none;   outline: none;
+    margin: 0;
+    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.619) inset;
+    background-color: #1D1C1C;
 }
 
 
@@ -213,7 +222,7 @@ span[contenteditable="true"]{
     border-bottom: 1px double white;
 }
 
-pop-menu, dialog{
+pop-menu{
     background-color: var(--menu-background);
     box-shadow: 1px 1px 7px 4px rgba(30, 30, 30, 0.904);
     border: 1px solid rgba(255, 255, 255, 0.305);
@@ -271,6 +280,12 @@ pop-menu[name="file"]{
     height: 30%;
     overflow: hidden;
     padding: 0; 
+    background-color: var(--menu-background);
+    box-shadow: 1px 1px 7px 4px rgba(30, 30, 30, 0.904);
+    border: 1px solid rgba(255, 255, 255, 0.305);
+    z-index: 300;
+    height: max-content;
+
     .h{
         display: flex;
         justify-content: space-between;
@@ -306,8 +321,53 @@ pop-menu[name="file"]{
     }
 }
 
-:modal::backdrop {
-    background: hsl(0 0% 10% / 0.7);
+
+#graph-addition{
+    width: 75%; height: 75%;
+    border: none;
+    border-radius: 5px;
+    background-color: var(--menu-background);
+    padding: .5rem;
+    overflow: hidden;
+
+    .container{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100%; width: 100%;
+
+        .header{
+            font-size: 1rem;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid white;
+            padding: 5px;
+        }
+        .header [name="submit"]{
+            display: inline-block;
+            margin-left:auto;
+        }
+        .inputs {
+            padding: .7rem 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .tabs{
+            width: 100%;
+            height: 100%;
+        }
+        & textarea{
+            resize: none;
+            width: 100%; height: 100%;
+        }
+    }
+
+    &::backdrop{
+        background-color: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+    }
+
 }
 
 

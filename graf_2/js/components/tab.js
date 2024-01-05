@@ -89,7 +89,7 @@ const dragHandle = {
     tabDrag: (target, ev, delta) => {
         if (ev.buttons == 4) {
             ev.preventDefault();
-            for (let n of target.getGraph().selection.nodeSet) n.position(n.pos.x + delta.x, n.pos.y + delta.y);
+            for (let n of target.getGraph().selection.nodeSet) n.translate(delta.x, delta.y);
             return;
         }
         if (ev.buttons == 2) {
@@ -138,7 +138,7 @@ const dragHandle = {
     nodeDrag: (target, ev, delta) => {
         switch (ev.buttons) {
             case 1: {
-                target.position(target.pos.x + delta.x, target.pos.y + delta.y);
+                target.translate(delta.x, delta.y);
                 break;
             }
             case 2: {
@@ -303,8 +303,8 @@ class Tab extends HTMLElement {
                 if (!set.size) return;
                 this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
                 for (let n of set) {
-                    n.pos.add(lastPointer.copy(currentPointer).sub(n.pos).multiplyScalar(0.1 * (ev.deltaY < 0 ? -1 : 1)));
-                    n.position(n.pos.x, n.pos.y);
+                    lastPointer.copy(currentPointer).sub(n.transform.position).multiplyScalar(0.1 * (ev.deltaY < 0 ? -1 : 1))
+                    n.translate(lastPointer.x, lastPointer.y);
                 }
                 return;
             }
@@ -319,13 +319,7 @@ class Tab extends HTMLElement {
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
             this.classList.add("hide");
-            for (let n of this.children) {
-                if (n.tagName === "GRAPH-NODE")
-                    n.position(
-                        n.pos.x + currentPointer.x - lastPointer.x,
-                        n.pos.y + currentPointer.y - lastPointer.y
-                    );
-            }
+            for (let n of this.getNodeArray()) n.translate(currentPointer.x - lastPointer.x, currentPointer.y - lastPointer.y);
 
             this.classList.remove("hide");
             
@@ -333,9 +327,8 @@ class Tab extends HTMLElement {
 
         this.sizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
-                
-                entry.target.size.x = entry.borderBoxSize[0].inlineSize;
-                entry.target.size.y = entry.borderBoxSize[0].blockSize;
+                entry.target.transform.size.x = entry.borderBoxSize[0].inlineSize;
+                entry.target.transform.size.y = entry.borderBoxSize[0].blockSize;
                 this.recalculateEdges(entry.target.nodeId); 
             }
         })
@@ -422,6 +415,7 @@ class Tab extends HTMLElement {
     getEdgeArray() {
         return this.shadowRoot.querySelector("slot[name='edges']").assignedNodes();
     }
+    /**@returns {Array<NodeUI>} */
     getNodeArray() {
         return this.shadowRoot.querySelector("slot[name='nodes']").assignedNodes();
     }
@@ -441,7 +435,7 @@ class Tab extends HTMLElement {
         let n = items.length || items.size, pos = new Point();
         if (!n) return pos;
 
-        for (let node of items) pos.add(node.pos);
+        for (let node of items) pos.add(node.transform.position);
         return pos.multiplyScalar(1 / n);
     }
 

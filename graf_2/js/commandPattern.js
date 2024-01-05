@@ -24,6 +24,7 @@ class CommandStack{
             this.undoStack.at(-1).push(command);
         } else this.undoStack.push(command);
         this.redoStack = [];
+        return command;
     }
 
     undo(resolve = true) {
@@ -43,6 +44,9 @@ class CommandStack{
             this.undoStack.push(c);
             return c;
         }
+    }
+    top() {
+        return this.undoStack.at(-1);
     }
     pop() {
         return this.undoStack.pop();
@@ -144,11 +148,12 @@ class SettingsChangedCommand extends Command{
         this.prop = prop;
         this.oldValue = oldValue;
         this.newValue = newValue;
+        this.acumulate = false;
     }
     redo(graph){
-        graph.settings[this.category][this.prop] = this.oldValue;
+        graph.settings[this.category][this.prop] = this.newValue;
     }
     undo(graph) {
-        graph.settings[this.category][this.prop] = this.newValue;
+        graph.settings[this.category][this.prop] = this.oldValue;
     }
 }

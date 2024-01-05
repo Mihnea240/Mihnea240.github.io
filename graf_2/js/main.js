@@ -14,6 +14,8 @@ window.onbeforeunload = () => {
 
 /** @type {Map<string , Graph>}*/
 const graphs = new Map();
+
+const physicsMode = new PhysicsMode();
 const appData = {
     cursorPos: new Point(),
 }
@@ -79,11 +81,12 @@ const keyBindings = {
     "+": "addNode",
     a: "selectAll",
     z: "undo",
-    y: "redo"
+    y: "redo",
+    f: "togglePhysicsSimulation"
 }
 const ACTIONS = {
     fullscreen() { toggleFullScreen() },
-    blur(ev){ document.activeElement.blur() },
+    blur(ev){ if(!ev.target.matches("textarea")) document.activeElement.blur() },
     closeModal(ev){ graphDialog.close()},
     deleteSelection(ev){
         if(!ev.ctrlKey)graphs.selected.selection.deleteNodes();
@@ -144,7 +147,7 @@ const ACTIONS = {
         ev.preventDefault();
     },
     copy(ev){
-        if (ev.repeat || !ev.ctrlKey) return;
+        if (ev.repeat || document.activeElement!=document.body || !ev.ctrlKey) return;
         let data = JSON.stringify(graphs.selected.dataTemplate());
         navigator.clipboard.writeText(data).then(
             (resolve) => {
@@ -154,7 +157,7 @@ const ACTIONS = {
         )
     },
     async paste(ev) {
-        if (ev.repeat || !ev.ctrlKey) return;
+        if (ev.repeat || document.activeElement!=document.body || !ev.ctrlKey) return;
         let data = await navigator.clipboard.readText();
         createGraph(JSON.parse(data));
     },
@@ -178,12 +181,62 @@ const ACTIONS = {
         if (!ev.ctrlKey) return;
         if (greatMenus.viewMenu.open) graphs.selected.settingsStack.redo();
         else graphs.selected.actionsStack.redo();
+    },
+    togglePhysicsSimulation() {
+        if (physicsMode.isRunning()) return physicsMode.stop();
+
+        /**@type {Graph}*/
+        let g = graphs.selected;
+        let list = g.tab.getNodeArray();
+        let p = new Point(),p1=new Point();
+        let rect = g.tab.viewRect;
+        
+        
+        for (let n of list)n.transform.velocity.copy(n.transform.acceleration.set(0, 0));
+
+        physicsMode.update = () => {
+            for (let i = 0; i < list.length; i++){
+                let a = list[i];
+                for (let j = i+1; j < list.length; j++){
+                    let b = list[j], force = 0;
+                    p.copy(a.transform.position).sub(b.transform.position);
+                    let dist = p.mag();
+
+                    force = 0.01 * (dist - 300);
+                    //if ((g.isEdge(a.nodeId, b.nodeId) || g.isEdge(b.nodeId, a.nodeId)) &&dist<100) force *= -1;
+
+                    //let force = 10 / (p.magSq());
+                    if (force > 50) force = 50;
+                    //if (force < 0.1) force = 0;
+                    
+                    p1.copy(p.normalize());
+                    p.multiplyScalar(-force);
+                    p1.multiplyScalar(force);
+                    a.transform.acceleration.add(p);
+                    b.transform.acceleration.add(p1);
+                }
+                a.transform.velocity.set(0,0);
+            }
+            for (let n of list) {
+               /*  p.copy(appData.cursorPos).sub(n.transform.position).normalize().multiplyScalar(0.1)
+                n.transform.acceleration.add(p);
+                n.transform.velocity.normalize(); */
+                n.transform.update();
+                if (n.transform.position.x < rect.x || n.transform.position.x > rect.x + rect.width) n.transform.velocity.x *= -1;
+                if (n.transform.position.y < rect.y || n.transform.position.y > rect.y + rect.height) n.transform.velocity.y *= -1;
+                n.update();
+                n.transform.acceleration.set(0, 0);
+                //n.transform.velocity.normalize();
+            }
+            
+        }
+        physicsMode.start(list, 10);
     }
 
 }
 
 document.addEventListener("keydown", (ev) => {
-    console.log(ev.key);
+    //console.log(ev.key);
     ACTIONS[keyBindings[ev.key]]?.(ev);
 });
 

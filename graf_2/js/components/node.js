@@ -35,14 +35,15 @@ const _node_template = /* html */`
     <div name="id" data-state="main"></div>
 `.trim();
 
-class nodeUI extends HTMLElement{
+class NodeUI extends HTMLElement{
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
         this.main = shadow.querySelector("[data-state='main']");
-        this.pos = new Point();
-        this.size = new Point(38, 38);
+        this.transform=new Transform();
+        /* this.pos = new Point();
+        this.size = new Point(38, 38); */
         this.onmove = _ => true;
         this.new_node_protocol = false;
         this._internals = this.attachInternals();
@@ -68,27 +69,33 @@ class nodeUI extends HTMLElement{
 
     middle(x = 0.5, y = 0.5) {
         return new Point(
-            this.pos.x + this.size.x  * x,
-            this.pos.y + this.size.y * y
+            this.transform.position.x + this.transform.size.x * x,
+            this.transform.position.y + this.transform.size.y * y
         );   
     }
 
     position(x, y , updateEdges=true) {
-        this.pos.set(x,y);
-        this.style.cssText += `left: ${this.pos.x}px; top: ${this.pos.y}px`;
-
+        this.transform.position.set(x,y);
+        this.update(updateEdges);
+    }
+    translate(x,y,update=true) {
+        this.transform.position.translate(x, y);
+        this.update(update);
+    }
+    update(updateEdges=true) {
+        this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
         if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
     }
 
     focus() {
-        this.parentElement.focus(this.pos);
+        this.parentElement.focus(this.transform.position);
     }
 
     connectedCallback() {
         this.parentRect = this.getBoundingClientRect(this.parentElement);
-        this.css = getComputedStyle(this);
+        //this.css = getComputedStyle(this);
         this.main.innerHTML = this.nodeId;
     }
 }
 
-customElements.define("graph-node", nodeUI);
+customElements.define("graph-node", NodeUI);

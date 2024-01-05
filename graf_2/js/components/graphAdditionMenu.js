@@ -1,182 +1,98 @@
-const _menu_template = /* html */`
-    <style>
-        :host{
-            color: inherit;
-            --accent-color: var(--ui-select);
-        }
-        *{
-            color: inherit;
-            background-color: inherit;
-            box-sizing: border-box;
-        }
-        .hide{
-            display: none;
-        }
-        ::-webkit-scrollbar{
-            background-color: inherit;
-            width: 12px;    height: 12px;
-        }
-        ::-webkit-scrollbar-thumb{
-            background-color: rgba(0, 0, 0, 0.47);
-            border-radius: .2em;
-        }
-        input:not([type="range"]), textarea,select{
-            border: none;   outline: none;
-            padding: 0; margin: 0;
-            box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.619);
-            background-color: #1D1C1C;
-        }
-        input:focus{
-            background-color: var(--accent-color);
-        }
-        select{
-            border-color: var(--accent-color);
-        }
-        select:focus{
-            outline:none;
-            box-shadow: 0px 0px 5px var(--accent-color);
-        }
-        
-        dialog{
-            width: 75%; height: 75%;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--menu-background);
-            padding-bottom: 0;
+const newGraphDialog = document.getElementById("graph-addition");
 
-        }
-        dialog::backdrop{
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(2px);
-        }
-        .container{
-            display: flex;
-            flex-direction: column;
-            height: 100%; width: 100%;
-        }
 
-        .footer{
-            display: flex;
-            align-items: center;
-            justify-content: end;
-            margin-top: 2px;
-        }
-        .header,.header input{
-            font-size: 1rem;
-        }
-        .inputs {
-            padding: .7rem 0;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        .tabs{
-            flex: 1;
-        }
-        textarea{
-            resize: none;
-            width: 100%; height: 100%;
-        }
-        
-    </style>
-    <dialog>
-        <div class="container">
-            <div class="header">
-                <span>Add new graph : </span>
-                <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
-                <hr/>
-            </div>
-            <div class="inputs">
-                <label>
-                    Type :
-                    <select>
-                        <option>Unordered</option>
-                        <option>Ordered</option>
-                    </select>
-                </label>
-                <label>
-                    Input :
-                    <select name="input mode">
-                        <option>Matrix</option>
-                        <option>Edge list</option>
-                        <option>Adjacency list</option>
-                        <option>Parent array</option>
-                    </select>
-                </label>
-                <label>
-                    Nodes :
-                    <input type="text" name="nodes" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                </label>
-            </div>
+//close when clicked on backdrop
+newGraphDialog.addEventListener("click", (ev) => {
+    let rect = newGraphDialog.getBoundingClientRect();
+    if (ev.target.tagName !== "DIALOG") return;
+    if ((ev.clientX > rect.right || ev.clientX < rect.left) ||
+        ((ev.clientY > rect.bottom || ev.clientY < rect.top))) newGraphDialog.close();
+})
 
-            <div class ="tabs">
-                <textarea>0</textarea>
-            </div>
-                    
-            <div class="footer">
-                <button name="submit">Submit</button>
-            </div>
+newGraphDialog.querySelector(`button[name="submit"]`).onclick = (ev) => {
+    newGraphDialog.close();
+    createGraph(formatNewGraphData());
+}
 
-        </div>
-        
-    </dialog>
+function formatNewGraphData() {
+    let type = +newGraphDialog.querySelector("[name='type input']").value;
+    let inputMode = newGraphDialog.querySelector("[name='input mode']").value;
+    let nodeNumber = newGraphDialog.querySelector("[name='node number']").value;
+    /**@type {String}  */
+    let data = newGraphDialog.querySelector(".tabs :not(.hide)").value;
 
-`
-
-class graphAdditionMenu extends HTMLElement{
-    constructor() {
-        super();
-        const shadow = this.attachShadow({ mode: "open"});
-        shadow.innerHTML = _menu_template;
-        this.dialog = shadow.querySelector("dialog");
-
-        //stop textarea from being disabled on enter
-        this.dialog.addEventListener("keydown", (ev) => {
-            if(ev.target.tagName==="TEXTAREA") ev.stopPropagation();
-        })
-
-        //close when clicked outside
-        let rect = this.dialog.getBoundingClientRect();
-        this.dialog.addEventListener("click", (ev) => {
-            console.log(ev.target.tagName);
-            if (ev.target.tagName !== "DIALOG") return;
-            if ((ev.clientX > rect.left + rect.width || ev.clientX < rect.left) &&
-                ((ev.clientY > rect.top + rect.height || ev.clientY < rect.top))) this.close();
-        })
-
-        shadow.querySelector(`button[name="submit"]`).onclick = (ev) => {
-            this.close();
-            createGraph();
-        }
-
-        let name = shadow.querySelector("[name='name']");
-        name.value = "Graph " + (Graph.id + 1);
-        name.select();
-
-        this.data = {
-            nameI: shadow.querySelector("[name='name']"),
-            typeI: shadow.querySelector("[name='input mode']"),
-            nrNodes: shadow.querySelector("[name='nodes']"),
-            textarea: shadow.querySelector("textarea")
-        }
+    let objectTemplate = JSON.parse(JSON.stringify(defaultGraphJSON));
+    objectTemplate.type = type;
+    objectTemplate.data = {
+        nodes: [],
+        connections: {},
+        nodeProps: {},
+        edgeProps: {}
     }
-    open() {
-        this.dialog.showModal();
+    let addNode = (i) => {
+        objectTemplate.data.nodes.push(i);
+        objectTemplate.data.connections[i] = [];
     }
-    close() {
-        this.dialog.close();
-    }
-    format(text) {
-        
-    }
-    info() {
-        return {
-            type: this.data.typeI.value,
-            nrNodes: this.data.nrNodes.value,
-            name: this.data.nameI.value,
-            text: this.data.textarea.value
-        }; 
+    let exists = (node) => !!objectTemplate.data.connections[node];
+    let addEdge = (from, to) => objectTemplate.data.connections[from].push(to);
+
+
+    for (let i = 1; i <= nodeNumber; i++) addNode(i);
+
+    switch (inputMode) {
+        case "Matrix": {
+            let matrix = data.replace(/[a-z]+/g, "").replace(/\[|\]+/g, "\n").split("\n").filter(el => el !== '').map((row) => row.split(/[\ ,.]+/g).filter(el => el !== ''));
+            let n = Math.min(matrix.length, nodeNumber);
+            
+            for (let i = 1; i <= n; i++){
+                for (let j = 1; j <= n; j++)if (parseInt(matrix[i - 1][j - 1])) addEdge(i, j);
+            }
+            return objectTemplate;
+        }
+        case "Edge list": {
+            let matrix = data.replace(/[a-z]+/g, "").replace(/\[|\]+/g, "\n").split("\n").filter(el => el !== '').map((row) => row.split(/[\ ,.]+/g).filter(el => el !== ''));
+            for (let row of matrix) {
+                let a = parseInt(row[0]), b = parseInt(row[1]);
+                if (!a || !b) continue;
+                if (a > nodeNumber && !exists(a)) addNode(a);
+                if (b > nodeNumber && !exists(b)) addNode(b);
+
+                addEdge(a, b);
+                if (type == UNORDERED) addEdge(b, a);
+            }
+            return objectTemplate;
+        }
+        case "Adjacency list": {
+            let matrix = data.replace(/[a-z]+/g, "").replace(/\[|\]+/g, "\n").split("\n").filter(el => el !== '').map((row) => row.split(/[\ :,.]+/g).filter(el => el !== ''));
+            for (let row of matrix) {
+                let anchor = parseInt(row[0]);
+                if (anchor > nodeNumber && !exists(anchor)) addNode(anchor);
+
+                for (let i = 1; i < row.length; i++){
+                    let entry = parseInt(row[i]);
+                    if (entry > nodeNumber && !exists(entry)) addNode(entry);
+                    addEdge(anchor, entry);
+                }
+            }
+            return objectTemplate;
+        }
+        case "Parent array": {
+            let array = data.replace(/[a-z]|\n+/g, "").split(/[\ :,.]+/g).filter(el => el !== '');
+            let root = array.indexOf("0");
+            if (root < 0 || array.lastIndexOf("0") != root) return;
+            
+            for (let i = 1; i <= array.length; i++) {
+                if (i == root) continue;
+                let a = parseInt(array[i - 1]);
+                if (!exists(i)) addNode(i);
+                if (!exists(a)) addNode(a);
+                addEdge(i, a);
+            }
+
+            return objectTemplate;
+        }
     }
 }
 
-customElements.define("graph-menu", graphAdditionMenu);
+
+

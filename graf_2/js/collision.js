@@ -18,10 +18,10 @@ function visibleElements(graph) {
         let rect = {};
         if (el.tagName == "GRAPH-NODE") {
             rect = {
-                x: el.pos.x,
-                y: el.pos.y,
-                width: el.size.x,
-                height: el.size.y,
+                x: el.transform.position.x,
+                y: el.transform.position.y,
+                width: el.transform.size.x,
+                height: el.transform.size.y,
             }
         } else if (el.tagName == "GRAPH-EDGE") {
             let r = el.getBoundingClientRect();
@@ -33,10 +33,41 @@ function visibleElements(graph) {
                 width: r.width,
                 height: r.height
             }
-            console.log(rect);
         } else continue;
         
         if (AABB(viewRect, rect)) rez.push([el, rect]);
     }
     return rez;
+}
+
+
+class Transform{
+    static drag = 1
+
+    constructor() {
+        this.position = new Point();
+        this.size = new Point();
+        this.velocity = new Point();
+        this.acceleration = new Point();
+    }
+
+    update() {
+        this.position.add(this.velocity.add(this.acceleration.multiplyScalar(Transform.drag)));
+    }
+}
+
+
+class PhysicsMode{
+    constructor() {
+        this.clock;
+        this.update = _ => true;
+    }
+    start(nodeList,interval) {
+        this.clock = setInterval(this.update, interval);
+    }
+    stop() {
+        clearInterval(this.clock);
+        this.clock = undefined;
+    }
+    isRunning() { return !!this.clock; }
 }

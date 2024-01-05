@@ -2,8 +2,14 @@ const ORDERED = 1;
 const UNORDERED = 0;
 
 class Graph {
+    
     static id = 0;
     constructor(type, settings = defaultGraphJSON.settings) {
+        /**@type {Tab}*/
+        this.tab;
+        /** @type {HTMLElement}*/
+        this.header;
+        
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
@@ -174,7 +180,7 @@ class Graph {
             obj.data.nodes.push(parseInt(n));
             let node = this.getNodeUI(n);
             obj.data.nodeProps[n] = {
-                position: [node.pos.x, node.pos.y]
+                position: [node.transform.position.x, node.transform.position.y]
             };
             obj.data.connections[n] = Array.from(neighbours).filter((el) => el > 0);
         }
@@ -188,7 +194,7 @@ class Graph {
         let newG = new Graph(obj.type, obj.settings);
 
         for (let i of obj.data.nodes) {
-            let n = newG.addNode();
+            let n = newG.addNode(i);
             let props = obj.data.nodeProps[i];
             if (props) {
                 if (props.position) n.position(props.position[0], props.position[1]);
@@ -247,7 +253,7 @@ class Graph {
 
         if (this.type == ORDERED) {
             for (let i = 1; i <= n; i++)
-                for (let j = 1; j <= m; j++)if (matrix[i][j]) array.push([i,j]);
+                for (let j = 1; j <= n; j++)if (matrix[i][j]) array.push([i,j]);
         } else {
             for (let i = 1; i <= n; i++)
                 for (let j = i; j <= n; j++)if (matrix[i][j]) array.push([i,j]);
@@ -394,7 +400,7 @@ const defaultGraphJSON = {
             1: [],
         },
         nodeProps: {
-            1:{}
+            
         },
         edgeProps: {
 
