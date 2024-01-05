@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/7878e75ccc.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
+
+    <script defer src="js/utilities.js"></script>
+    <script defer src="js/components/tab.js"></script>
+    <script defer src="js/components/axis.js"></script>
+    <script defer src="js/components/node.js"></script>
+    <script defer src="js/components/edge.js"></script>
+    <script defer src="js/components/popMenu.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/commandPattern.js"></script>
+    <script defer src="js/graph.js"></script>
+    <script defer src="js/collision.js"></script>
+    <script defer src="js/components/graphAdditionMenu.js"></script>
+    <script defer src="js/selection.js"></script>
+    <script defer src="js/graphUI.js"></script>
+    <script defer src="js/main.js"></script>
+    <title>Graph Maker</title>
+</head>
+
+<body>
+    <div class="menu-bar"> 
+        <button for="file">File</button>
+        <button for="view">View</button>
+        <button>Key Bindings</button>
+        <pop-menu name="file">
+            <label>Load from file<input type="file" accept=".json" onchange="loadPotrocol(this)"></label>
+            <button onclick="savePotrocol()">Save</button>
+        </pop-menu>
+        <dialog id="file-dialog">
+            <div class="h">
+                <div>Select graphs</div>
+                <label>All
+                    <input 
+                    type="checkbox" 
+                    checked
+                    onchange="this.closest('dialog').querySelectorAll(`.list input[type='checkbox']`).forEach((el)=>el.checked=this.checked)">
+                </label>
+                <button>Save</button>
+            </div>
+            <div class="list"></div>
+            
+        </dialog>
+    </div>
+    <div class="header">
+        <button class="new-graph" style="font-size: 1.3em;">+</button>
+    </div>
+
+    <div class="tab-area" draggable="false"></div>
+        
+    <graph-menu></graph-menu>
+    
+    <dialog id="graph-addition">
+        <div class="container">
+            <div class="header">
+                <span>Add new graph : </span>
+                <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
+                <button name="submit">Submit</button>
+            </div>
+            <div class="inputs">
+                <label>
+                    Type :
+                    <select name="type input">
+                        <option value="0">Unordered</option>
+                        <option value="1">Ordered</option>
+                    </select>
+                </label>
+                <label>
+                    Input :
+                    <select name="input mode">
+                        <option>Matrix</option>
+                        <option>Edge list</option>
+                        <option>Adjacency list</option>
+                        <option>Parent array</option>
+                    </select>
+                </label>
+                <label>
+                    Nodes :
+                    <input type="text" name="node number" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </label>
+            </div>
+
+            <div class ="tabs">
+                <textarea>0</textarea>
+            </div>
+        </div>
+        
+    </dialog>
+
+</body>
+
+
+</html>
