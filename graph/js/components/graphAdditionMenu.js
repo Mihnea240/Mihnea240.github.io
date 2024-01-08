@@ -1,4 +1,4 @@
-const newGraphDialog = document.getElementById("graph-addition");
+const newGraphDialog = document.getElementById("graph-addition-dialog");
 
 
 //close when clicked on backdrop

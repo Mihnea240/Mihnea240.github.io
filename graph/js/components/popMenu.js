@@ -25,6 +25,7 @@ class PopMenu extends HTMLElement{
         super();
         this.open = false;
         this.cnt = 0;
+        this.closeOnClick = false;
         this.closedEvent=new CustomEvent("menuclosed",{bubbles: true});
 
 
@@ -34,9 +35,7 @@ class PopMenu extends HTMLElement{
 
         document.addEventListener("click", (ev) => {
             this.dispatchEvent(this.closedEvent);
-            if(!this.cnt && this.open && !this.contains(ev.target)){
-                this.close();
-            }
+            if(this.closeOnClick && this.open && !this.cnt  && !this.contains(ev.target))this.close();
             this.cnt = 0;
         })
     }
@@ -55,7 +54,7 @@ class PopMenu extends HTMLElement{
         
     }
 
-    show(x,y) {
+    show(x=0,y=0) {
         this.open = true;
         this._internals.states.add("--open");
         if (x !== undefined && y !== undefined) {

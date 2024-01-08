@@ -3,8 +3,16 @@ html,body{
     margin: 0;  padding: 0;
     width: 100%;   height: 100%;
     position: absolute;
-    display: flex;
-    flex-direction: column;
+
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-areas: 
+        'menu-bar menu-bar' 
+        'header-bar header-bar' 
+        'tab-area inspector';
+    grid-template-rows: 5% 4% 92.5%;
+    grid-template-columns: auto max-content;
+    
     background:var(--background);
     color: var(--color);
     font-weight: 100;
@@ -140,11 +148,68 @@ graph-tab{
     text-shadow: 0 0 3px var(--color), 0 0 2px var(--node--color);
 } */
 
-/* Tab area */
+.menu-bar{
+    grid-area: menu-bar;
+    display: flex;
+    align-items: center;
+    color: white;
+    gap: 2vw;
+    margin-left: 2vw;
+    font-weight: bolder;
+
+    & > button{
+        background-color: inherit;
+        color: inherit;
+        &:hover{
+            border-bottom: 1px double white;
+        }
+    }
+}
+
+.header{
+    grid-area: header-bar;
+    display: flex;
+    align-items: end;
+
+    width: 100%;
+    padding-left: 1vw;
+    border-bottom: 3px solid;
+    overflow: hidden;
+
+    .graph-header{
+        height: 100%;
+        border-radius: 5px 5px 0 0;
+        margin: 0 .1vw; padding: 0 .5rem;
+        text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
+        min-width: 1%;
+        text-wrap: nowrap;
+        z-index: 2;
+
+        .selected{
+             height: 100%;
+             font-weight: bolder;
+        }
+
+        &:hover{
+            text-decoration: underline;
+        }
+    }
+
+    .new-graph{
+        background-color: rgb(36, 36, 36);
+        flex: 0 0 5vw;    height: 80%;
+        color: inherit;
+        border-radius: 5px 5px 0 0;
+    
+        &:hover{
+            background-color: var(--ui-select);
+        }
+    }
+}
 
 .tab-area{
     position: relative;
-    flex: 1 0 auto;
+    grid-area: tab-area;
     background-color: transparent;
     z-index: 1;
     overflow: hidden;
@@ -157,43 +222,6 @@ graph-tab{
     background: var(--tab-background);
 }
 
-/* Header section*/
-.header{
-    flex: 0 1 2%;
-    display: flex;
-    align-items: end;
-    padding-left: 1vw;
-    border-bottom: 3px solid;
-}
-
-.graph-header{
-    height: 80%;
-    border-radius: 5px 5px 0 0;
-    color: inherit;
-    margin: 0 .1vw; padding: 0 .5rem;
-    text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
-    min-width: 1%;
-    overflow: hidden;
-    text-wrap: nowrap;
-    z-index: 2;
-}
-.graph-header:hover{
-    text-decoration: underline;
-}
-.graph-header.selected{
-    height: 100%;
-    font-weight: bolder;
-}
-.new-graph{
-    background-color: rgb(36, 36, 36);
-    flex: 0 0 5vw;    height: 80%;
-    color: inherit;
-    border-radius: 5px 5px 0 0;
-}
-.new-graph:hover{
-    background-color: var(--ui-select);
-}
-
 span[contenteditable="true"]{
     outline: none;
     padding: .1rem;
@@ -201,26 +229,7 @@ span[contenteditable="true"]{
 }
 /* Menu bar */
 
-.menu-bar{
-    flex: 0 1 5%;
-    display: flex;
-    align-items: center;
-    color: white;
-    gap: 2vw;
-    margin-left: 2vw;
-    font-weight: bolder;
-}
 
-.menu-bar button{
-    background-color: inherit;
-    color: inherit;
-    /* padding: .3rem .5rem;
-    border-radius: 10px; */
-}
-.menu-bar > button:hover{
-    /* background-color: rgba(52, 178, 245, 0.544);; */
-    border-bottom: 1px double white;
-}
 
 pop-menu{
     background-color: var(--menu-background);
@@ -229,7 +238,19 @@ pop-menu{
     z-index: 300;
     height: max-content;
 }
-pop-menu .category{
+pop-menu:not(.options-menu) > *{ 
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    
+    &:hover{
+        background-color: var(--ui-select2);
+    }
+}
+
+.options-menu .category{
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -259,20 +280,6 @@ pop-menu .category{
         margin: 0;
         
     }
-}
-
-pop-menu[name="file"]{
-    & > *{ 
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem;
-        
-        &:hover{
-            background-color: var(--ui-select2);
-        }
-    } 
 }
 
 #file-dialog{
@@ -322,7 +329,7 @@ pop-menu[name="file"]{
 }
 
 
-#graph-addition{
+#graph-addition-dialog{
     width: 75%; height: 75%;
     border: none;
     border-radius: 5px;
@@ -367,7 +374,37 @@ pop-menu[name="file"]{
         background-color: rgba(0, 0, 0, 0.55);
         backdrop-filter: blur(2px);
     }
+}
 
+#inspector{
+    position: relative;
+    display: flex;
+    grid-area: inspector;
+    z-index: 10;
+    min-width: 100px;
+
+    background-color: rgb(from var(--background) r g b /0.9);   
+    box-shadow: 0 0 10px 1px black;
+    border-left: 1px solid gray;
+    padding: .2rem;
+    
+
+
+    & pop-menu{
+        position: relative;
+        font-size: small;
+        width: 100%;
+    }
+
+
+    &:hover::after{
+        position: absolute;
+        content: "";
+        left: 0;
+        height: 100%;
+        width: 5px;
+        cursor: e-resize;
+    }
 }
 
 

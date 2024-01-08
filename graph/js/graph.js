@@ -35,6 +35,7 @@ class Graph {
     unfocus() {
         this.header?.classList.remove("selected");
         this.tab?.classList.add("hide");
+        if (physicsMode.isRunning()) physicsMode.stop();
     }
     focus() {
         if (graphs.selected === this) return;
@@ -60,7 +61,7 @@ class Graph {
             newId = this.a_nodeId;
         }
         this.nodes.set(newId, new Set());
-        if(addToStack)this.actionsStack.push(new AddNodesCommand(newId));
+        if (addToStack) this.actionsStack.push(new AddNodesCommand(newId));
         return this.tab.addNode({ id: newId });
     }
     removeNode(id, addToStack=true) {
@@ -85,6 +86,11 @@ class Graph {
             }
         }
         this.actionsStack.endGroup();
+
+        if (physicsMode.isRunning()) {
+            physicsMode.stop();
+            ACTIONS.togglePhysicsSimulation();
+        }
 
         let rez = this.nodes.delete(id);
         if (rez && id < this.a_nodeId) this.a_nodeId = id;
@@ -156,6 +162,7 @@ class Graph {
     delete() {
         let adjacentHeader = this.header.previousElementSibling || this.header.nextElementSibling;
         if (adjacentHeader.matches("button span")) graphs.get(parseInt(adjacentHeader.id.slice(1))).focus();
+        if (physicsMode?.isRunning()) physicsMode.stop();
 
         this.tab.delete();
         this.header.remove();
@@ -359,51 +366,4 @@ class Graph {
 
     }
 
-}
-
-
-const defaultGraphJSON = {
-    settings: {
-        graph: {
-            name: "",
-            main_color: "",
-            secondary_color: "",
-            zoom: 1,
-            category: "graph",
-        },
-        node: {
-            size: "25",
-            bg: "#242424",
-            color: "#ffffff",
-            border_radius: "50",
-            border_width: "1",
-            border_style: "solid",
-            border_color: "#ffffff",
-            emission: "10",
-            category: "node"
-        },
-        edge: {
-            width: "1",
-            emission: "3",
-            color: "#ffffff",
-            cp_symmetry: true,
-            mode: "absolute",
-            min_drag_dist: 5,
-            cp_offset: [0, 0],
-            category: "edge",
-        }
-    },
-    type: ORDERED,
-    data: {
-        nodes: [1],
-        connections: {
-            1: [],
-        },
-        nodeProps: {
-            
-        },
-        edgeProps: {
-
-        }
-    }
 }

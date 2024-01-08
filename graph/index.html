@@ -19,13 +19,14 @@
     <script defer src="js/components/node.js"></script>
     <script defer src="js/components/edge.js"></script>
     <script defer src="js/components/popMenu.js"></script>
-    <script defer src="js/settings.js"></script>
     <script defer src="js/commandPattern.js"></script>
     <script defer src="js/graph.js"></script>
+    <script defer src="js/settings.js"></script>
     <script defer src="js/collision.js"></script>
     <script defer src="js/components/graphAdditionMenu.js"></script>
     <script defer src="js/selection.js"></script>
     <script defer src="js/graphUI.js"></script>
+    <script defer src="js/inspector.js"></script>
     <script defer src="js/main.js"></script>
     <title>Graph Maker</title>
 </head>
@@ -33,12 +34,17 @@
 <body>
     <div class="menu-bar"> 
         <button for="file">File</button>
-        <button for="view">View</button>
-        <button>Key Bindings</button>
         <pop-menu name="file">
             <label>Load from file<input type="file" accept=".json" onchange="loadPotrocol(this)"></label>
             <button onclick="savePotrocol()">Save</button>
         </pop-menu>
+        
+        <button for="insert">Insert</button>
+        <pop-menu name="insert">
+            <button>Node</button>
+            <button>Edge</button>
+        </pop-menu>
+        <button for="view">View</button>
         <dialog id="file-dialog">
             <div class="h">
                 <div>Select graphs</div>
@@ -59,10 +65,12 @@
     </div>
 
     <div class="tab-area" draggable="false"></div>
-        
-    <graph-menu></graph-menu>
+    <graph-inspector id="inspector">
+        <h3 class="graph-header">Inspecting    <span>Placeholder</span></h3>
+    </graph-inspector>
     
-    <dialog id="graph-addition">
+    
+    <dialog id="graph-addition-dialog">
         <div class="container">
             <div class="header">
                 <span>Add new graph : </span>

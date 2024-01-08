@@ -5,6 +5,7 @@ const _node_template = /* html */`
             position: absolute;
             z-index: 100;
         }
+        .hide{display:none;}
         div{
             color: var(--node-color);
             display: grid;
@@ -15,15 +16,15 @@ const _node_template = /* html */`
             display: none;
         }
 
-        [name="id"]{
+        [name="id"],div{
             width: var(--node-width);
             height: var(--node-height);
             border-radius: var(--node-border-radius);
             border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
             background: var(--node-background);
-            font-size: calc(var(--node-width) * 0.5); 
+            font-size: calc(var(--node-width) * 0.5);
         }
-        :host(:--selected) div{
+        :not(.hide).selected{
             box-shadow:
                 0 0 var(--node-emission) var(--graph-main-color),
                 0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
@@ -32,7 +33,7 @@ const _node_template = /* html */`
 
 
     </style>
-    <div name="id" data-state="main"></div>
+    <div name="id" class="hide"></div>
 `.trim();
 
 class NodeUI extends HTMLElement{
@@ -40,32 +41,55 @@ class NodeUI extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
-        this.main = shadow.querySelector("[data-state='main']");
-        this.transform=new Transform();
-        /* this.pos = new Point();
-        this.size = new Point(38, 38); */
+        this.main = shadow.querySelector(":not(.hide)");
+
+        this.oncontextmenu = (ev) => ev.preventDefault();
         this.onmove = _ => true;
-        this.new_node_protocol = false;
-        this._internals = this.attachInternals();
+    }
 
+    /**@param {NodeProps} props  */
+    init(props=new NodeProps()) {
+        this.props = props;
+        
         let ids = this.id.split(' ');
-        this.nodeId = parseInt(ids[1]);
-        this.graphId = parseInt(ids[0].slice(1));
+        this.props.id = this.nodeId = parseInt(ids[1]);
+        this.props.graphId = this.graphId = parseInt(ids[0].slice(1));
 
-       this.oncontextmenu = (ev) => ev.preventDefault();
+        this.viewMode = this.props.states.viewMode;
     }
-    set selected(flag) {
-        if (flag)this._internals.states.add("--selected");
-        else this._internals.states.delete("--selected");
+
+    get transform() { return this.props.physics.transform }
+    
+    set selected(flag) { this.main.classList.toggle("selected", this.props.states.selected = flag) }
+    get selected() { return this.props.states.selected }
+
+    set active(flag) { this.props.states.active = flag }
+    get active() { return this.props.states.active }
+
+    set new_node_protocol(flag) { this.props.states.new_node_protocol = flag };
+    get new_node_protocol() { return this.props.states.new_node_protocol };
+    
+    set viewMode(mode) {
+
+        let newEl = this.shadowRoot.querySelector(`[name=${mode}]`);
+        if (!newEl) return;
+        this.props.viewMode = mode;
+
+        this.main.classList.add("hide");
+        this.main = newEl;
+        this.main.classList.remove("hide");
+
+        switch (mode) {
+            case "id": this.main.textContent = this.nodeId; break;
+        }
     }
-    get selected() {return this._internals.states.has("--selected");}
+    get viewMode() { return this.props.viewMode }
 
     initCurve() {
         this.parentElement.curve.classList.remove("hide");
         this.parentElement.curve.from = this.parentElement.curve.to = this.middle();
         this.new_node_protocol = true;
     }
-
 
     middle(x = 0.5, y = 0.5) {
         return new Point(
@@ -90,12 +114,66 @@ class NodeUI extends HTMLElement{
     focus() {
         this.parentElement.focus(this.transform.position);
     }
-
     connectedCallback() {
-        this.parentRect = this.getBoundingClientRect(this.parentElement);
-        //this.css = getComputedStyle(this);
-        this.main.innerHTML = this.nodeId;
+        if (!this.props) this.init();
     }
 }
 
 customElements.define("graph-node", NodeUI);
+
+
+class NodeProps{
+    constructor(obj) {
+        this.id=0,
+        this.graphId = 0,
+            
+        this.physics = {
+            mass: 1,
+            isAffectedByGravity: true,
+            transform: new Transform(),
+        }
+        this.states= {
+            selected: false,
+            active: false,
+            new_node_protocol: false,
+            viewMode: "id",
+        }
+        this.view = {
+            
+        }
+        this.custom = { ...obj }
+    }
+
+    copy() {
+        return Object.assign(new NodeProps(), JSON.parse(JSON.stringify(this)));
+    }
+}
+
+const nodeTemplates = {
+    default: {
+        details: {
+            "view mode": {
+                type: "select",
+                options: ["id"],
+            }
+        },
+        physics: {
+            mass: {
+                value: 1,
+                type: "number",
+            },
+            position: {
+                type: "point",
+                max: "200",
+            },
+            velocity: {
+                type: "point",
+                max: "200",
+            },
+            acceleration: {
+                type: "point",
+                max: "2",
+            }
+        }
+    }
+}

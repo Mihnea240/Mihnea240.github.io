@@ -65,7 +65,6 @@ class GraphSelection {
             commands.push(g.actionsStack.pop());
         }
 
-        console.log(commands);
         for (let c of commands) addNodes.push(c.commands.shift());
         g.actionsStack.push(new GroupCommands(addNodes, ...commands));
     }

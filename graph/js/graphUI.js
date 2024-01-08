@@ -13,6 +13,7 @@ const header_template = elementFromHtml(`
         <span class="text" spellcheck="false"></span>
     </button>
 `);
+const inspector = document.getElementById("inspector");
 const graphDialog = document.querySelector("graph-menu");
 
 
@@ -76,16 +77,16 @@ function initGreatMenus() {
             menuBar.querySelector(`[name=${button.getAttribute("for")}]`).toggle(rect.x, rect.bottom);
         })
     }
-    greatMenus.viewMenu = createOptionsMenu(defaultSettingsTemplate,"view");
-    menuBar.appendChild(greatMenus.viewMenu);
+
+
+    menuBar.appendChild(greatMenus.viewMenu = createOptionsMenu(defaultSettingsTemplate, "view"));
 
     greatMenus.viewMenu.addEventListener("propertychanged", (ev) => {
         let { category, property, originalTarget } = ev.detail;
         let top = graphs.selected.settingsStack.top();
-        console.log(top?.acumulate);
-        if (top?.acumulate) {
-            top.newValue = originalTarget.value;
-        } else {
+        
+        if (top?.acumulate) top.newValue = originalTarget.value;
+        else {
             let c = graphs.selected.settingsStack.push(new SettingsChangedCommand(category, property, graphs.selected.settings[category][property]));
             c.acumulate = true;
         }
@@ -97,6 +98,7 @@ function initGreatMenus() {
         if(top)top.acumulate = false;
     })
     
+
     greatMenus.fileMenu = menuBar.querySelector("pop-menu[name='file']");
 }
 
@@ -210,7 +212,7 @@ function openActionMenu(ev) {
         id = parseInt(ev.target.parentElement.id.slice(1));
         graphActions = true;
     } else if (ev.target.matches("graph-tab")) {
-        id = ev.target.graphId;
+       
         
     } else if (ev.target.matches("graph-node")) {
         id = ev.target.graphId;

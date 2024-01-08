@@ -35,6 +35,7 @@ const _tab_template =/*html*/`
         }
         .hide{display: none}
         number-line{
+            display: var(--show-ruller);
             position: absolute; z-index:10;
             font-size: 1rem;
             border: .1px solid white;
@@ -148,7 +149,9 @@ const dragHandle = {
                 c.p2.pos.translate(delta.x, delta.y);
                 c.update();
             } 
+            default: return;
         }
+        target.active = true;
     },
     nodeDragEnd: (originalNode, ev) => {
         if (originalNode.new_node_protocol) {
@@ -172,6 +175,8 @@ const dragHandle = {
         } else if (ev.button == 2) {
             graphs.get(ev.target.graphId).selection.toggle(ev.target);
         }
+        originalNode.transform.velocity.copy(appData.cursorVelocity);
+        originalNode.active = false;
         if(ev.button==2)ev.stopPropagation();
     },
     edgeDrag: (target, ev, delta) => {
@@ -389,7 +394,11 @@ class Tab extends HTMLElement {
     addNode(props) {
         let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.id}" slot="nodes"></graph-node>`));
         this.sizeObserver.observe(newNode);
-        this.positionFunction(this, newNode,false);
+        this.positionFunction(this, newNode, false);
+        if (physicsMode.isRunning()) {
+            physicsMode.stop();
+            ACTIONS.togglePhysicsSimulation();
+        }
         return newNode;
     }
     addEdge(props) {

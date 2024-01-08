@@ -1,4 +1,43 @@
-
+const defaultGraphJSON = {
+    settings: {
+        graph: {
+            name: "",
+            main_color: "",
+            secondary_color: "",
+            show_ruller: "true",
+            zoom: 1,
+            category: "graph",
+        },
+        node: {
+            size: "25",
+            bg: "#242424",
+            color: "#ffffff",
+            border_radius: "50",
+            border_width: "1",
+            border_style: "solid",
+            border_color: "#ffffff",
+            emission: "10",
+            category: "node"
+        },
+        edge: {
+            width: "1",
+            emission: "3",
+            color: "#ffffff",
+            cp_symmetry: true,
+            mode: "absolute",
+            min_drag_dist: 5,
+            cp_offset: [0, 0],
+            category: "edge",
+        }
+    },
+    type: ORDERED,
+    data: {
+        nodes: [1],
+        connections: {},
+        nodeProps: {},
+        edgeProps: {}
+    }
+}
 const defaultSettingsTemplate = {
     graph: {
         name: {
@@ -25,6 +64,14 @@ const defaultSettingsTemplate = {
                 let a = `linear-gradient(45deg,${graph.settings.graph.main_color},${graph.settings.graph.secondary_color})`;
                 graph.header.style.background = a
                 headerArea.style.borderImage = a + " 1";
+            }
+        },
+        show_ruller: {
+            type: "checkbox",
+            update(graph) {
+                let value = graph.settings.graph.show_ruller==="true" ? "visible" : "none";
+                console.log(graph.settings.graph.show_ruller);
+                graph.tab.style.setProperty("--show-ruller", value);
             }
         },
         zoom: {
@@ -152,12 +199,13 @@ function createGraphSettings(graph) {
     return object;
 }
 
-
+/**@returns {PopMenu} */
 function createOptionsMenu(options, name, categoryCollapse=true) {
     let menu = document.createElement("pop-menu");
     let rangeUpdate = (ev) => { ev.target.setAttribute("value", ev.target.value) };
     let checkBoxupdate = (ev) => { ev.target.setAttribute("value", ev.target.checked) };
     if (name) menu.setAttribute("name", name);
+    menu.classList.add("options-menu");
 
     for (let category in options) {
         let c = elementFromHtml(`<div class="category" name="${category}"><div>${category} ${categoryCollapse?`<input type="checkbox">`:''}</div></div>`);
@@ -166,16 +214,17 @@ function createOptionsMenu(options, name, categoryCollapse=true) {
         for (let i in items) {
             if (!items[i].type) continue;
             let value = items[i].value || '';
+            let type = items[i].type.split(" ")[0];
 
             let name = items[i].display || i.replace("_", " "), element;
 
-            if (items[i].type !== "select") {
+            if (type !== "select" && type!=="point") {
                 element = c.appendChild(
-                    elementFromHtml(`<label>${name} <input type="${items[i].type}" name=${i} value="${value}"></label>`)
+                    elementFromHtml(`<label>${name} <input type="${type}" name=${i} value="${value}"></label>`)
                 );
             }
 
-            switch (items[i].type) {
+            switch (type) {
                 case "range": {
                     let range = element.firstElementChild;
                     if (items[i].max) range.setAttribute("max", items[i].max);
@@ -206,6 +255,23 @@ function createOptionsMenu(options, name, categoryCollapse=true) {
                     el.style.display = "none";
                     break;
                 }
+                case "point": {
+                    let types = items[i].type.split(" ");
+                    let t1 = types[1] || "number";
+                    let t2 = types[2] || t1;
+                    let range = parseInt(items[i].max) || 1000, length = items[i].max.length;
+                    console.log(range, length);
+                    
+                    element = c.appendChild(
+                        elementFromHtml(`
+                            <label>${name} 
+                                <input type="${t1}" name=${i} max="${range}" min="${-range}" style="width: ${length+3}ch" value="${value}">
+                                <input type="${t2}" name=${i} max="${range}" min="${-range}" style="width: ${length+3}ch" value="${value}">
+                            </label>
+                        `)
+                    )
+                    break;
+                } 
             }
 
             if (items[i].description) element.setAttribute("title", items[i].description);
