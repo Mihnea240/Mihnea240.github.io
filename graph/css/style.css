@@ -10,12 +10,12 @@ html,body{
         'menu-bar menu-bar' 
         'header-bar header-bar' 
         'tab-area inspector';
-    grid-template-rows: 5% 4% 92.5%;
+    grid-template-rows: 5% 4% 91%;
     grid-template-columns: auto max-content;
     
     background:var(--background);
     color: var(--color);
-    font-weight: 100;
+    overflow: hidden;
 }
 :root{
     --background:  rgb(23, 23, 23);
@@ -397,7 +397,7 @@ pop-menu:not(.options-menu) > *{
     }
 
 
-    &:hover::after{
+    &:hover::before{
         position: absolute;
         content: "";
         left: 0;

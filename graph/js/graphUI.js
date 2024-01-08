@@ -211,16 +211,8 @@ function openActionMenu(ev) {
     if (ev.target.matches("[id^='h'],[id^='h'] span")) {
         id = parseInt(ev.target.parentElement.id.slice(1));
         graphActions = true;
-    } else if (ev.target.matches("graph-tab")) {
-       
-        
-    } else if (ev.target.matches("graph-node")) {
-        id = ev.target.graphId;
-        
-    } else if (ev.target.matches("graph-edge")) {
-        
-        id = ev.target.graphId;
-    } else return;
+    } else if (ev.target.matches("graph-tab,graph-node,graph-edge")) id = ev.target.graphId;
+    else return;
     
     actionMenu.activeGraph = graphs.get(id);
     actionMenu.querySelectorAll(".category").forEach(el => el.classList.remove("hide"));

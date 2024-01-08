@@ -34,8 +34,7 @@ class PopMenu extends HTMLElement{
         this._internals = this.attachInternals();
 
         document.addEventListener("click", (ev) => {
-            this.dispatchEvent(this.closedEvent);
-            if(this.closeOnClick && this.open && !this.cnt  && !this.contains(ev.target))this.close();
+            if(!this.closeOnClick && this.open && !this.cnt  && !this.contains(ev.target))this.close();
             this.cnt = 0;
         })
     }
@@ -50,9 +49,6 @@ class PopMenu extends HTMLElement{
             }
         }
     }
-    connectedCallback() {
-        
-    }
 
     show(x=0,y=0) {
         this.open = true;
@@ -66,6 +62,7 @@ class PopMenu extends HTMLElement{
     close() {
         this.open = false;
         this._internals.states.delete("--open");
+        this.dispatchEvent(this.closedEvent);
     }
 
     toggle(x,y) {

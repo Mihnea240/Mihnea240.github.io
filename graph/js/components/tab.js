@@ -12,22 +12,22 @@ const _tab_template =/*html*/`
             background-color: transparent;
             pointer-events:none;
             user-select: none;
-            z-index: -1;
+           
         }
         .tab{
             position: absolute;
             overflow: scroll;
             width: 100%;  height:100%;
             background: inherit;
-            z-index: -1;
+            z-index: -2;
         }
         ::-webkit-scrollbar{
             background-color: inherit;
-            width: 12px;    height: 12px;
+            width: 8px;    height: 8px;
             z-index: 5;
         }
         ::-webkit-scrollbar-corner{
-
+            
         }
         ::-webkit-scrollbar-thumb{
             background-color: rgba(0, 0, 0, 0.47);
@@ -37,7 +37,7 @@ const _tab_template =/*html*/`
         number-line{
             display: var(--show-ruller);
             position: absolute; z-index:10;
-            font-size: 1rem;
+            font-size: .7rem;
             border: .1px solid white;
         }
         number-line[direction="horizontal"]{
@@ -90,7 +90,10 @@ const dragHandle = {
     tabDrag: (target, ev, delta) => {
         if (ev.buttons == 4) {
             ev.preventDefault();
-            for (let n of target.getGraph().selection.nodeSet) n.translate(delta.x, delta.y);
+            for (let n of target.getGraph().selection.nodeSet) {
+                n.translate(delta.x, delta.y);
+                n.transform.velocity.copy(appData.cursorVelocity);
+            }
             return;
         }
         if (ev.buttons == 2) {

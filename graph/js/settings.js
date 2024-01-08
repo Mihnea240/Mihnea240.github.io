@@ -4,7 +4,7 @@ const defaultGraphJSON = {
             name: "",
             main_color: "",
             secondary_color: "",
-            show_ruller: "true",
+            show_ruller: "false",
             zoom: 1,
             category: "graph",
         },
