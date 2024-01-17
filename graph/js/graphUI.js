@@ -7,40 +7,26 @@ const newGraphButton = document.querySelector(".new-graph");
 const tabArea = document.querySelector(".tab-area");
 const headerArea = document.querySelector(".header");
 const menuBar = document.querySelector(".menu-bar");
-const tab_template = elementFromHtml(`<graph-tab class="tab"></graph-tab>`);
+const tab_template = elementFromHtml(`<graph-tab></graph-tab>`);
 const header_template = elementFromHtml(`
-    <button class="graph-header selected">
-        <span class="text" spellcheck="false"></span>
-    </button>
+    <text-input spellcheck="false"></text-input>
 `);
 const inspector = document.getElementById("inspector");
 const graphDialog = document.querySelector("graph-menu");
 
 
-headerArea.addEventListener("click", (ev) => {
-    if (ev.target.classList.contains("new-graph")) {
+headerArea.addEventListener("mousedown", (ev) => {
+    if (ev.target.matches(".new-graph")) {
         ev.stopImmediatePropagation(); ev.stopPropagation();
         newGraphDialog.showModal();
         return;
     }
-    if (ev.target.classList.contains("header")) return;
-    
-    let id = ev.target.tagName == "SPAN" ? ev.target.parentElement.id : ev.target.id;
-    let newSelected = graphs.get(parseInt(id.slice(1)));
-    newSelected.focus();
-})
-
-headerArea.addEventListener("dblclick", (ev) => {
-     if (ev.target.tagName!=="SPAN") return;
-
-    ev.target.setAttribute("contenteditable", true);
-    ev.target.focus();
-})
-headerArea.addEventListener("focusout", (ev) => {
-    if (ev.target.tagName == "SPAN") {
-        let G = graphs.get(parseInt(ev.target.parentElement.id.slice(1)));
-        G.settings.graph.name = ev.target.textContent;
+    if (ev.target.matches(".header")) return;
+    if (ev.detail != 2) {
+        if(!ev.target.matches(":focus"))ev.preventDefault();
+        graphs.get(parseInt(ev.target.id.slice(1)))?.focus();
     }
+    
 })
 
 
@@ -53,10 +39,7 @@ function createTabUI(graph, settings) {
     header_template.id = "h" + graph.id;
     graph.tab=tabArea.appendChild(tab_template.cloneNode(true));
     graph.header = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
-
-    contentEdit(graph.header.querySelector(".text"), { maxSize: parseInt(defaultSettingsTemplate.graph.name.maxLength) });
     
-    graph.loadSettings(settings);
     graph.settings.graph.name ||= "Graph " + graph.id;
     graph.settings.graph.main_color ||= standardize_color(colors[colorIndex - 1]);
     graph.settings.graph.secondary_color ||= standardize_color(colors[colorIndex++]);
@@ -78,23 +61,26 @@ function initGreatMenus() {
         })
     }
 
+    greatMenus.viewMenu = elementFromHtml("<pop-menu name='view'></pop-menu>");
+    greatMenus.viewMenu.appendChild(CustomInputs.category("", defaultSettingsTemplate));
+    greatMenus.viewMenu.set = function (chain, value) { this.querySelector(".category").set(chain, value) }
 
-    menuBar.appendChild(greatMenus.viewMenu = createOptionsMenu(defaultSettingsTemplate, "view"));
+    menuBar.appendChild(greatMenus.viewMenu);
 
-    greatMenus.viewMenu.addEventListener("propertychanged", (ev) => {
-        let { category, property, originalTarget } = ev.detail;
-        let top = graphs.selected.settingsStack.top();
-        
-        if (top?.acumulate) top.newValue = originalTarget.value;
+    greatMenus.viewMenu.querySelector(".category").addEventListener("input", function (ev) {
+        let top = graphs.selected.actionsStack.top();
+        let chain = CustomInputs.getChainFromEvent(this, ev);
+
+        let value = graphs.selected.setSettings(chain, ev.target.parentElement.get());
+        if (top?.acumulate) top.newValue = ev.target.parentElement.get();
         else {
-            let c = graphs.selected.settingsStack.push(new SettingsChangedCommand(category, property, graphs.selected.settings[category][property]));
+            let c = graphs.selected.actionsStack.push(new SettingsChangedCommand(chain, value));
             c.acumulate = true;
         }
-        graphs.selected.settings[category][property] = originalTarget.value;
-    });
+    })
 
-    greatMenus.viewMenu.addEventListener("change", (ev) => {
-        let top = graphs.selected.settingsStack.top();
+    greatMenus.viewMenu.querySelector(".category").addEventListener("change", function (ev) {
+        let top = graphs.selected.actionsStack.top();
         if(top)top.acumulate = false;
     })
     
@@ -197,7 +183,7 @@ const actionMenuTemplate = {
         }
     }
 }
-const actionMenu = document.body.appendChild(createOptionsMenu(actionMenuTemplate, "actions", false));
+/*const actionMenu = document.body.appendChild(createOptionsMenu(actionMenuTemplate, "actions", false));
 document.addEventListener("mouseup", (ev) => {
     openActionMenu(ev);
 })
@@ -225,4 +211,4 @@ function openActionMenu(ev) {
     actionMenu.validate();
     
     document.body.click();
-}
+}*/

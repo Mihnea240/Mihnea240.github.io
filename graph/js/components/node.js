@@ -52,12 +52,13 @@ class NodeUI extends HTMLElement{
         this.props = props;
         
         let ids = this.id.split(' ');
-        this.props.id = this.nodeId = parseInt(ids[1]);
-        this.props.graphId = this.graphId = parseInt(ids[0].slice(1));
+        this.props.details.id = parseInt(ids[1]);
+        this.props.details.graphId = parseInt(ids[0].slice(1));
 
         this.viewMode = this.props.states.viewMode;
     }
-
+    get nodeId() { return this.props.details.id }
+    get graphId() { return this.props.details.graphId }
     get transform() { return this.props.physics.transform }
     
     set selected(flag) { this.main.classList.toggle("selected", this.props.states.selected = flag) }
@@ -124,8 +125,11 @@ customElements.define("graph-node", NodeUI);
 
 class NodeProps{
     constructor(obj) {
-        this.id=0,
-        this.graphId = 0,
+        this.details = {
+            id: 0,
+            graphId: 0,
+            template: "default",
+        }
             
         this.physics = {
             mass: 1,
@@ -155,12 +159,23 @@ const nodeTemplates = {
             "view mode": {
                 type: "select",
                 options: ["id"],
+            },
+            id: {
+                type: "number",
+                readonly: true, 
+            },
+            template: {
+                type: "text",
+                readonly: true,
+                description: "Something"
             }
+
         },
         physics: {
             mass: {
                 value: 1,
                 type: "number",
+                max: "9999999"
             },
             position: {
                 type: "point",
@@ -172,7 +187,7 @@ const nodeTemplates = {
             },
             acceleration: {
                 type: "point",
-                max: "2",
+                max: "20",
             }
         }
     }

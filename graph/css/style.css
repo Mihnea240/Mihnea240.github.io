@@ -11,10 +11,11 @@ html,body{
         'header-bar header-bar' 
         'tab-area inspector';
     grid-template-rows: 5% 4% 91%;
-    grid-template-columns: auto max-content;
+    grid-template-columns: auto min-content;
     
     background:var(--background);
     color: var(--color);
+    font-weight: lighter;
     overflow: hidden;
 }
 :root{
@@ -23,12 +24,8 @@ html,body{
     --menu-background: #2c2c2c;
     --ui-select: rgba(52, 178, 245, 0.544);
     --ui-select2: rgba(1, 81, 123, 0.722);
-    /* --clr1: #111111;
-    --clr2: #242426;
-    --clr3: #3A3B3C;
-    --background: var(--clr2);
-    --tab-background: var(--clr1);
-    --menu-background: var(--clr3); */
+    --input-shadow-color: rgba(0, 0, 0, 0.619);
+    --input-background: #1D1C1C;
     --color: white;
     
 }
@@ -36,24 +33,30 @@ html,body{
     color: inherit;
     user-select: none;
     box-sizing: border-box;
+    font: inherit;
 }
 ::-webkit-scrollbar{
     background-color: inherit;
     width: 8px;    height: 8px;
 }
 ::-webkit-scrollbar-thumb{
-    background-color: rgba(0, 0, 0, 0.47);
+    background-color: var(--input-shadow-color);
     border-radius: .2em;
 }
 ::-webkit-scrollbar-corner{
     display: none;
 }
-input:not([type="range"], [type="checkbox"]){
+input,textarea,select,text-input{
     border: none;   outline: none;
     padding: 0; margin: 0;
-    box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.619) inset;
-    padding: .1rem;
-    background-color: #1D1C1C;
+    padding: .1rem; 
+    box-shadow: 0 0 3px 1px var(--input-shadow-color) inset;
+    background-color: var(--input-background);
+}
+button{
+    border: none;   outline: none;
+    padding: 0; margin: 0;
+    padding: .1rem; 
 }
 input[type=color] { 
 	background-color: transparent;
@@ -61,7 +64,7 @@ input[type=color] {
     box-shadow: none;
 	&::-webkit-color-swatch {
         outline: none;
-        box-shadow: 2px 1px 4px 1pxs var(--background);
+        box-shadow: 2px 1px 4px 1pxs var(--input-shadow-color);
         border: none;
 	}
 	&::-webkit-color-swatch-wrapper {
@@ -75,10 +78,10 @@ input[type="range"]{
     background: transparent;
     cursor: pointer;
     height: 2px;
-    background-color: black;
+    background-color: var(--input-background);
     &::-webkit-slider-thumb{
         -webkit-appearance: none;
-        background-color: #1D1C1C;
+        background-color: var(--input-background);
         width: .4rem;
         height: .8rem;
     }
@@ -92,30 +95,18 @@ input[type="range"]{
 input[type="file"]{
     display: none;
 }
-button{
-    padding: 0;
-    border: none;
-    background: inherit;
-}
+
 input[type=text] {
 	appearance: none;
     &:focus{
         background-color: var(--ui-select);
     }
 }
-select, select:focus{
-    color: inherit;
-    outline: none;
-    background-color: transparent;
+input[type="checkbox"]{
+    accent-color:  var(--input-background);
 }
 option, option:focus{
-    background-color:  var(--menu-background);
-}
-textarea,select{
-    border: none;   outline: none;
-    margin: 0;
-    box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.619) inset;
-    background-color: #1D1C1C;
+    background-color:  var(--input-background);
 }
 
 
@@ -131,7 +122,6 @@ graph-tab{
     --node-border-style: solid;
     --node-border-color: white;
     --node-border-radius: 100%;
-    font-size: 20px;
     --node-width: 38px;
     --node-height: var(--node-width);
     --node-background: #242424;
@@ -176,18 +166,25 @@ graph-tab{
     border-bottom: 3px solid;
     overflow: hidden;
 
-    .graph-header{
-        height: 100%;
+    & text-input{
+        height: 80%;
         border-radius: 5px 5px 0 0;
-        margin: 0 .1vw; padding: 0 .5rem;
+        margin: 0 .1vw; padding: .4rem;
+        display: grid;
+        place-content: center center;
+
         text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
         min-width: 1%;
         text-wrap: nowrap;
-        z-index: 2;
+        color: rgb(from var(--color) r g b /0.8);
 
-        .selected{
-             height: 100%;
-             font-weight: bolder;
+        &.selected{
+            height: 100%;
+            font-weight: bolder;
+            color: var(--color);
+        }
+        &:focus{
+            background-color: var(--ui-select2);
         }
 
         &:hover{
@@ -213,13 +210,12 @@ graph-tab{
     background-color: transparent;
     z-index: 1;
     overflow: hidden;
-}
 
-.tab{
-    padding: 0;
-    width: 100%;    height: 100%;
-   
-    background: var(--tab-background);
+    & > *{
+        padding: 0;
+        width: 100%;    height: 100%;
+        background: var(--tab-background);
+    }
 }
 
 span[contenteditable="true"]{
@@ -238,47 +234,32 @@ pop-menu{
     z-index: 300;
     height: max-content;
 }
-pop-menu:not(.options-menu) > *{ 
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 1rem;
-    
-    &:hover{
-        background-color: var(--ui-select2);
-    }
-}
 
-.options-menu .category{
+.category{
     width: 100%;
     display: flex;
     flex-direction: column;
     text-transform: capitalize;
+    border-top: 1px solid rgba(255, 255, 255, 0.425);
     
-    & > div{
-        border-top: 1px solid rgba(255, 255, 255, 0.425);
-        font-size: 1rem;
-        padding: .5rem;
-        margin: 0;
-        font-weight: 900;
+    & > div:first-child{
+        padding-left: .5rem;
+        font-weight: bolder;
     }
-    & > *{
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    > [name]:not(.category) {
         padding: .3rem 1.5rem;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         
-        &:not(:first-child):hover{
+        &:hover{
             background-color: var(--ui-select2);
         }
     }
-    &:has( :first-child input:checked ) >:not(:first-child){
-        height: 0;
-        padding: 0;
-        margin: 0;
-        
+
+    &:has( >:first-child :not(input:checked) ) >:not(:first-child){
+        height: 0; padding: 0; margin: 0;
+        display: none;
     }
 }
 
@@ -379,21 +360,39 @@ pop-menu:not(.options-menu) > *{
 #inspector{
     position: relative;
     display: flex;
+    flex-direction:column;
     grid-area: inspector;
     z-index: 10;
-    min-width: 100px;
+    min-width: 20%;
 
     background-color: rgb(from var(--background) r g b /0.9);   
     box-shadow: 0 0 10px 1px black;
     border-left: 1px solid gray;
     padding: .2rem;
-    
 
+    --input-background: var(--menu-background);
+
+    &> :first-child{
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: none;
+        font-weight: 900;
+        border-bottom: 1px solid white;
+    }
+
+    & .tabs{
+        flex: 1 0 auto;
+
+        &> *{
+            width: 100%; height: 100%;
+        }
+    }
 
     & pop-menu{
         position: relative;
-        font-size: small;
+        background-color: transparent;
         width: 100%;
+        
     }
 
 

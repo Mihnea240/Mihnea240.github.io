@@ -96,6 +96,7 @@ const dragHandle = {
             }
             return;
         }
+        //collision detection with selection square
         if (ev.buttons == 2) {
             let { x, y } = target.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
             let p = target.selectionRect.pos.clone();
@@ -126,7 +127,8 @@ const dragHandle = {
         target.canvasSize(rect.width - delta.x, rect.height - delta.y);
         target.tab.scrollBy(-delta.x, -delta.y);
     },
-    tabDragEnd(target,ev) {
+    tabDragEnd(target, ev) {
+        //clear selection square
         if (ev.button == 2) {
             if (storage.visibleItems) {
                 ev.stopPropagation(); 
@@ -154,6 +156,7 @@ const dragHandle = {
             } 
             default: return;
         }
+        
         target.active = true;
     },
     nodeDragEnd: (originalNode, ev) => {
@@ -163,16 +166,17 @@ const dragHandle = {
             
             let graph = graphs.get(originalNode.graphId)
 
-            if (ev.target.tagName == "GRAPH-NODE") {
-                graph.addEdge(originalNode.nodeId, ev.target.nodeId);
-            } else {
+            if (ev.target.tagName == "GRAPH-NODE") graph.addEdge(originalNode.nodeId, ev.target.nodeId);
+            else {
                 graph.actionsStack.startGroup();
+
                 let newNode = graph.addNode();
                 storage.point.set(ev.clientX, ev.clientY);
                 originalNode.parentElement.screenToWorld(storage.point);
                 
                 newNode.position(storage.point.x, storage.point.y);
                 graph.addEdge(originalNode.nodeId, newNode.nodeId);
+
                 graph.actionsStack.endGroup();
             }
         } else if (ev.button == 2) {
@@ -289,13 +293,16 @@ class Tab extends HTMLElement {
 
         
         this.addEventListener("click", (ev) => {
-            if (ev.target.tagName !== "GRAPH-NODE" && ev.target.tagName !== "GRAPH-EDGE") {
+            if (ev.target.matches("graph-tab")) {
                 let selection = graphs.get(this.graphId).selection;
                 if (!selection.empty()) selection.clear();
-            }
-            if (ev.target.tagName !== "GRAPH-EDGE"&&ev.target.tagName!=="GRAPH-NODE" && this.curvesArray.size) {
-                for (let c of this.curvesArray) c.selected=false
-                this.curvesArray.clear();
+
+                if (this.curvesArray.size) {
+                    for (let c of this.curvesArray) c.selected = false
+                    this.curvesArray.clear();
+                }
+            } else if(ev.detail==2){
+                inspector.observe(ev.target);
             }
         })
 

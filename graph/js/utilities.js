@@ -43,29 +43,11 @@ function toggleFullScreen() {
     else document.exitFullscreen();
 }
 
-function contentEdit(el, { maxSize = 0, minSize = 0, empty = "", pattern = new RegExp() }) {
-    el.addEventListener("keydown", (ev) => {
-        let len = el.textContent.length, add = 0, remove = 0;
-        switch (ev.key) {
-            case "Enter": {
-                el.blur();
-                ev.preventDefault();
-                if (len - remove == 0) el.textContent = empty;
-                return;
-            }
-            case "ArrowLeft": case "ArrowRight": return;
-            case "Delete": case "Backspace": remove = 1; break;
-            default: add = 1;
-        }
-
-
-        if (len + add > maxSize || len - remove < minSize) ev.preventDefault();
-    })
-    el.oninput = (ev) => el.textContent = el.textContent.replace(pattern, "");
-    el.addEventListener("blur", (ev) => {
-        el.setAttribute("contenteditable", false);
-    })
-    return el;
+function showDialog(dialog,{x,y}) {
+    dialog.style.cssText += `
+        left: ${x}px;
+        top: ${y}px;
+    `
 }
 
 Math.rad2Deg = 57.2957795;

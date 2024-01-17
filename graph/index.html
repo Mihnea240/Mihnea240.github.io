@@ -14,9 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
 
     <script defer src="js/utilities.js"></script>
-    <script defer src="js/components/tab.js"></script>
+    <script defer src="js/components/customInputs.js"></script>
+    <script defer src="js/components/optionsMenu.js"></script>
     <script defer src="js/components/axis.js"></script>
     <script defer src="js/components/node.js"></script>
+    <script defer src="js/components/tab.js"></script>
     <script defer src="js/components/edge.js"></script>
     <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/commandPattern.js"></script>
@@ -66,7 +68,20 @@
 
     <div class="tab-area" draggable="false"></div>
     <graph-inspector id="inspector">
-        <h3 class="graph-header">Inspecting    <span>Placeholder</span></h3>
+        <div>
+            <span>Placeholder</span>
+            <select>
+                <option value="graph">Graph View</option>
+                <option value="node" >Node View</option>
+                <option value="edge" >Edge View</option>
+            </select>
+        </div>
+        <div class="tabs">
+            <div class="hide" name="graph">1 <text-input inputmode="decimal" min="12" maxLength="12">12321</text-input></div>
+            <div class="hide" name="node">2</div>
+            <div class="hide" name="edge">3</div>
+        </div>
+        
     </graph-inspector>
     
     

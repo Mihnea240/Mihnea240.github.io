@@ -13,9 +13,8 @@ class Graph {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
-        this.settings = createGraphSettings(this);
+        this.settings = JSON.parse(JSON.stringify(settings));
         this.actionsStack = new CommandStack(this);
-        this.settingsStack =  new CommandStack(this);
         this.edgeCount = 0;
 
         createTabUI(this, settings);
@@ -25,11 +24,18 @@ class Graph {
         this.nodes = new Map();
         this.a_nodeId = 1;
     }
-    loadSettings(settings) {
-        for (let category in settings) {
-            let items = settings[category];
-            for (let i in items) if (i !== "category") this.settings[category][i] = items[i];
+    setSettings(chain, value) {
+        if (this === graphs.selected) greatMenus.viewMenu.set(chain, value);
+
+        let nodes = chain.split("."), n = nodes.length;
+        let target = this.settings;
+        for (let i = n; i >= 1; i--) {
+            if (!nodes[i]) continue;
+            target = target[nodes[i]];
+            if (!target) return;
         }
+        target[nodes[0]] = value;
+        return value; 
     }
 
     unfocus() {
@@ -43,17 +49,11 @@ class Graph {
         graphs.selected = this;
 
         this.header.classList.add("selected");
-        defaultSettingsTemplate.graph.main_color.update(this);
+        //defaultSettingsTemplate.graph.main_color.update(this);
         this.tab.classList.remove("hide");
         this.tab.focus();
 
-        for (let category in this.settings) {
-            let items = this.settings[category];
-
-            for (let prop in items) {
-                if (prop !== "category") greatMenus.viewMenu.set(category, prop, items[prop]);
-            }
-        }
+        console.log(greatMenus.viewMenu.querySelector(".category").load(this.settings));
     }
     addNode(newId, addToStack=true) {
         if (newId === undefined) {
