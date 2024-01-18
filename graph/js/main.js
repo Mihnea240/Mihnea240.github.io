@@ -14,9 +14,6 @@ window.onbeforeunload = () => {
     sessionStorage.setItem("stored-graphs", JSON.stringify(array));
 }
 
-/** @type {Map<string , Graph>}*/
-const graphs = new Map();
-
 const physicsMode = new PhysicsMode();
 const appData = {
     cursorPos: new Point(),
@@ -30,14 +27,14 @@ function createGraph(obj=defaultGraphJSON) {
     if (!newGraph) alert("Format invalid");
     else  newGraph.focus();
 }
-function g(id){return graphs.get(id)}
+function g(id){return Graph.get(id)}
 
 function savePotrocol() {
     let window = menuBar.querySelector("dialog");
     let gList = window.querySelector("div.list");
     gList.innerHTML = "";
-    for (let [i,_] of graphs) {
-        gList.appendChild(elementFromHtml(`<label><input data-id=${i} checked type="checkbox">${graphs.get(i).settings.graph.name}</label>`));
+    for (let [i,_] of Graph) {
+        gList.appendChild(elementFromHtml(`<label><input data-id=${i} checked type="checkbox">${Graph.get(i).settings.graph.name}</label>`));
     }
     document.body.click();
     window.showModal();
@@ -46,7 +43,7 @@ function savePotrocol() {
         let a = document.createElement("a"), array=[];
         document.body.appendChild(a);
 
-        window.querySelectorAll(".list input:checked").forEach(el => array.push(graphs.get(parseInt(el.getAttribute("data-id"))).dataTemplate()))
+        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graphget(parseInt(el.getAttribute("data-id"))).dataTemplate()))
 
         try {
             const blobURL = URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
@@ -93,12 +90,12 @@ const ACTIONS = {
     blur(ev){ if(!ev.target.matches("textarea")) document.activeElement.blur() },
     closeModal(ev){ graphDialog.close()},
     deleteSelection(ev){
-        if(!ev.ctrlKey)graphs.selected.selection.deleteNodes();
-        graphs.selected.selection.deleteEdges();
+        if(!ev.ctrlKey)Graph.selected.selection.deleteNodes();
+        Graph.selected.selection.deleteEdges();
     },
     selectionMove(ev){
         /**@type {Graph} */
-        let G = graphs.selected;
+        let G = Graph.selected;
         let selection = G.selection;
         if (selection.empty()) return;
         let nodes = Array.from(selection.nodeSet);
@@ -152,10 +149,10 @@ const ACTIONS = {
     },
     copy(ev){
         if (ev.repeat || document.activeElement!=document.body || !ev.ctrlKey) return;
-        let data = JSON.stringify(graphs.selected.dataTemplate());
+        let data = JSON.stringify(Graph.selected.dataTemplate());
         navigator.clipboard.writeText(data).then(
             (resolve) => {
-                alert(`Moved copy of "${graphs.selected.settings.graph.name}" to clipboard \n`);
+                alert(`Moved copy of "${Graph.selected.settings.graph.name}" to clipboard \n`);
             },
             (error) => console.log(error)
         )
@@ -166,31 +163,31 @@ const ACTIONS = {
         createGraph(JSON.parse(data));
     },
     addNode() {
-        let newNode = graphs.selected.addNode();
+        let newNode = Graph.selected.addNode();
         let np = newNode.parentElement.screenToWorld(appData.cursorPos.clone());
         newNode.position(np.x, np.y);
     },
     selectAll(ev) {
         if (ev.ctrlKey) {
-            let g = graphs.selected;
+            let g = Graph.selected;
             for (let el of g.tab.children) g.selection.toggle(el);
         }
     },
     undo(ev) {
         if (!ev.ctrlKey) return;
-        if (greatMenus.viewMenu.open) graphs.selected.settingsStack.undo();
-        else graphs.selected.actionsStack.undo();
+        if (greatMenus.viewMenu.open) Graph.selected.settingsStack.undo();
+        else Graph.selected.actionsStack.undo();
     },
     redo(ev) {
         if (!ev.ctrlKey) return;
-        if (greatMenus.viewMenu.open) graphs.selected.settingsStack.redo();
-        else graphs.selected.actionsStack.redo();
+        if (greatMenus.viewMenu.open) Graph.selected.settingsStack.redo();
+        else Graph.selected.actionsStack.redo();
     },
     togglePhysicsSimulation() {
         if (physicsMode.isRunning()) return physicsMode.stop();
 
         /**@type {Graph}*/
-        let g = graphs.selected;
+        let g = Graph.selected;
         let list = g.tab.getNodeArray();
         let rect = g.tab.viewRect;
         

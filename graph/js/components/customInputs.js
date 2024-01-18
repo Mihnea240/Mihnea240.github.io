@@ -80,3 +80,116 @@ class TextInput extends HTMLElement{
 }
 
 customElements.define("text-input", TextInput);
+
+
+
+class CustomInputs{
+
+    static initTemplate(name,template,input) {
+        let display = template._display || name.replace("_"," ") || "";
+        let rez = elementFromHtml(`<div name="${name}"><span>${display}</span></div>`);
+
+        for (let key in template || []) {
+            if (key[0]=="_") continue;
+            input.setAttribute(key, template[key]);
+        }
+        rez._condition = template._condition;
+        rez.appendChild(input);
+
+        rez.set = function (value) { this.children[1].value = value}
+        rez.get = function () { return this.children[1].value }
+        rez.validate = function () { this.classList.toggle("hide", this.condition?.()) }
+
+        return rez;
+    }
+
+    static number(name,template) {
+        return CustomInputs.initTemplate(name,template,elementFromHtml("<text-input inputmode='numeric'></text-input>"));
+    }
+    static text(name,template) {
+        return CustomInputs.initTemplate(name,template,elementFromHtml("<text-input></text-input>"));
+    }
+    static color(name,template) {
+        return CustomInputs.initTemplate(name,template, elementFromHtml("<input type='color'></input>"));
+    }
+    static range(name, template) {
+        let el = elementFromHtml("<input type='range'></input>");
+        el.addEventListener("input", function (ev) { this.setAttribute("value",this.value) });
+
+        let rez = CustomInputs.initTemplate(name, template, el);
+        rez.set = function (value) {
+            let input = this.querySelector("input");
+            input.setAttribute("value", input.value = value);
+        }
+        return rez;
+    }
+    static checkbox(name, template) {
+        let el = CustomInputs.initTemplate(name, template, elementFromHtml("<input type='checkbox'> </input>"));
+        el.get = function () { return this.querySelector("input").checked }
+        el.set = function (value) {
+            let el = this.querySelector("input");
+            el.setAttribute("value", value);
+            el.checked = value;
+        }
+        return el;
+    }
+    static select(name, template) {
+        let el = elementFromHtml("<select></select>");
+        for (let opt of template.options) {
+            el.appendChild(elementFromHtml(`<option>${opt}</option>`))
+        }
+        return CustomInputs.initTemplate(name, template, el);
+    }
+    static button(name,template) {
+        return CustomInputs.initTemplate(name,template, elementFromHtml("<button></button>"));
+    }
+
+    static category(name, {display="", categoryCollapse = true, ...rest }) {
+        display ||= name;
+        
+        let element = elementFromHtml(`<div class="category" name="${name}"><div>${display} ${categoryCollapse ? `<input type="checkbox" checked>` : ''}</div></div>`);
+        for (let i in rest) {
+            if (typeof rest[i] !== 'object') continue;
+            let type = rest[i].type || "category";
+            element.appendChild(CustomInputs[type]?.(i, rest[i]));
+        }
+        
+        element.set = function (chain, value) {
+            this.get(chain, true)?.set?.(value);
+        }
+        element.get = function (chain,leaf=false) {
+            if (!chain) return this;
+            let target = this, n = chain.length;
+            while (n > 0 && (target = target.querySelector(`[name=${chain[--n]}]`)));
+            return leaf ? target : target?.get();
+        }
+        element.load = function (object) {
+            for (let key in object) {
+                let el = this.get([key], true);
+                if (!el) continue;
+                if (el.matches(".category")) el.load(object[key]);
+                else el.set(object[key]);
+            }
+        }
+        element.validate = function () {
+            this.classList.toggle("hide", this.condition?.());
+            for (let el of this.children) el.validate?.();
+        }
+        return element;
+    }
+
+    static getChainFromEvent(root,ev) {
+        let value = [],name;
+        for (let t of ev.composedPath()) {
+            name = t.getAttribute("name");
+            if (name) value.push(name);
+            if (t == root) return value;
+        }
+    }
+
+    static getFromChain(object,chain, offsetBack=0) {
+        let target = object, n = chain.length;
+        while (n > offsetBack && (target = target[chain[--n]]));
+        return target;
+    }
+}

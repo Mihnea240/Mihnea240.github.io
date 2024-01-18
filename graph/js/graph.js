@@ -4,6 +4,11 @@ const UNORDERED = 0;
 class Graph {
     
     static id = 0;
+    static graphMap = new Map();
+    /**@type {Graph} */
+    static selected;
+    static get(id) { return this.graphMap.get(id); }
+
     constructor(type, settings = defaultGraphJSON.settings) {
         /**@type {Tab}*/
         this.tab;
@@ -17,24 +22,35 @@ class Graph {
         this.actionsStack = new CommandStack(this);
         this.edgeCount = 0;
 
-        createTabUI(this, settings);
-        graphs.set(this.id, this);
+        createTabUI(this);
+        Graph.graphMap.set(this.id, this);
 
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
+        this.loadSettings();
     }
-    setSettings(chain, value) {
-        if (this === graphs.selected) greatMenus.viewMenu.set(chain, value);
-
-        let nodes = chain.split("."), n = nodes.length;
-        let target = this.settings;
-        for (let i = n; i >= 1; i--) {
-            if (!nodes[i]) continue;
-            target = target[nodes[i]];
-            if (!target) return;
+    loadSettings() {
+        
+        for (let c in this.settings) {
+            let chain = ["",c], props = this.settings[c];
+            for (let i in props) {
+                chain[0] = i;
+                this.setSettings(chain, props[i]);
+            }
         }
-        target[nodes[0]] = value;
+    }
+
+    setSettings(chain, value) {
+        if (this === Graph.selected) greatMenus.viewMenu.set(chain, value);
+        CustomInputs.getFromChain(this.settings, chain, 1)[chain[0]] = value;
+
+        let template = CustomInputs.getFromChain(defaultSettingsTemplate, chain);
+       
+        if (template) {
+            template._update?.(this);
+            if (template._property) this.tab.style.setProperty(template._property, value + (template._unit || ""));
+        }
         return value; 
     }
 
@@ -44,16 +60,16 @@ class Graph {
         if (physicsMode.isRunning()) physicsMode.stop();
     }
     focus() {
-        if (graphs.selected === this) return;
-        graphs.selected?.unfocus();
-        graphs.selected = this;
+        if (Graph.selected === this) return;
+        Graph.selected?.unfocus();
+        Graph.selected = this;
 
         this.header.classList.add("selected");
-        //defaultSettingsTemplate.graph.main_color.update(this);
+        defaultSettingsTemplate.graph.main_color._update(this);
         this.tab.classList.remove("hide");
         this.tab.focus();
 
-        console.log(greatMenus.viewMenu.querySelector(".category").load(this.settings));
+        greatMenus.viewMenu.querySelector(".category").load(this.settings);
     }
     addNode(newId, addToStack=true) {
         if (newId === undefined) {

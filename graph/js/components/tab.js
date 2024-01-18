@@ -164,7 +164,7 @@ const dragHandle = {
             originalNode.new_node_protocol = false;
             originalNode.parentElement.curve.classList.add("hide");
             
-            let graph = graphs.get(originalNode.graphId)
+            let graph = Graph.get(originalNode.graphId)
 
             if (ev.target.tagName == "GRAPH-NODE") graph.addEdge(originalNode.nodeId, ev.target.nodeId);
             else {
@@ -180,7 +180,7 @@ const dragHandle = {
                 graph.actionsStack.endGroup();
             }
         } else if (ev.button == 2) {
-            graphs.get(ev.target.graphId).selection.toggle(ev.target);
+            Graph.get(ev.target.graphId).selection.toggle(ev.target);
         }
         originalNode.transform.velocity.copy(appData.cursorVelocity);
         originalNode.active = false;
@@ -205,7 +205,7 @@ const dragHandle = {
         if (storage.fromNode?.new_node_protocol) {
             storage.fromNode.new_node_protocol = false;
 
-            let graph = graphs.get(originalEdge.graphId);
+            let graph = Graph.get(originalEdge.graphId);
             originalEdge.parentElement.curve.classList.add("hide");
 
             if (ev.target.tagName == "GRAPH-NODE") {
@@ -228,7 +228,7 @@ const dragHandle = {
             storage.fromNode = undefined;
         } else if (ev.button == 2) {
             ev.stopPropagation();
-            graphs.get(ev.target.graphId).selection.toggle(ev.target);
+            Graph.get(ev.target.graphId).selection.toggle(ev.target);
         } else if (ev.button == 0) {
             if (!ev.composedPath()[0].classList.contains("point"))
             originalEdge.curve.selected = !originalEdge.curve.selected;
@@ -294,7 +294,7 @@ class Tab extends HTMLElement {
         
         this.addEventListener("click", (ev) => {
             if (ev.target.matches("graph-tab")) {
-                let selection = graphs.get(this.graphId).selection;
+                let selection = Graph.get(this.graphId).selection;
                 if (!selection.empty()) selection.clear();
 
                 if (this.curvesArray.size) {
@@ -440,7 +440,7 @@ class Tab extends HTMLElement {
     }
     /**@returns {Graph} */
     getGraph() {
-        return graphs.get(this.graphId);
+        return Graph.get(this.graphId);
     }
 
     /**@param {Point} point*/
