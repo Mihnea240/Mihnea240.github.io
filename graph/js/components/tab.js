@@ -138,6 +138,9 @@ const dragHandle = {
 
                 storage.visibleItems = undefined;
                 target.selectionRect.style.display = "none";
+            }else {
+                ev.stopPropagation();
+                openActionMenu(ev,target.getGraph());
             }
         }
     },

@@ -101,5 +101,5 @@ function openActionMenu(ev,graph) {
     if (greatMenus.actionMenu.open) return greatMenus.actionMenu.close();
     
     greatMenus.actionMenu.show(ev.clientX+5, ev.clientY+5);
-    greatMenus.actionMenu.querySelector(".category").validate();
+    greatMenus.actionMenu.querySelector(".category").validate(ev);
 }

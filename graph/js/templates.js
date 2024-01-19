@@ -160,39 +160,40 @@ const defaultSettingsTemplate = {
 const actionMenuTemplate = {
     categoryCollapse: false,
     "Graph actions": {
+        _condition(ev){return ev.target.matches(".graph-header")},
         rename: {
             type: "button",
             title: "Double click header",
             onclick(ev) {
-                actionMenu.activeGraph?.header.querySelector("text-input").focus();
+                Graph.selected?.header.querySelector("text-input").focus();
                 actionMenu.close();
             }
         },
         delete: {
             type: "button",
-            onclick(ev) { actionMenu.activeGraph?.delete(); actionMenu.close(); }
+            onclick(ev) { Graph.selected?.delete(); actionMenu.close(); }
         },
         copy: {
             type: "button",
-            onclick(ev) { createGraph(actionMenu.activeGraph.dataTemplate()); actionMenu.close(); }
+            onclick(ev) { createGraph(Graph.selected.dataTemplate()); actionMenu.close(); }
         }
     },
     "Node actions": {
         delete: {
             type: "button",
-            onclick(ev) { actionMenu.activeGraph.selection.deleteNodes(); actionMenu.close() },
-            condition() { return actionMenu.activeGraph.selection.nodeSet.size > 0; },
+            onclick(ev) { Graph.selected.selection.deleteNodes(); actionMenu.close() },
+            _condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
         add: {
             type: "button",
-            onclick() { actionMenu.activeGraph.addNode() },
+            onclick() { Graph.selected.addNode() },
             title: "Ads a new node. Press + to add a node to cursor position"
         },
         disconnect: {
             type: "button",
             onclick() {
-                let g = actionMenu.activeGraph;
+                let g = Graph.selected;
                 g.actionsStack.startGroup();
                 for (let n of g.selection.nodeSet) {
                     for (let adjacent of g.adjacentNodes(n.nodeId)) {
@@ -203,13 +204,13 @@ const actionMenuTemplate = {
                 g.actionsStack.endGroup();
                 actionMenu.close();
             },
-            condition() { return actionMenu.activeGraph.selection.nodeSet.size > 0; },
+            _condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all edges connected to the selected nodes"
         },
         complete: {
             type: "button",
             onclick(ev) {
-                let g = actionMenu.activeGraph;
+                let g = Graph.selected;
                 let array = Array.from(g.selection.nodeSet).map(el => el.nodeId);
                 g.actionsStack.startGroup();
                 for (let i of array) {
@@ -229,7 +230,7 @@ const actionMenuTemplate = {
                 g.actionsStack.endGroup();
                 actionMenu.close();
             },
-            condition() { return actionMenu.activeGraph.selection.nodeSet.size > 1; },
+            _condition() { return Graph.selected.selection.nodeSet.size > 1; },
             title: "Ads all posible edges between the selected nodes \n If the graph is ordered by holding (ctrl) the direction of the edge will be randomised",
         }
 
@@ -237,14 +238,13 @@ const actionMenuTemplate = {
     "Edge actions": {
         delete: {
             type: "button",
-            onclick() { actionMenu.activeGraph.selection.deleteEdges(); actionMenu.close() },
-            condition() { return actionMenu.activeGraph.selection.edgeSet.size > 0; },
+            onclick() { Graph.selected.selection.deleteEdges(); actionMenu.close() },
+            _condition() { return Graph.selected.selection.edgeSet.size > 0; },
             title: "Delets all selected edges"
         },
         add: {
             type: "button",
             onclick(ev) {
-        
                 actionMenu.close();
             }
         }

@@ -85,9 +85,9 @@ customElements.define("text-input", TextInput);
 
 class CustomInputs{
 
-    static initTemplate(name,template,input) {
+    static initTemplate(name,template,input,tag="div") {
         let display = template._display || name.replace("_"," ") || "";
-        let rez = elementFromHtml(`<div name="${name}"><span>${display}</span></div>`);
+        let rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
 
         for (let key in template || []) {
             if (key[0]=="_") continue;
@@ -98,7 +98,7 @@ class CustomInputs{
 
         rez.set = function (value) { this.children[1].value = value}
         rez.get = function () { return this.children[1].value }
-        rez.validate = function () { this.classList.toggle("hide", this.condition?.()) }
+        rez.validate = function () { this.classList.toggle("hide", this._condition?.()) }
 
         return rez;
     }
@@ -141,10 +141,13 @@ class CustomInputs{
         return CustomInputs.initTemplate(name, template, el);
     }
     static button(name,template) {
-        return CustomInputs.initTemplate(name,template, elementFromHtml("<button></button>"));
+        return CustomInputs.initTemplate(name,template, 
+            elementFromHtml("<button style='display: none'></button>"),
+            "label"
+        );
     }
 
-    static category(name, {display="", categoryCollapse = true, ...rest }) {
+    static category(name, {display="", categoryCollapse = true,_condition, ...rest }) {
         display ||= name;
         
         let element = elementFromHtml(`<div class="category" name="${name}"><div>${display} ${categoryCollapse ? `<input type="checkbox" checked>` : ''}</div></div>`);
@@ -153,6 +156,7 @@ class CustomInputs{
             let type = rest[i].type || "category";
             element.appendChild(CustomInputs[type]?.(i, rest[i]));
         }
+        element._condition=_condition;
         
         element.set = function (chain, value) {
             this.get(chain, true)?.set?.(value);
@@ -171,9 +175,17 @@ class CustomInputs{
                 else el.set(object[key]);
             }
         }
-        element.validate = function () {
-            this.classList.toggle("hide", this.condition?.());
-            for (let el of this.children) el.validate?.();
+        element.validate = function (param) {
+            this.classList.remove("hide");
+            if(this._condition) this.classList.toggle("hide", this._condition(param));
+
+            let n=this.children.length;
+            for (let el of this.children) {
+                el.classList.remove("hide");
+                if(!el.validate)continue;
+                if(!el.validate(param))n--;
+            }
+            if(n==0)this.classList.add("hide");
         }
         return element;
     }
