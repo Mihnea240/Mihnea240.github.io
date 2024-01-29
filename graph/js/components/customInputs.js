@@ -133,6 +133,7 @@ class CustomInputs{
             let input = this.querySelector("input");
             input.setAttribute("value", input.value = value);
         }
+        rez.get = function () { return parseFloat(this.children[1].value); }
         return rez;
     }
     static checkbox(name, template) {

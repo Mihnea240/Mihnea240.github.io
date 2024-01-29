@@ -28,11 +28,8 @@ const defaultGraphJSON = {
         }
     },
     type: ORDERED,
-    data: {
-        nodeProps: [new NodeProps({details:{id: 1}})],
-        connections: {},
-        edgeProps: {}
-    },
+    nodeProps: [new NodeProps({ details: { id: 1 } })],
+    edgeProps: [],
 }
 
 const defaultSettingsTemplate = {
@@ -218,13 +215,13 @@ const actionMenuTemplate = {
                         if (g.type == ORDERED) {
                             if (ev.ctrlKey) {
                                 if (i<j) continue;
-                                if (Math.random() < 0.5) g.addEdge(j, i);
-                                else g.addEdge(i, j);
+                                if (Math.random() < 0.5) g.addEdge({from: j, to: i});
+                                else g.addEdge({from: i, to: j });
                                 continue;
                             }
-                            g.addEdge(j, i);
-                            g.addEdge(i, j);                           
-                        }else g.addEdge(i, j);
+                            g.addEdge({from: j, to: i });
+                            g.addEdge({ from: i, to: j });                           
+                        } else g.addEdge({from: i, to: j });
                     }
                 }
                 g.actionsStack.endGroup();

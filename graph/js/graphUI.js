@@ -79,7 +79,6 @@ function initGreatMenus() {
         let chain = CustomInputs.getChainFromEvent(this, ev);
 
         let value = g.setSettings(chain, ev.target.parentElement.get());
-        console.log(value);
 
         if (top?.acumulate) top.newValue = ev.target.parentElement.get();
         else {

@@ -172,6 +172,7 @@ const dragHandle = {
 
                 let newNode = graph.addNode();
                 storage.point.set(ev.clientX, ev.clientY);
+                console.log(storage.point);
                 originalNode.parentElement.screenToWorld(storage.point);
                 
                 newNode.position(storage.point.x, storage.point.y);
@@ -266,6 +267,7 @@ class Tab extends HTMLElement {
                     case "GRAPH-TAB": {
                         if (ev.buttons == 2) {
                             this.screenToWorld(this.selectionRect.pos.set(ev.clientX, ev.clientY));
+                            ev.stopPropagation();
                             return true;
                         }
                         break; 
@@ -295,9 +297,10 @@ class Tab extends HTMLElement {
         
         this.addEventListener("mouseup", (ev) => {
             if (ev.target.matches("graph-tab")) {
-                let selection = Graph.get(this.graphId).selection;
-                console.log(selection);
-                if (!selection.empty()) selection.clear();
+                if (ev.button !== 2) {
+                    let selection = Graph.get(this.graphId).selection;
+                    if (!selection.empty()) selection.clear();
+                }
 
                 if (this.curvesArray.size) {
                     for (let c of this.curvesArray) c.selected = false
@@ -330,9 +333,10 @@ class Tab extends HTMLElement {
 
             zoom = this.settings.graph.zoom;
             zoom += ev.deltaY < 0 ? -scale : scale;
-            if (zoom < 0.1) zoom =  scale;
+            if (zoom < 0.1) zoom = scale;
             
-            this.settings.graph.zoom = zoom;
+            //this.settings.graph.zoom = zoom;
+            this.getGraph().setSettings(["zoom","graph"], zoom);
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
             this.classList.add("hide");
@@ -397,7 +401,6 @@ class Tab extends HTMLElement {
         for (let node of neighbourSet) {
             node = Math.abs(node);
             e = G.getEdgeUI(node, nodeId);
-            console.log(e);
             if (e) callBack(e);
             e = G.getEdgeUI(nodeId, node);
             if (e) callBack(e);
@@ -418,7 +421,6 @@ class Tab extends HTMLElement {
         return newNode;
     }
     addEdge(props) {
-        console.log(props);
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
 

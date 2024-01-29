@@ -81,7 +81,7 @@ class EdgeUI extends HTMLElement {
     get toNode() { return this.props.to }
     get fromNode() { return this.props.from }
 
-    set from(point) { console.log(point); this.curve.from = point}
+    set from(point) {this.curve.from = point}
     get from() { return this.curve.from }
     
     set to(point) {this.curve.to = point}
@@ -90,8 +90,12 @@ class EdgeUI extends HTMLElement {
     set selected(flag) {
         if (flag) this.classList.add("selected");
         else this.classList.remove("selected");
+        this.props.states.selected = !!flag;
     }
-    get selected() { return this._internals.states.has("--selected"); }
+    get selected() { return this.props.states.selected; }
+
+    set active(flag) {this.props.states.active = this.curve.selected = flag}
+    get active() {return this.props.states.active}
 }
 
 customElements.define("graph-edge", EdgeUI);
@@ -338,6 +342,10 @@ class EdgeProps{
         this.p1 = new Point();
         this.p2 = new Point();
         this.custom = {};
+        this.states = {
+            selected: false,
+            active: false,
+        }
 
         if (obj) mergeDeep(this, obj);
     }

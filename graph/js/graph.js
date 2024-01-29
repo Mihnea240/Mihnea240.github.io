@@ -19,7 +19,7 @@ class Graph {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
-        this.settings = JSON.parse(JSON.stringify(settings));
+        this.settings = mergeDeep({}, settings);
         this.actionsStack = new CommandStack(this);
         this.edgeCount = 0;
 
@@ -76,7 +76,7 @@ class Graph {
         let props;
         switch (options?.constructor.name || null) {
             case "NodeProps": props = options; break;
-            case "Object": props = new NodeProps(props); break;
+            case "Object": props = new NodeProps(options); break;
             case null: {
                 props = new NodeProps();
                 while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
@@ -130,7 +130,6 @@ class Graph {
 
         props.graphId = this.id;
         
-        console.log(props);
         let x = props.from, y = props.to;
         if ((x == y) || this.isEdge(x, y)) return;
 
@@ -206,24 +205,22 @@ class Graph {
         let obj = {
             settings: this.settings,
             type: this.type,
-            data: {
-                nodeProps: [],
-                connections: {},
-                edgeProps: {}
-            }
+            nodeProps: [],
+            edgeProps: []
         };
-        this.tab.getNodeArray().forEach((el) => obj.data.nodeProps.push(el.props));
-        for (let [n,neighbours] of this.nodes) {
-            obj.data.connections[n] = Array.from(neighbours).filter((el) => el > 0);
+
+        for (const child of this.tab.children) {
+            if (child.matches("graph-node")) obj.nodeProps.push(child.props);
+            else if (child.matches("graph-edge")) obj.edgeProps.push(child.props);
         }
-        
         return obj;
     }
 
     static parse(obj = defaultGraphJSON) {
         let newG = new Graph(obj.type, obj.settings);
 
-        obj.data.nodeProps.forEach((el) => { newG.addNode(new NodeProps(el)); });
+        for (let node of obj.nodeProps) newG.addNode(node);
+        for (let edge of obj.edgeProps) newG.addEdge(edge);
 
         return newG;
     }

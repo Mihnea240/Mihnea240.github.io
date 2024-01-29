@@ -35,7 +35,7 @@ function savePotrocol() {
     let window = menuBar.querySelector("dialog");
     let gList = window.querySelector("div.list");
     gList.innerHTML = "";
-    for (let [i,_] of Graph) {
+    for (let [i,_] of Graph.graphMap) {
         gList.appendChild(elementFromHtml(`<label><input data-id=${i} checked type="checkbox">${Graph.get(i).settings.graph.name}</label>`));
     }
     document.body.click();
@@ -45,7 +45,7 @@ function savePotrocol() {
         let a = document.createElement("a"), array=[];
         document.body.appendChild(a);
 
-        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graphget(parseInt(el.getAttribute("data-id"))).dataTemplate()))
+        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).dataTemplate()))
 
         try {
             const blobURL = URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
@@ -178,7 +178,8 @@ const ACTIONS = {
     undo(ev) {
         if (!ev.ctrlKey) return;
         if (greatMenus.viewMenu.open) Graph.selected.settingsStack.undo();
-        else Graph.selected.actionsStack.undo();
+        else Graph.selected.actionsStack.undo(),console.log(Graph.selected.actionsStack);
+        
     },
     redo(ev) {
         if (!ev.ctrlKey) return;
