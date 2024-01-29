@@ -9,6 +9,7 @@ class CommandStack{
         this.redoStack = [];
         this.groupItems = false;
         this.graph = graph;
+        this.maxLength=20;
     }
     startGroup() {
         this.undoStack.push(new GroupCommands());
@@ -24,6 +25,8 @@ class CommandStack{
             this.undoStack.at(-1).push(command);
         } else this.undoStack.push(command);
         this.redoStack = [];
+
+        if(this.undoStack.length>this.maxLength)this.undoStack.shift();
         return command;
     }
 
@@ -75,85 +78,90 @@ class GroupCommands extends Command{
 }
 
 class AddNodesCommand extends Command{
-    constructor(...args) {
+    constructor(props) {
         super();
-        if (args[0]?.constructor.name == "Array") this.nodeProps = args[0];
-        else this.nodeProps = args;
+        this.props=props;
     }
     redo(graph) {
-        for (let i of this.nodeProps) graph.addNode(i, false);
+        graph.addNode(this.props, false);
     }
     undo(graph) {
-        for (let i of this.nodeProps) graph.removeNode(i, false);
+        graph.removeNode(this.props.id, false);
     }
 
 }
 
 class RemoveNodesCommand extends Command{
-    constructor(...args) {
+    constructor(props) {
         super();
-        if (args[0]?.constructor.name=="Array") this.nodeProps = args[0];
-        else this.nodeProps = args;
+        this.props=props;
     }
     redo(graph) {
-        for (let i of this.nodeProps) graph.removeNode(i,false);
+        graph.removeNode(this.props.id,false);
     }
     undo(graph) {
-        for (let i of this.nodeProps) graph.addNode(i,false);
+        graph.addNode(this.props,false);
     }
 }
 
 
 class AddEdgesCommand extends Command{
-    constructor(...args) {
+    constructor(props) {
         super();
-        this.edgeIds = args;
+        this.props = props;
     }
     redo(graph) {
-        for (let [x,y] of this.edgeIds) graph.addEdge(x,y,false);
+        graph.addEdge(this.props,false);
     }
     undo(graph) {
-        for (let [x,y] of this.edgeIds) graph.removeEdge(x,y,false);
+        graph.removeEdge(this.props.from,this.props.to,false);
     }
 
 }
 
 class RemoveEdgesCommand extends Command{
-    constructor(...args) {
+    constructor(props) {
         super();
-        this.edgeIds = args;
+        this.props=props;
     }
     redo(graph) {
-        for (let [x,y] of this.edgeIds) graph.removeEdge(x,y,false);
+        graph.removeEdge(this.props.from,this.props.to,false);
     }
     undo(graph) {
-        for (let [x,y] of this.edgeIds) graph.addEdge(x,y,false);
+        graph.addEdge(props,false);
     }
 }
 
 class NodePropsChangedCommand extends Command{
-    constructor(id, props) {
+    constructor(id, chain,oldVal,newVal) {
         super();
-        this.props = props;
+        this.id=id;
+        this.chain=chain;
+        this.newVal=newVal;
+        this.oldVal=oldVal;
     }
     undo(graph) {
-        let n = graph.getNodeUI();
+        let n=graph.getNodeUI(this.id);
+        n.setProps(chain,this.newVal);
+    }
+    redo(graph){
+        let n=graph.getNodeUI(this.id);
+        n.setProps(chain,this.oldVal);
     }
 }
 
 class SettingsChangedCommand extends Command{
-    constructor(category, prop, oldValue, newValue) {
+    constructor(chain, oldValue, newValue) {
         super();
-        this.category = category;
-        this.prop = prop;
+        this.chain=chain;
         this.oldValue = oldValue;
         this.newValue = newValue;
         this.acumulate = false;
     }
     redo(graph){
-        graph.settings[this.category][this.prop] = this.newValue;
+       graph.setSettings(this.chain,this.newValue);
     }
     undo(graph) {
-        graph.settings[this.category][this.prop] = this.oldValue;
+        graph.setSettings(this.chain,this.oldValue);
     }
 }
