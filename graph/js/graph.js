@@ -4,6 +4,7 @@ const UNORDERED = 0;
 class Graph {
     
     static id = 0;
+    /**@type {Map<number,Graph>} */
     static graphMap = new Map();
     /**@type {Graph} */
     static selected;
@@ -71,14 +72,22 @@ class Graph {
 
         greatMenus.viewMenu.querySelector(".category").load(this.settings);
     }
-    addNode(newId, addToStack=true) {
-        if (newId === undefined) {
-            while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
-            newId = this.a_nodeId;
-        }
-        this.nodes.set(newId, new Set());
-        if (addToStack) this.actionsStack.push(new AddNodesCommand(newId));
-        return this.tab.addNode({ id: newId });
+    addNode(options, addToStack = true) {
+        let props;
+        switch (options?.constructor.name || null) {
+            case "NodeProps": props = options; break;
+            case "Object": props = new NodeProps(props); break;
+            case null: {
+                props = new NodeProps();
+                while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
+                props.details.id = this.a_nodeId;
+            }
+        }  
+
+        props.details.graphId = this.id;
+        this.nodes.set(props.details.id, new Set());
+        if (addToStack) this.actionsStack.push(new AddNodesCommand(props));
+        return this.tab.addNode(props);
     }
     removeNode(id, addToStack=true) {
         let n = this.getNodeUI(id);
@@ -112,7 +121,17 @@ class Graph {
         if (rez && id < this.a_nodeId) this.a_nodeId = id;
         return rez;
     }
-    addEdge(x, y, addToStack=true) {
+    addEdge(options, addToStack = true) {
+        let props;
+        switch (options?.constructor.name || null) {
+            case "EdgeProps": props = options; break;
+            case "Object": props = new EdgeProps(options); break;
+        }
+
+        props.graphId = this.id;
+        
+        console.log(props);
+        let x = props.from, y = props.to;
         if ((x == y) || this.isEdge(x, y)) return;
 
         let reverse = false;
@@ -131,20 +150,15 @@ class Graph {
                 xSet.add(y);
                 ySet.add(x)
                 if (x > y) [x, y] = [y, x];
+                break;
             }
         }
+
         if(addToStack)this.actionsStack.push(new AddEdgesCommand([x, y]));
         this.edgeCount++;
-        let offset = this.settings.edge.cp_offset;
-        return this.tab.addEdge({
-            from: x,
-            to: y,
-            type: this.type,
-            cp_offset: new Point(offset[0], offset[1]),
-            cp_symmetry: this.settings.edge.cp_symmetry,
-            mode: this.settings.edge.mode,
-            reverse
-        })
+
+
+        return this.tab.addEdge(props, reverse);
 
     }
     removeEdge(x, y,addToStack=true) {
@@ -182,7 +196,7 @@ class Graph {
 
         this.tab.delete();
         this.header.remove();
-        graphs.delete(this.id);
+        Graph.graphMap.delete(this.id);
         this.actionsStack.clear();
         this.actionsStack.graph = undefined;
         delete this;
@@ -193,18 +207,13 @@ class Graph {
             settings: this.settings,
             type: this.type,
             data: {
-                nodes: [],
+                nodeProps: [],
                 connections: {},
-                nodeProps: {},
                 edgeProps: {}
             }
         };
+        this.tab.getNodeArray().forEach((el) => obj.data.nodeProps.push(el.props));
         for (let [n,neighbours] of this.nodes) {
-            obj.data.nodes.push(parseInt(n));
-            let node = this.getNodeUI(n);
-            obj.data.nodeProps[n] = {
-                position: [node.transform.position.x, node.transform.position.y]
-            };
             obj.data.connections[n] = Array.from(neighbours).filter((el) => el > 0);
         }
         
@@ -212,22 +221,9 @@ class Graph {
     }
 
     static parse(obj = defaultGraphJSON) {
-        console.log(obj);
-        if (!obj || typeof obj !== "object" || !obj.settings || obj.type===undefined || !obj.data.nodes || !obj.data.connections) return;
         let newG = new Graph(obj.type, obj.settings);
 
-        for (let i of obj.data.nodes) {
-            let n = newG.addNode(i);
-            let props = obj.data.nodeProps[i];
-            if (props) {
-                if (props.position) n.position(props.position[0], props.position[1]);
-            }
-        }
-        for (let node in obj.data.connections) {
-
-            let adjacent = obj.data.connections[node], i = parseInt(node);
-            for (let j of adjacent) newG.addEdge(i, j);
-        }
+        obj.data.nodeProps.forEach((el) => { newG.addNode(new NodeProps(el)); });
 
         return newG;
     }

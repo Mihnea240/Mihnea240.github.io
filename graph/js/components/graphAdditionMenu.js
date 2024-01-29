@@ -24,10 +24,6 @@ function formatNewGraphData() {
     let objectTemplate = JSON.parse(JSON.stringify(defaultGraphJSON));
     objectTemplate.type = type;
     objectTemplate.data = {
-        nodes: [],
-        connections: {},
-        nodeProps: {},
-        edgeProps: {}
     }
     let addNode = (i) => {
         objectTemplate.data.nodes.push(i);

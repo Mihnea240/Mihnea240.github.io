@@ -33,7 +33,7 @@ const _node_template = /* html */`
 
 
     </style>
-    <div name="id" class="hide"></div>
+    <div name="id" class="hide main"></div>
 `.trim();
 
 class NodeUI extends HTMLElement{
@@ -41,21 +41,18 @@ class NodeUI extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
-        this.main = shadow.querySelector(":not(.hide)");
+        this.main = shadow.querySelector(".main");
 
         this.oncontextmenu = (ev) => ev.preventDefault();
         this.onmove = _ => true;
     }
 
     /**@param {NodeProps} props  */
-    init(props=new NodeProps()) {
+    init(props) {
         this.props = props;
-        
-        let ids = this.id.split(' ');
-        this.props.details.id = parseInt(ids[1]);
-        this.props.details.graphId = parseInt(ids[0].slice(1));
-
+        this.id = `g${this.graphId} ${this.nodeId}`;
         this.viewMode = this.props.states.viewMode;
+        this.position(this.transform.position.x, this.transform.position.y, false);
     }
     get nodeId() { return this.props.details.id }
     get graphId() { return this.props.details.graphId }
@@ -115,22 +112,27 @@ class NodeUI extends HTMLElement{
     focus() {
         this.parentElement.focus(this.transform.position);
     }
-    connectedCallback() {
-        if (!this.props) this.init();
-    }
 }
 
 customElements.define("graph-node", NodeUI);
 
 
 class NodeProps{
+    /**@type {Map<string,NodeProps>} */
+    static templates = new Map();
     constructor(obj) {
+
+        let type = obj?.constructor.name;
+        switch (type) {
+            case "NodeProps": return mergeDeep(new NodeProps(), this);
+            case "String": return mergeDeep(new NodeProps(), NodeProps.templates.get(obj));
+        }
+        
         this.details = {
             id: 0,
             graphId: 0,
             template: "default",
         }
-            
         this.physics = {
             mass: 1,
             isAffectedByGravity: true,
@@ -145,50 +147,11 @@ class NodeProps{
         this.view = {
             
         }
-        this.custom = { ...obj }
+        this.custom = {};
+        if (type==="Object") mergeDeep(this, obj);
     }
 
-    copy() {
-        return Object.assign(new NodeProps(), JSON.parse(JSON.stringify(this)));
-    }
-}
-
-const nodeTemplates = {
-    default: {
-        details: {
-            "view mode": {
-                type: "select",
-                options: ["id"],
-            },
-            id: {
-                type: "number",
-                readonly: true, 
-            },
-            template: {
-                type: "text",
-                readonly: true,
-                description: "Something"
-            }
-
-        },
-        physics: {
-            mass: {
-                value: 1,
-                type: "number",
-                max: "9999999"
-            },
-            position: {
-                type: "point",
-                max: "200",
-            },
-            velocity: {
-                type: "point",
-                max: "200",
-            },
-            acceleration: {
-                type: "point",
-                max: "20",
-            }
-        }
+    createTemplate(name) {
+        NodeProps.templates[name] = mergeDeep(new NodeProps(), this);
     }
 }

@@ -10,27 +10,6 @@ class GraphSelection {
     }
 
     toggle(el, force) {
-        /* let set;
-        if (el.tagName === "GRAPH-NODE") set = this.nodeSet;
-        else if (el.tagName === "GRAPH-EDGE") set = this.edgeSet;
-        else return;
-
-        if (force === undefined) {
-            if (set.has(el)) {
-                set.delete(el);
-                return el.selected = false;
-            }
-            set.add(el);
-            return el.selected = true; 
-        }
-        if (force === true) {
-            set.add(el);
-            return el.selected = true;
-        }
-        if (force === false) {
-            set.delete(el)
-            return el.selected = false;
-        } */
         if (force === undefined) {
             if (el.selected) this.remove(el);
             else this.add(el)
@@ -78,7 +57,7 @@ class GraphSelection {
 
     }
     getGraph() {
-        return graphs.get(this.graphId);
+        return Graph.get(this.graphId);
     }
 
     clear() {

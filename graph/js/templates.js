@@ -29,9 +29,8 @@ const defaultGraphJSON = {
     },
     type: ORDERED,
     data: {
-        nodes: [1],
+        nodeProps: [new NodeProps({details:{id: 1}})],
         connections: {},
-        nodeProps: {},
         edgeProps: {}
     },
 }
@@ -117,7 +116,7 @@ const defaultSettingsTemplate = {
         emission: {
             value: "10",
             type: "range",
-            max: "20",
+            max: "20", _unit: "px",
             _property: "--node-emission"
         }
     },
@@ -165,23 +164,24 @@ const actionMenuTemplate = {
             type: "button",
             title: "Double click header",
             onclick(ev) {
-                Graph.selected?.header.querySelector("text-input").focus();
-                actionMenu.close();
+                Graph.selected?.header.focus();
+                console.log(ev.composedPath());
             }
         },
         delete: {
             type: "button",
-            onclick(ev) { Graph.selected?.delete(); actionMenu.close(); }
+            onclick(ev) { Graph.selected?.delete();  }
         },
         copy: {
             type: "button",
-            onclick(ev) { createGraph(Graph.selected.dataTemplate()); actionMenu.close(); }
+            onclick(ev) { createGraph(Graph.selected.dataTemplate());  }
         }
     },
     "Node actions": {
+        _condition(ev){return ev.target.matches("graph-tab")},
         delete: {
             type: "button",
-            onclick(ev) { Graph.selected.selection.deleteNodes(); actionMenu.close() },
+            onclick(ev) { Graph.selected.selection.deleteNodes();  },
             _condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
@@ -202,7 +202,7 @@ const actionMenuTemplate = {
                     }
                 }
                 g.actionsStack.endGroup();
-                actionMenu.close();
+                
             },
             _condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all edges connected to the selected nodes"
@@ -228,7 +228,7 @@ const actionMenuTemplate = {
                     }
                 }
                 g.actionsStack.endGroup();
-                actionMenu.close();
+                
             },
             _condition() { return Graph.selected.selection.nodeSet.size > 1; },
             title: "Ads all posible edges between the selected nodes \n If the graph is ordered by holding (ctrl) the direction of the edge will be randomised",
@@ -236,16 +236,57 @@ const actionMenuTemplate = {
 
     },
     "Edge actions": {
+        _condition(ev) {return ev.target.matches("graph-tab")},
         delete: {
             type: "button",
-            onclick() { Graph.selected.selection.deleteEdges(); actionMenu.close() },
+            onclick() { Graph.selected.selection.deleteEdges();  },
             _condition() { return Graph.selected.selection.edgeSet.size > 0; },
             title: "Delets all selected edges"
         },
         add: {
             type: "button",
             onclick(ev) {
-                actionMenu.close();
+                
+            }
+        }
+    }
+}
+
+const nodeTemplates = {
+    default: {
+        details: {
+            "view mode": {
+                type: "select",
+                options: ["id"],
+            },
+            id: {
+                type: "number",
+                readonly: true, 
+            },
+            template: {
+                type: "text",
+                readonly: true,
+                description: "Something"
+            }
+
+        },
+        physics: {
+            mass: {
+                value: 1,
+                type: "number",
+                max: "9999999"
+            },
+            position: {
+                type: "point",
+                max: "200",
+            },
+            velocity: {
+                type: "point",
+                max: "200",
+            },
+            acceleration: {
+                type: "point",
+                max: "20",
             }
         }
     }

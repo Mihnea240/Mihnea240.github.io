@@ -4,13 +4,15 @@ window.onload = () => {
     document.oncontextmenu = ev => ev.preventDefault();
 
     let storedGraphs = JSON.parse(sessionStorage.getItem("stored-graphs"));
+    console.log(storedGraphs);
     if (storedGraphs?.length) {
+        
         for (let i of storedGraphs) createGraph(i);
     } else createGraph(); 
 }
-window.onbeforeunload = () => {
+window.onbeforeunload = (ev) => {
     let array = [];
-    for (let [key, value] of graphs) array.push(value.dataTemplate());
+    for (let [key, value] of Graph.graphMap)console.log(value), array.push(value.dataTemplate());
     sessionStorage.setItem("stored-graphs", JSON.stringify(array));
 }
 

@@ -5,7 +5,7 @@ const _edge_template = /* html */`
             position: absolute;
             pointer-events: stroke;
         }
-        :host(:--selected) {
+        :host(.selected) {
             filter:
                 drop-shadow(0 0 var(--edge-emission) var(--graph-main-color))
                 drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color))
@@ -15,20 +15,14 @@ const _edge_template = /* html */`
     </style>
 `.trim();
 
-class edgeUI extends HTMLElement {
+class EdgeUI extends HTMLElement {
     static observedAttributes = ["symmetry", "mode"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _edge_template;
-        this._internals = this.attachInternals();
 
-        shadow.appendChild(this.curve = document.createElement("curved-path"));
-
-        [this.graphId, this.fromNode, this.toNode] = this.id.slice(1).split(" ").map((el) => parseInt(el));
-
-        if (!this.symmetry) this.symmetry = false;
-        if (!this.mode) this.mode = "absolute";
+        shadow.appendChild(this.curve = document.createElement("curved-path")); 
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (name == "symmetry") {
@@ -38,12 +32,12 @@ class edgeUI extends HTMLElement {
             else if (newValue) val = true;
 
             this.curve.symmetry = val;
-            this.symmetry = val;
+            this.props.symmetry = val;
         }
         if (name == "mode") {
             if (newValue == "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
             else if (newValue == "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
-            this.mode = newValue;
+            this.props.mode = newValue;
         }
     }
 
@@ -52,6 +46,10 @@ class edgeUI extends HTMLElement {
         this.curve.from = n1.middle();
         this.curve.to = n2.middle();
         this.curve.update();
+    }
+    init(props) {
+        this.props = props;
+        this.id = `g${props.graphId} ${props.from} ${props.to}`;
     }
     initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
         this.curve.fromCoords.set(v1.x, v1.y);
@@ -79,27 +77,24 @@ class edgeUI extends HTMLElement {
     getBoundingClientRect() {
         return this.curve.paths[0].getBoundingClientRect();
     }
+    get graphId() { return this.props.graphId }
+    get toNode() { return this.props.to }
+    get fromNode() { return this.props.from }
 
-    set from(point) {
-        this.curve.from = point;
-    }
-    get from() {
-        return this.curve.from;
-    }
-    set to(point) {
-        this.curve.to = point;
-    }
-    get to() {
-        return this.curve.to;
-    }
+    set from(point) { console.log(point); this.curve.from = point}
+    get from() { return this.curve.from }
+    
+    set to(point) {this.curve.to = point}
+    get to() { return this.curve.to }
+    
     set selected(flag) {
-        if (flag) this._internals.states.add("--selected");
-        else this._internals.states.delete("--selected");
+        if (flag) this.classList.add("selected");
+        else this.classList.remove("selected");
     }
     get selected() { return this._internals.states.has("--selected"); }
 }
 
-customElements.define("graph-edge", edgeUI);
+customElements.define("graph-edge", EdgeUI);
 
 
 const _curve_template =/* html */`
@@ -331,3 +326,22 @@ BezierCurve.translationFunctions = {
 }
 
 customElements.define("curved-path", BezierCurve);
+
+
+class EdgeProps{
+    constructor(obj) {
+        this.mode = "absolute";
+        this.symmetry = true;
+        this.from;
+        this.to;
+        this.graphId;
+        this.p1 = new Point();
+        this.p2 = new Point();
+        this.custom = {};
+
+        if (obj) mergeDeep(this, obj);
+    }
+    copy() {
+        return Object.assign(new EdgeProps(), JSON.parse(JSON.stringify(this)));
+    }
+}

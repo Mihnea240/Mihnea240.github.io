@@ -138,9 +138,6 @@ const dragHandle = {
 
                 storage.visibleItems = undefined;
                 target.selectionRect.style.display = "none";
-            }else {
-                ev.stopPropagation();
-                openActionMenu(ev,target.getGraph());
             }
         }
     },
@@ -169,7 +166,7 @@ const dragHandle = {
             
             let graph = Graph.get(originalNode.graphId)
 
-            if (ev.target.tagName == "GRAPH-NODE") graph.addEdge(originalNode.nodeId, ev.target.nodeId);
+            if (ev.target.tagName == "GRAPH-NODE") graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
             else {
                 graph.actionsStack.startGroup();
 
@@ -178,11 +175,12 @@ const dragHandle = {
                 originalNode.parentElement.screenToWorld(storage.point);
                 
                 newNode.position(storage.point.x, storage.point.y);
-                graph.addEdge(originalNode.nodeId, newNode.nodeId);
+                graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
 
                 graph.actionsStack.endGroup();
             }
         } else if (ev.button == 2) {
+            console.log(Graph.get(ev.target.graphId).selection, ev.target);
             Graph.get(ev.target.graphId).selection.toggle(ev.target);
         }
         originalNode.transform.velocity.copy(appData.cursorVelocity);
@@ -212,7 +210,7 @@ const dragHandle = {
             originalEdge.parentElement.curve.classList.add("hide");
 
             if (ev.target.tagName == "GRAPH-NODE") {
-                if (ev.target.nodeId != originalEdge.toNode) graph.addEdge(storage.fromNode.nodeId, ev.target.nodeId);
+                if (ev.target.nodeId != originalEdge.toNode) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
                 else {
                     originalEdge.classList.remove("hide");
                     storage.fromNode = undefined;
@@ -223,7 +221,7 @@ const dragHandle = {
                 let newNode = graph.addNode();
                 originalEdge.parentElement.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
                 newNode.position(storage.point.x, storage.point.y);
-                graph.addEdge(storage.fromNode.nodeId, newNode.nodeId);
+                graph.addEdge({ from: storage.fromNode.nodeId, to: newNode.nodeId });
                 graph.actionsStack.endGroup();
             }
             
@@ -295,17 +293,18 @@ class Tab extends HTMLElement {
         })
 
         
-        this.addEventListener("click", (ev) => {
+        this.addEventListener("mouseup", (ev) => {
             if (ev.target.matches("graph-tab")) {
                 let selection = Graph.get(this.graphId).selection;
+                console.log(selection);
                 if (!selection.empty()) selection.clear();
 
                 if (this.curvesArray.size) {
                     for (let c of this.curvesArray) c.selected = false
                     this.curvesArray.clear();
                 }
-            } else if(ev.detail==2){
-                inspector.observe(ev.target);
+            } else {
+                if (ev.detail == 2) inspector.observe(ev.target);
             }
         })
 
@@ -398,6 +397,7 @@ class Tab extends HTMLElement {
         for (let node of neighbourSet) {
             node = Math.abs(node);
             e = G.getEdgeUI(node, nodeId);
+            console.log(e);
             if (e) callBack(e);
             e = G.getEdgeUI(nodeId, node);
             if (e) callBack(e);
@@ -405,9 +405,12 @@ class Tab extends HTMLElement {
     }
 
     addNode(props) {
-        let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.id}" slot="nodes"></graph-node>`));
+        let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.details.id}" slot="nodes"></graph-node>`));
         this.sizeObserver.observe(newNode);
-        this.positionFunction(this, newNode, false);
+        newNode.init(props);
+
+        if (newNode.transform.position.magSq() === 0) this.positionFunction(this, newNode, false);
+        
         if (physicsMode.isRunning()) {
             physicsMode.stop();
             ACTIONS.togglePhysicsSimulation();
@@ -415,22 +418,24 @@ class Tab extends HTMLElement {
         return newNode;
     }
     addEdge(props) {
+        console.log(props);
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
-        let edge = this.appendChild(
-            elementFromHtml(`<graph-edge id="g${this.graphId} ${props.from} ${props.to}" symmetry=${props.cp_symmetry} mode="${props.mode}" slot="edges"></graph-edge>`)
-        );
 
-        edge.initPos(n1.middle(), n2.middle(), props.cp_offset, props.cp_offset.clone().multiplyScalar(-1));
+        let edge =this.appendChild(elementFromHtml(`<graph-edge slot="edges"></graph-edge>`));
+        edge.init(props);
+        edge.initPos(n1.middle(),n2.middle());
+        
         if (props.type == ORDERED) edge.curve.addArrow();
         return edge;
     }
-    
+    /**@returns {NodeUI} */
     getNode(id) {
         return document.getElementById("g" + this.graphId + " " + id);
     }
+    /**@returns {EdgeUI} */
     getEdge(x, y, type=this.getGraph().type) {
-        if (type === UNORDERED && x > y) [x, y] = [y, x];
+        if (type === UNORDERED && x > y) [x, y] = [y, x]; 
         return document.getElementById("g" + this.graphId + " " + x + " " + y);
     }
 
@@ -441,7 +446,6 @@ class Tab extends HTMLElement {
     getNodeArray() {
         return this.shadowRoot.querySelector("slot[name='nodes']").assignedNodes();
     }
-    /**@returns {Graph} */
     getGraph() {
         return Graph.get(this.graphId);
     }

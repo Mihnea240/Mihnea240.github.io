@@ -9,7 +9,7 @@ const headerArea = document.querySelector(".header");
 const menuBar = document.querySelector(".menu-bar");
 const tab_template = elementFromHtml(`<graph-tab></graph-tab>`);
 const header_template = elementFromHtml(`
-    <text-input spellcheck="false"></text-input>
+    <text-input spellcheck="false" class="graph-header" maxLength="32"></text-input>
 `);
 const inspector = document.getElementById("inspector");
 const graphDialog = document.querySelector("graph-menu");
@@ -23,10 +23,16 @@ headerArea.addEventListener("mousedown", (ev) => {
     }
     if (ev.target.matches(".header")) return;
     if (ev.detail != 2) {
-        if(!ev.target.matches(":focus"))ev.preventDefault();
+        if (!ev.target.matches(":focus")) ev.preventDefault();
         Graph.get(parseInt(ev.target.id.slice(1)))?.focus();
     }
-    
+});
+headerArea.addEventListener("change", (ev) => {
+    let id = ev.target.id;
+    if (id[0] == "h") {
+        let g = Graph.get(parseInt(id.slice(1)));
+        g.setSettings(["name", "graph"], ev.target.value);
+    }
 })
 
 
@@ -91,13 +97,17 @@ function initGreatMenus() {
     greatMenus.fileMenu = menuBar.querySelector("pop-menu[name='file']");
 
     greatMenus.actionMenu = elementFromHtml("<pop-menu></pop-menu>");
-    greatMenus.actionMenu.appendChild(CustomInputs.category("Actions", actionMenuTemplate));
+    greatMenus.actionMenu.appendChild(CustomInputs.category("", actionMenuTemplate));
     document.body.appendChild(greatMenus.actionMenu);
+    document.body.addEventListener("mouseup", (ev) => {
+        if (ev.button == 2) openActionMenu(ev);
+    })
 }
 
-function openActionMenu(ev,graph) {
+function openActionMenu(ev, graph) {
+    
+    if (!ev.target.matches("graph-tab, .graph-header") || ev.button != 2) return;
 
-    if (ev.button != 2) return;
     if (greatMenus.actionMenu.open) return greatMenus.actionMenu.close();
     
     greatMenus.actionMenu.show(ev.clientX+5, ev.clientY+5);

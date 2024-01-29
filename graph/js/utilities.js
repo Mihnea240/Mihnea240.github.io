@@ -50,6 +50,23 @@ function showDialog(dialog,{x,y}) {
     `
 }
 
+function isObject(item) {
+    return (item && typeof item === 'object' && !Array.isArray(item));
+}
+
+function mergeDeep(target, source) {
+    if (!isObject(target) || !isObject(source)) return;
+    
+    for (const key in source) {
+        if (isObject(source[key])) {
+            target[key] ||= {};
+            mergeDeep(target[key], source[key]);
+        } else target[key] = source[key];
+    }
+    return target;
+    
+}
+
 Math.rad2Deg = 57.2957795;
 
 class Point {
@@ -114,7 +131,6 @@ class Point {
     static LEFT = new Point(-1, 0);
     static TOP = new Point(0, 1);
     static DOWN = new Point(0, -1);
-
 
 }
 

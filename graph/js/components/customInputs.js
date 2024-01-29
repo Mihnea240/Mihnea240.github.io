@@ -86,19 +86,31 @@ customElements.define("text-input", TextInput);
 class CustomInputs{
 
     static initTemplate(name,template,input,tag="div") {
-        let display = template._display || name.replace("_"," ") || "";
-        let rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
+        let display = template._display || name.replace("_", " ") || "",rez;
+        if (tag == "button") {
+            rez = elementFromHtml(`<button name="${name}"><span>${display}</span></button}>`);
+            input = rez;
+        } else {
+            rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
+            rez.appendChild(input);
+        }
 
         for (let key in template || []) {
-            if (key[0]=="_") continue;
+            if (key[0]=="_" || key=="onclick" || key=="title") continue;
             input.setAttribute(key, template[key]);
         }
+        if (template.title) rez.setAttribute("title", template.title);
+        rez.onclick = template.onclick;
         rez._condition = template._condition;
-        rez.appendChild(input);
 
         rez.set = function (value) { this.children[1].value = value}
         rez.get = function () { return this.children[1].value }
-        rez.validate = function () { this.classList.toggle("hide", this._condition?.()) }
+        rez.validate = function (param) {
+            let v = this._condition?.(param);
+            if (v === undefined) return true;
+            this.classList.toggle("hide", !v);
+            return v;
+        }
 
         return rez;
     }
@@ -141,10 +153,7 @@ class CustomInputs{
         return CustomInputs.initTemplate(name, template, el);
     }
     static button(name,template) {
-        return CustomInputs.initTemplate(name,template, 
-            elementFromHtml("<button style='display: none'></button>"),
-            "label"
-        );
+        return CustomInputs.initTemplate(name, template, "", "button");
     }
 
     static category(name, {display="", categoryCollapse = true,_condition, ...rest }) {
@@ -177,15 +186,17 @@ class CustomInputs{
         }
         element.validate = function (param) {
             this.classList.remove("hide");
-            if(this._condition) this.classList.toggle("hide", this._condition(param));
+            let value = false;
+            if (this._condition) this.classList.toggle("hide", value = !this._condition(param));
 
-            let n=this.children.length;
-            for (let el of this.children) {
+            let children = this.querySelectorAll(":scope >[name]"), n=children.length;
+            for (let el of children) {
                 el.classList.remove("hide");
-                if(!el.validate)continue;
                 if(!el.validate(param))n--;
             }
-            if(n==0)this.classList.add("hide");
+            console.log(n, value);
+            if (n == 0) this.classList.add("hide");
+            return (!n || !value);
         }
         return element;
     }

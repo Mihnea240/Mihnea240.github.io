@@ -77,14 +77,14 @@ class GroupCommands extends Command{
 class AddNodesCommand extends Command{
     constructor(...args) {
         super();
-        if (args[0]?.constructor.name=="Array") this.nodeIds = args[0];
-        else this.nodeIds = args;
+        if (args[0]?.constructor.name == "Array") this.nodeProps = args[0];
+        else this.nodeProps = args;
     }
     redo(graph) {
-        for (let i of this.nodeIds) graph.addNode(i, false);
+        for (let i of this.nodeProps) graph.addNode(i, false);
     }
     undo(graph) {
-        for (let i of this.nodeIds) graph.removeNode(i, false);
+        for (let i of this.nodeProps) graph.removeNode(i, false);
     }
 
 }
@@ -92,14 +92,14 @@ class AddNodesCommand extends Command{
 class RemoveNodesCommand extends Command{
     constructor(...args) {
         super();
-        if (args[0]?.constructor.name=="Array") this.nodeIds = args[0];
-        else this.nodeIds = args;
+        if (args[0]?.constructor.name=="Array") this.nodeProps = args[0];
+        else this.nodeProps = args;
     }
     redo(graph) {
-        for (let i of this.nodeIds) graph.removeNode(i,false);
+        for (let i of this.nodeProps) graph.removeNode(i,false);
     }
     undo(graph) {
-        for (let i of this.nodeIds) graph.addNode(i,false);
+        for (let i of this.nodeProps) graph.addNode(i,false);
     }
 }
 
