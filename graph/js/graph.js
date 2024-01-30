@@ -2,7 +2,7 @@ const ORDERED = 1;
 const UNORDERED = 0;
 
 class Graph {
-    
+
     static id = 0;
     /**@type {Map<number,Graph>} */
     static graphMap = new Map();
@@ -15,7 +15,7 @@ class Graph {
         this.tab;
         /** @type {HTMLElement}*/
         this.header;
-        
+
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
@@ -32,9 +32,9 @@ class Graph {
         this.loadSettings();
     }
     loadSettings() {
-        
+
         for (let c in this.settings) {
-            let chain = ["",c], props = this.settings[c];
+            let chain = ["", c], props = this.settings[c];
             for (let i in props) {
                 chain[0] = i;
                 this.setSettings(chain, props[i]);
@@ -47,12 +47,12 @@ class Graph {
         CustomInputs.getFromChain(this.settings, chain, 1)[chain[0]] = value;
 
         let template = CustomInputs.getFromChain(defaultSettingsTemplate, chain);
-       
+
         if (template) {
             template._update?.(this);
             if (template._property) this.tab.style.setProperty(template._property, value + (template._unit || ""));
         }
-        return value; 
+        return value;
     }
 
     unfocus() {
@@ -82,14 +82,14 @@ class Graph {
                 while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
                 props.details.id = this.a_nodeId;
             }
-        }  
-
+        }
+        console.log(options, props);
         props.details.graphId = this.id;
         this.nodes.set(props.details.id, new Set());
         if (addToStack) this.actionsStack.push(new AddNodesCommand(props));
         return this.tab.addNode(props);
     }
-    removeNode(id, addToStack=true) {
+    removeNode(id, addToStack = true) {
         let n = this.getNodeUI(id);
         if (!n) return;
 
@@ -98,15 +98,15 @@ class Graph {
         if (n.selected) this.selection.toggle(n);
 
         this.actionsStack.startGroup();
-        if (addToStack) this.actionsStack.push(new RemoveNodesCommand(id));
+        if (addToStack) this.actionsStack.push(new RemoveNodesCommand(n.props));
         for (let n1 of this.adjacentNodes(id)) {
             if (n1 < 0) {
-                this.removeEdge(-n1, id,addToStack);
+                this.removeEdge(-n1, id, addToStack);
             }
             else {
-                this.removeEdge(id, n1,addToStack);
+                this.removeEdge(id, n1, addToStack);
                 if (this.type == ORDERED && this.isEdge(n1, id)) {
-                    this.removeEdge(n1, id,addToStack);
+                    this.removeEdge(n1, id, addToStack);
                 }
             }
         }
@@ -129,7 +129,7 @@ class Graph {
         }
 
         props.graphId = this.id;
-        
+
         let x = props.from, y = props.to;
         if ((x == y) || this.isEdge(x, y)) return;
 
@@ -153,24 +153,25 @@ class Graph {
             }
         }
 
-        if(addToStack)this.actionsStack.push(new AddEdgesCommand([x, y]));
+        if (addToStack) this.actionsStack.push(new AddEdgesCommand(props));
         this.edgeCount++;
 
 
         return this.tab.addEdge(props, reverse);
 
     }
-    removeEdge(x, y,addToStack=true) {
+    removeEdge(x, y, addToStack = true) {
         let rez = this.nodes.get(x)?.delete(y);
         if (rez) {
-            let e = this.tab.getEdge(x, y);
+            let e = this.getEdgeUI(x, y);
             this.tab.removeChild(e);
 
             if (e.selected) this.selection.toggle(e);
             if (this.type == UNORDERED) this.nodes.get(y).delete(x);
             else this.nodes.get(y)?.delete(-x);
 
-            if(addToStack)this.actionsStack.push(new RemoveEdgesCommand([x, y]));
+            console.log(e.props);
+            if (addToStack) this.actionsStack.push(new RemoveEdgesCommand(e.props));
             this.edgeCount--;
         }
         return rez;
@@ -232,9 +233,9 @@ class Graph {
 
     get nodeCount() { return this.nodes.size }
 
-    toMatrix(toString=false) {
+    toMatrix(toString = false) {
         let mId = this.maxId;
-        let matrix = createMatrix(mId+1, mId+1);
+        let matrix = createMatrix(mId + 1, mId + 1);
         for (let [k, v] of this.nodes) {
             for (let n of v) {
                 if (n > 0) matrix[k][n] = 1;
@@ -250,30 +251,30 @@ class Graph {
         let map = new Map();
         if (this.type == ORDERED) {
             let Filter = (el) => el > 0;
-            for (let [k, v] of this.nodes) map.set(k,Array.from(v).filter(Filter));
+            for (let [k, v] of this.nodes) map.set(k, Array.from(v).filter(Filter));
         } else {
-            for (let [k, v] of this.nodes)if(v.size) map.set(k, Array.from(v));
+            for (let [k, v] of this.nodes) if (v.size) map.set(k, Array.from(v));
         }
-       
+
         if (toString) {
             let rez = '';
-            for (let [k, v] of map)if(v.length) rez += k + " : " + v.join(" ") + "\n";
+            for (let [k, v] of map) if (v.length) rez += k + " : " + v.join(" ") + "\n";
             return rez;
         }
         return map;
     }
 
-    toEdgeList(toString=false) {
+    toEdgeList(toString = false) {
         let matrix = this.toMatrix(), n = matrix.length - 1;
         let array = [];
 
         if (this.type == ORDERED) {
             for (let i = 1; i <= n; i++)
-                for (let j = 1; j <= n; j++)if (matrix[i][j]) array.push([i,j]);
+                for (let j = 1; j <= n; j++)if (matrix[i][j]) array.push([i, j]);
         } else {
             for (let i = 1; i <= n; i++)
-                for (let j = i; j <= n; j++)if (matrix[i][j]) array.push([i,j]);
-        }   
+                for (let j = i; j <= n; j++)if (matrix[i][j]) array.push([i, j]);
+        }
         if (toString) return array.map((el) => el.join(" ")).join("\n");
         return array;
     }
@@ -282,15 +283,15 @@ class Graph {
         return this.edgeCount == this.nodeCount - 1;
     }
 
-    dfs(origin, callback=(from,to,sol,fr)=>true, condition=(from,to,sol,fr)=>true) {
-        let fr = new Array(this.maxId+1).fill(0);
+    dfs(origin, callback = (from, to, sol, fr) => true, condition = (from, to, sol, fr) => true) {
+        let fr = new Array(this.maxId + 1).fill(0);
         let sol = [origin];
 
         callback(0, origin, sol, fr);
         let f = (origin) => {
             if (fr[origin]) return;
             fr[origin]++;
-            
+
             for (let n of this.adjacentNodes(origin)) {
                 if (!condition()) continue;
                 if (n < 0 || fr[n]) continue;
@@ -305,8 +306,8 @@ class Graph {
 
     parentArray(anchor) {
         if (!this.isTree()) return;
-        let array = new Array(this.maxId+1).fill(-1);
-        
+        let array = new Array(this.maxId + 1).fill(-1);
+
         this.dfs(anchor, (from, to) => array[to] = from);
         return array;
     }
@@ -316,7 +317,7 @@ class Graph {
         if (this.type == UNORDERED) {
             let call = (from, to, sol, frec) => fr[to] = cnt;
             let condition = (from, to, sol, frec) => fr[to] != 0;
-            
+
             for (let [k, _] of this.nodes) {
                 if (fr[k]) continue;
                 cnt++;
@@ -326,9 +327,9 @@ class Graph {
                 list: rez,
                 map: fr,
             };
-        } 
+        }
 
-        let stack = [], current=[];
+        let stack = [], current = [];
         let dfs1 = (node) => {
             fr[node]++;
             for (let i of this.adjacentNodes(node))
@@ -349,8 +350,8 @@ class Graph {
                     current.push(n);
                 }
             }
-                
-            
+
+
         }
         for (let [k, v] of this.nodes) {
             if (fr[k]) continue;
@@ -359,7 +360,7 @@ class Graph {
         }
         console.log(stack);
         fr.fill(0);
-        for (let i = stack.length - 1; i >= 0; i--){
+        for (let i = stack.length - 1; i >= 0; i--) {
             if (fr[stack[i]]) continue;
             current = [stack[i]];
             cnt++;

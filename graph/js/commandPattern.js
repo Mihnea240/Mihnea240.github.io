@@ -1,15 +1,15 @@
-class Command{
-    undo(){}
-    redo(){}
+class Command {
+    undo() { }
+    redo() { }
 }
 
-class CommandStack{
+class CommandStack {
     constructor(graph) {
         this.undoStack = [];
         this.redoStack = [];
         this.groupItems = false;
         this.graph = graph;
-        this.maxLength=20;
+        this.maxLength = 20;
     }
     startGroup() {
         this.undoStack.push(new GroupCommands());
@@ -26,7 +26,7 @@ class CommandStack{
         } else this.undoStack.push(command);
         this.redoStack = [];
 
-        if(this.undoStack.length>this.maxLength)this.undoStack.shift();
+        if (this.undoStack.length > this.maxLength) this.undoStack.shift();
         return command;
     }
 
@@ -39,7 +39,7 @@ class CommandStack{
             return c;
         }
     }
-    redo(resolve=true) {
+    redo(resolve = true) {
         if (this.redoStack.length <= 0) return;
         let c = this.redoStack.pop();
         if (resolve) {
@@ -60,10 +60,10 @@ class CommandStack{
     }
 }
 
-class GroupCommands extends Command{
+class GroupCommands extends Command {
     constructor(...args) {
         super();
-        if (args[0]?.constructor.name=="Array") this.commands = args[0];
+        if (args[0]?.constructor.name == "Array") this.commands = args[0];
         else this.commands = args;
     }
     push(command) {
@@ -77,10 +77,10 @@ class GroupCommands extends Command{
     }
 }
 
-class AddNodesCommand extends Command{
+class AddNodesCommand extends Command {
     constructor(props) {
         super();
-        this.props=props;
+        this.props = props;
     }
     redo(graph) {
         graph.addNode(this.props, false);
@@ -91,77 +91,77 @@ class AddNodesCommand extends Command{
 
 }
 
-class RemoveNodesCommand extends Command{
-    constructor(props) {
-        super();
-        this.props=props;
-    }
-    redo(graph) {
-        graph.removeNode(this.props.id,false);
-    }
-    undo(graph) {
-        graph.addNode(this.props,false);
-    }
-}
-
-
-class AddEdgesCommand extends Command{
+class RemoveNodesCommand extends Command {
     constructor(props) {
         super();
         this.props = props;
     }
     redo(graph) {
-        graph.addEdge(this.props,false);
+        graph.removeNode(this.props.id, false);
     }
     undo(graph) {
-        graph.removeEdge(this.props.from,this.props.to,false);
+        graph.addNode(this.props, false);
     }
-
 }
 
-class RemoveEdgesCommand extends Command{
+
+class AddEdgesCommand extends Command {
     constructor(props) {
         super();
-        this.props=props;
+        this.props = props;
     }
     redo(graph) {
-        graph.removeEdge(this.props.from,this.props.to,false);
+        graph.addEdge(this.props, false);
     }
     undo(graph) {
-        graph.addEdge(props,false);
+        graph.removeEdge(this.props.from, this.props.to, false);
     }
+
 }
 
-class NodePropsChangedCommand extends Command{
-    constructor(id, chain,oldVal,newVal) {
+class RemoveEdgesCommand extends Command {
+    constructor(props) {
         super();
-        this.id=id;
-        this.chain=chain;
-        this.newVal=newVal;
-        this.oldVal=oldVal;
+        this.props = props;
+    }
+    redo(graph) {
+        graph.removeEdge(this.props.from, this.props.to, false);
     }
     undo(graph) {
-        let n=graph.getNodeUI(this.id);
-        n.setProps(chain,this.newVal);
-    }
-    redo(graph){
-        let n=graph.getNodeUI(this.id);
-        n.setProps(chain,this.oldVal);
+        graph.addEdge(this.props, false);
     }
 }
 
-class SettingsChangedCommand extends Command{
+class NodePropsChangedCommand extends Command {
+    constructor(id, chain, oldVal, newVal) {
+        super();
+        this.id = id;
+        this.chain = chain;
+        this.newVal = newVal;
+        this.oldVal = oldVal;
+    }
+    undo(graph) {
+        let n = graph.getNodeUI(this.id);
+        n.setProps(chain, this.newVal);
+    }
+    redo(graph) {
+        let n = graph.getNodeUI(this.id);
+        n.setProps(chain, this.oldVal);
+    }
+}
+
+class SettingsChangedCommand extends Command {
     constructor(chain, oldValue, newValue) {
         super();
-        this.chain=chain;
+        this.chain = chain;
         this.oldValue = oldValue;
         this.newValue = newValue;
         this.acumulate = false;
     }
-    redo(graph){
-       graph.setSettings(this.chain,this.newValue);
+    redo(graph) {
+        graph.setSettings(this.chain, this.newValue);
     }
     undo(graph) {
-        graph.setSettings(this.chain,this.oldValue);
+        graph.setSettings(this.chain, this.oldValue);
     }
 }

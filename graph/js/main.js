@@ -6,13 +6,13 @@ window.onload = () => {
     let storedGraphs = JSON.parse(sessionStorage.getItem("stored-graphs"));
     console.log(storedGraphs);
     if (storedGraphs?.length) {
-        
+
         for (let i of storedGraphs) createGraph(i);
-    } else createGraph(); 
+    } else createGraph();
 }
 window.onbeforeunload = (ev) => {
     let array = [];
-    for (let [key, value] of Graph.graphMap)console.log(value), array.push(value.dataTemplate());
+    for (let [key, value] of Graph.graphMap) console.log(value), array.push(value.dataTemplate());
     sessionStorage.setItem("stored-graphs", JSON.stringify(array));
 }
 
@@ -23,26 +23,26 @@ const appData = {
     physicsModeFrameRate: 60,
 }
 
-function createGraph(obj=defaultGraphJSON) {
+function createGraph(obj = defaultGraphJSON) {
     let newGraph = Graph.parse(obj);
 
     if (!newGraph) alert("Format invalid");
-    else  newGraph.focus();
+    else newGraph.focus();
 }
-function g(id){return Graph.get(id)}
+function g(id) { return Graph.get(id) }
 
 function savePotrocol() {
     let window = menuBar.querySelector("dialog");
     let gList = window.querySelector("div.list");
     gList.innerHTML = "";
-    for (let [i,_] of Graph.graphMap) {
+    for (let [i, _] of Graph.graphMap) {
         gList.appendChild(elementFromHtml(`<label><input data-id=${i} checked type="checkbox">${Graph.get(i).settings.graph.name}</label>`));
     }
     document.body.click();
     window.showModal();
     let saveButton = window.querySelector("button");
     saveButton.onclick ||= () => {
-        let a = document.createElement("a"), array=[];
+        let a = document.createElement("a"), array = [];
         document.body.appendChild(a);
 
         window.querySelectorAll(".list input:checked").forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).dataTemplate()))
@@ -89,13 +89,13 @@ const keyBindings = {
 }
 const ACTIONS = {
     fullscreen() { toggleFullScreen() },
-    blur(ev){ if(!ev.target.matches("textarea")) document.activeElement.blur() },
-    closeModal(ev){ graphDialog.close()},
-    deleteSelection(ev){
-        if(!ev.ctrlKey)Graph.selected.selection.deleteNodes();
+    blur(ev) { if (!ev.target.matches("textarea")) document.activeElement.blur() },
+    closeModal(ev) { graphDialog.close() },
+    deleteSelection(ev) {
+        if (!ev.ctrlKey) Graph.selected.selection.deleteNodes();
         Graph.selected.selection.deleteEdges();
     },
-    selectionMove(ev){
+    selectionMove(ev) {
         /**@type {Graph} */
         let G = Graph.selected;
         let selection = G.selection;
@@ -130,27 +130,27 @@ const ACTIONS = {
                 let top1 = nodes.at(-2);
 
                 let array = Array.from(G.adjacentNodes(top1.nodeId));
-                let i = array.indexOf(top.nodeId), j =i, slide=top;
-                
+                let i = array.indexOf(top.nodeId), j = i, slide = top;
+
                 while (slide.selected) {
                     j = (j + dir + array.length) % array.length;
                     if (i == j) break;
                     slide = G.getNodeUI(array[j]);
                 }
                 if (i == j) break;
-                
+
 
                 selection.toggle(top);
                 selection.toggle(G.getEdgeUI(top1.nodeId, top.nodeId));
                 selection.toggle(slide);
-                selection.toggle(G.getEdgeUI(top1.nodeId,slide.nodeId));
+                selection.toggle(G.getEdgeUI(top1.nodeId, slide.nodeId));
                 break;
             }
         }
         ev.preventDefault();
     },
-    copy(ev){
-        if (ev.repeat || document.activeElement!=document.body || !ev.ctrlKey) return;
+    copy(ev) {
+        if (ev.repeat || document.activeElement != document.body || !ev.ctrlKey) return;
         let data = JSON.stringify(Graph.selected.dataTemplate());
         navigator.clipboard.writeText(data).then(
             (resolve) => {
@@ -160,7 +160,7 @@ const ACTIONS = {
         )
     },
     async paste(ev) {
-        if (ev.repeat || document.activeElement!=document.body || !ev.ctrlKey) return;
+        if (ev.repeat || document.activeElement != document.body || !ev.ctrlKey) return;
         let data = await navigator.clipboard.readText();
         createGraph(JSON.parse(data));
     },
@@ -178,8 +178,8 @@ const ACTIONS = {
     undo(ev) {
         if (!ev.ctrlKey) return;
         if (greatMenus.viewMenu.open) Graph.selected.settingsStack.undo();
-        else Graph.selected.actionsStack.undo(),console.log(Graph.selected.actionsStack);
-        
+        else Graph.selected.actionsStack.undo();
+
     },
     redo(ev) {
         if (!ev.ctrlKey) return;
@@ -193,13 +193,13 @@ const ACTIONS = {
         let g = Graph.selected;
         let list = g.tab.getNodeArray();
         let rect = g.tab.viewRect;
-        
+
         //for (let n of list)n.transform.velocity.copy(n.transform.acceleration.set(0, 0));
 
         physicsMode.update = () => {
-            for (let i = 0; i < list.length; i++){
+            for (let i = 0; i < list.length; i++) {
                 let a = list[i];
-                for (let j = i+1; j < list.length; j++){
+                for (let j = i + 1; j < list.length; j++) {
                     let b = list[j];
                     physicsMode.calculateForces(a, b);
                 }
@@ -210,18 +210,18 @@ const ACTIONS = {
                 if (n.transform.position.x < rect.x || n.transform.position.x > rect.x + rect.width) n.transform.velocity.x *= -1;
                 if (n.transform.position.y < rect.y || n.transform.position.y > rect.y + rect.height) n.transform.velocity.y *= -1;
                 n.update();
-                
+
                 n.transform.acceleration.set(0, 0);
             }
         }
-        physicsMode.start(list, 1/appData.physicsModeFrameRate);
+        physicsMode.start(list, 1 / appData.physicsModeFrameRate);
     }
 
 }
 
 
 function openNodeCreationDialog() {
-    
+
 }
 
 

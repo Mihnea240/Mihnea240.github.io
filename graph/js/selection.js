@@ -38,23 +38,16 @@ class GraphSelection {
     }
 
     deleteNodes() {
-        let g = this.getGraph(), commands = [],addNodes=new GroupCommands();
-        for (let n of this.nodeSet) {
-            g.removeNode(n.nodeId);
-            commands.push(g.actionsStack.pop());
-        }
-
-        for (let c of commands) addNodes.push(c.commands.shift());
-        g.actionsStack.push(new GroupCommands(addNodes, ...commands));
+        let g = this.getGraph(), commands = [];
+        g.actionsStack.startGroup();
+        for (let n of this.nodeSet) g.removeNode(n.nodeId);
+        g.actionsStack.endGroup();
     }
     deleteEdges() {
-        let g = this.getGraph(), action = new RemoveEdgesCommand();
-        for (let e of this.edgeSet) {
-            g.removeEdge(e.fromNode, e.toNode, false);
-            action.edgeIds.push([e.fromNode, e.toNode]);
-        }
-        if (action.edgeIds.length) g.actionsStack.push(action);
-
+        let g = this.getGraph();
+        g.actionsStack.startGroup();
+        for (let e of this.edgeSet) g.removeEdge(e.fromNode, e.toNode);
+        g.actionsStack.endGroup();
     }
     getGraph() {
         return Graph.get(this.graphId);
