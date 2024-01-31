@@ -7,23 +7,22 @@ class CommandStack {
     constructor(graph) {
         this.undoStack = [];
         this.redoStack = [];
-        this.groupItems = false;
+        this.groupItems = 0;
         this.graph = graph;
         this.maxLength = 20;
     }
     startGroup() {
-        this.undoStack.push(new GroupCommands());
-        this.groupItems = true;
+        this.push(new GroupCommands());
+        this.groupItems++;
     }
     endGroup() {
-        this.groupItems = false;
+        this.groupItems--;
         if (!this.undoStack.at(-1).commands.length) this.pop();
     }
 
     push(command) {
-        if (this.groupItems) {
-            this.undoStack.at(-1).push(command);
-        } else this.undoStack.push(command);
+        if (this.groupItems) this.undoStack.at(-1).push(command);
+        else this.undoStack.push(command);
         this.redoStack = [];
 
         if (this.undoStack.length > this.maxLength) this.undoStack.shift();
@@ -56,7 +55,8 @@ class CommandStack {
     }
 
     clear() {
-        this.commands = [];
+        this.undoStack = [];
+        this.redoStack = [];
     }
 }
 
@@ -69,11 +69,16 @@ class GroupCommands extends Command {
     push(command) {
         this.commands.push(command);
     }
+    condition(c) {
+        return (c.constructor.name == "AddNodesCommand" || c.constructor.name == "RemoveNodesCommand");
+    }
     redo(graph) {
-        for (let c of this.commands) c.redo(graph);
+        for (let c of this.commands) if(this.condition(c))c.redo(graph);
+        for (let c of this.commands) if(!this.condition(c))c.redo(graph);
     }
     undo(graph) {
-        for (let c of this.commands) c.undo(graph);
+        for (let c of this.commands) if(this.condition(c))c.undo(graph);
+        for (let c of this.commands) if(!this.condition(c))c.undo(graph);
     }
 }
 

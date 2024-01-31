@@ -20,7 +20,7 @@ const physicsMode = new PhysicsMode();
 const appData = {
     cursorPos: new Point(),
     cursorVelocity: new Point(),
-    physicsModeFrameRate: 60,
+    physicsModeFrameRate: 24,
 }
 
 function createGraph(obj = defaultGraphJSON) {
@@ -92,8 +92,7 @@ const ACTIONS = {
     blur(ev) { if (!ev.target.matches("textarea")) document.activeElement.blur() },
     closeModal(ev) { graphDialog.close() },
     deleteSelection(ev) {
-        if (!ev.ctrlKey) Graph.selected.selection.deleteNodes();
-        Graph.selected.selection.deleteEdges();
+        Graph.selected.selection.deleteAll();
     },
     selectionMove(ev) {
         /**@type {Graph} */
@@ -151,18 +150,36 @@ const ACTIONS = {
     },
     copy(ev) {
         if (ev.repeat || document.activeElement != document.body || !ev.ctrlKey) return;
-        let data = JSON.stringify(Graph.selected.dataTemplate());
-        navigator.clipboard.writeText(data).then(
-            (resolve) => {
-                alert(`Moved copy of "${Graph.selected.settings.graph.name}" to clipboard \n`);
-            },
-            (error) => console.log(error)
-        )
+        let g = Graph.selected;
+
+        if (g.selection.empty()) {
+            let data = JSON.stringify(Graph.selected.dataTemplate());
+
+            navigator.clipboard.writeText(data).then(
+                (resolve) => {
+                    alert(`Moved copy of "${Graph.selected.settings.graph.name}" to clipboard \n`);
+                },
+                (error) => console.log(error)
+            )
+        } else {
+            let data = g.selection.toJSON();
+            navigator.clipboard.writeText(data).then(
+                (resolve) => {
+                    alert(`Copied selection\n`);
+                },
+                (error) => console.log(error)
+            )
+
+        }
+        
     },
     async paste(ev) {
         if (ev.repeat || document.activeElement != document.body || !ev.ctrlKey) return;
         let data = await navigator.clipboard.readText();
-        createGraph(JSON.parse(data));
+        let obj = JSON.parse(data);
+        
+        if (obj.settings) createGraph(obj);
+        else if (obj.nodes) GraphSelection.parseFromJSON(obj);
     },
     addNode() {
         let newNode = Graph.selected.addNode();

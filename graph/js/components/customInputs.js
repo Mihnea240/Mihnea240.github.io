@@ -1,5 +1,5 @@
 class TextInput extends HTMLElement{
-    static observedAttributes = ["inputmode"];
+    static observedAttributes = ["inputmode","allownewline"];
     constructor() {
         super();
         this.contentEditable = true;
@@ -10,8 +10,8 @@ class TextInput extends HTMLElement{
             let len = this.textContent.length, add = 0, remove = 0;
             switch (ev.key) {
                 case "Enter": {
-                    ev.preventDefault();
-                    return;
+                    if (!this.allownewline) ev.preventDefault();
+                    break;
                 }
                 case "ArrowLeft": case "ArrowRight": return;
                 case "Delete": case "Backspace": remove = 1; break;
@@ -25,12 +25,15 @@ class TextInput extends HTMLElement{
                 }
                 default: add = 1;
             }
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
             this.oldValue = this.textContent;
+            return true;
         })
         this.addEventListener("input", (ev) => {
-            this.value = ev.target.value;
+            this.value = this.innerText;
         })
-        this.addEventListener("blur", (ev) => {
+         this.addEventListener("blur", (ev) => {
             if (this.isNumber) {
                 let rez = 0;
                 try {
@@ -70,10 +73,13 @@ class TextInput extends HTMLElement{
         return this.textContent;
     }
     attributeChangedCallback(name, oldValue, newValue) {
+        console.log(name);
         switch (name) {
             case "inputmode": {
                 this.isNumber = Boolean(newValue === "numeric" || newValue === "decimal");
+                break;
             }
+            case "allownewline": this.allownewline = !!newValue;  break;
         }
     }
 

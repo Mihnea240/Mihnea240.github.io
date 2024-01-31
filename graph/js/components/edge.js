@@ -21,6 +21,8 @@ class EdgeUI extends HTMLElement {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _edge_template;
+        /**@type {EdgeProps} */
+        this.props;
 
         shadow.appendChild(this.curve = document.createElement("curved-path")); 
     }
@@ -47,29 +49,24 @@ class EdgeUI extends HTMLElement {
         this.curve.to = n2.middle();
         this.curve.update();
     }
-    init(props) {
+    init(props,type) {
         this.props = props;
         this.id = `g${props.graphId} ${props.from} ${props.to}`;
+        if (type === ORDERED) this.curve.addArrow();
+
+        this.curve.p1.pos = this.props.p1;
+        this.curve.p2.pos = this.props.p2;
     }
     initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
-        this.curve.fromCoords.set(v1.x, v1.y);
-        this.curve.p1.pos.set(v1.x, v1.y);
-        this.curve.lfrom.set(v1.x, v1.y);
-
-        this.curve.toCoords.set(v2.x, v2.y);
-        this.curve.p2.pos.set(v2.x, v2.y);
-        this.curve.lto.set(v2.x, v2.y);
-
-        if (this.curve.tf === BezierCurve.translationFunctions.relativeTranslation) {
-            let i = this.curve.lto.clone().sub(this.curve.lfrom).normalize()
-            let j = i.clone().rotateAround(Math.PI / 2), aux = offset1.clone();
-
-            this.curve.p1.pos.translate(offset1.x * i.x + offset1.y * j.x, offset1.y * i.y + offset1.y * j.y);
-            this.curve.p2.pos.translate(offset2.x * i.x + offset2.y * j.x, offset2.y * i.y + offset2.y * j.y);
-            this.curve.updateP1(); this.curve.updateP2();
-        } else {
-            this.curve.p1.pos.add(offset1);
-            this.curve.p2.pos.add(offset2);
+        this.curve.fromCoords.copy(v1);
+        if (this.props.p1.magSq()==0) {
+            this.props.p1.set(v1.x, v1.y);
+            this.curve.lfrom.set(v1.x, v1.y);
+        }
+        this.curve.toCoords.copy(v2);
+        if (this.props.p2.magSq()==0) {
+            this.props.p2.set(v2.x, v2.y);
+            this.curve.lto.set(v2.x, v2.y);
         }
         this.curve.update();
     }

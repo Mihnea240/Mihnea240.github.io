@@ -72,6 +72,10 @@ class Graph {
 
         greatMenus.viewMenu.querySelector(".category").load(this.settings);
     }
+    nextAvailableID() {
+        while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
+        return this.a_nodeId;
+    }
     addNode(options, addToStack = true) {
         let props;
         switch (options?.constructor.name || null) {
@@ -79,12 +83,11 @@ class Graph {
             case "Object": props = new NodeProps(options); break;
             case null: {
                 props = new NodeProps();
-                while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
-                props.details.id = this.a_nodeId;
+                props.details.id = this.nextAvailableID();
             }
         }
-        console.log(options, props);
         props.details.graphId = this.id;
+        props.details.description ||= props.details.id;
         this.nodes.set(props.details.id, new Set());
         if (addToStack) this.actionsStack.push(new AddNodesCommand(props));
         return this.tab.addNode(props);
@@ -129,7 +132,6 @@ class Graph {
         }
 
         props.graphId = this.id;
-
         let x = props.from, y = props.to;
         if ((x == y) || this.isEdge(x, y)) return;
 
@@ -157,7 +159,7 @@ class Graph {
         this.edgeCount++;
 
 
-        return this.tab.addEdge(props, reverse);
+        return this.tab.addEdge(props, this.type);
 
     }
     removeEdge(x, y, addToStack = true) {
@@ -170,7 +172,6 @@ class Graph {
             if (this.type == UNORDERED) this.nodes.get(y).delete(x);
             else this.nodes.get(y)?.delete(-x);
 
-            console.log(e.props);
             if (addToStack) this.actionsStack.push(new RemoveEdgesCommand(e.props));
             this.edgeCount--;
         }
@@ -218,6 +219,7 @@ class Graph {
     }
 
     static parse(obj = defaultGraphJSON) {
+        console.log(obj.type, {UNORDERED,ORDERED})
         let newG = new Graph(obj.type, obj.settings);
 
         for (let node of obj.nodeProps) newG.addNode(node);

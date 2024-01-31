@@ -162,47 +162,50 @@ const actionMenuTemplate = {
             title: "Double click header",
             onclick(ev) {
                 Graph.selected?.header.focus();
-                console.log(ev.composedPath());
+                greatMenus.actionMenu.close();
             }
         },
         delete: {
             type: "button",
-            onclick(ev) { Graph.selected?.delete();  }
+            onclick(ev) { Graph.selected?.delete(); greatMenus.actionMenu.close(); }
         },
         copy: {
             type: "button",
-            onclick(ev) { createGraph(Graph.selected.dataTemplate());  }
+            onclick(ev) { createGraph(Graph.selected.dataTemplate()); greatMenus.actionMenu.close(); }
         }
     },
     "Node actions": {
         _condition(ev){return ev.target.matches("graph-tab")},
         delete: {
             type: "button",
-            onclick(ev) { Graph.selected.selection.deleteNodes();  },
+            onclick(ev) { Graph.selected.selection.deleteNodes(); greatMenus.actionMenu.close(); },
             _condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
         add: {
             type: "button",
-            onclick() { Graph.selected.addNode() },
+            onclick() { Graph.selected.addNode(); greatMenus.actionMenu.close(); },
             title: "Ads a new node. Press + to add a node to cursor position"
         },
         disconnect: {
             type: "button",
-            onclick() {
+            onclick(ev) {
                 let g = Graph.selected;
                 g.actionsStack.startGroup();
                 for (let n of g.selection.nodeSet) {
                     for (let adjacent of g.adjacentNodes(n.nodeId)) {
-                        if (adjacent < 0) continue;
-                        g.removeEdge(n.nodeId, adjacent);
+                        if (adjacent < 0) {
+                            if (!ev.ctrlKey) g.removeEdge(-adjacent, n.nodeId);
+                            else continue;
+                        }
+                        g.removeEdge(n.nodeId,adjacent);
                     }
                 }
                 g.actionsStack.endGroup();
-                
+                greatMenus.actionMenu.close();
             },
             _condition() { return Graph.selected.selection.nodeSet.size > 0; },
-            title: "Delets all edges connected to the selected nodes"
+            title: "Delets all edges connected to the selected nodes /n Hold Ctrl to only delete "
         },
         complete: {
             type: "button",
@@ -225,6 +228,7 @@ const actionMenuTemplate = {
                     }
                 }
                 g.actionsStack.endGroup();
+                greatMenus.actionMenu.close();
                 
             },
             _condition() { return Graph.selected.selection.nodeSet.size > 1; },
@@ -236,14 +240,14 @@ const actionMenuTemplate = {
         _condition(ev) {return ev.target.matches("graph-tab")},
         delete: {
             type: "button",
-            onclick() { Graph.selected.selection.deleteEdges();  },
+            onclick() { Graph.selected.selection.deleteEdges(); greatMenus.actionMenu.close(); },
             _condition() { return Graph.selected.selection.edgeSet.size > 0; },
             title: "Delets all selected edges"
         },
         add: {
             type: "button",
             onclick(ev) {
-                
+                greatMenus.actionMenu.close(); 
             }
         }
     }

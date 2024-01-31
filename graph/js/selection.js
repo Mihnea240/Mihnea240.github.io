@@ -40,12 +40,19 @@ class GraphSelection {
     deleteNodes() {
         let g = this.getGraph(), commands = [];
         g.actionsStack.startGroup();
-        for (let n of this.nodeSet) g.removeNode(n.nodeId);
+        for (let n of this.nodeSet) g.removeNode(n.nodeId), console.log(g.actionsStack.top());
         g.actionsStack.endGroup();
     }
     deleteEdges() {
         let g = this.getGraph();
         g.actionsStack.startGroup();
+        for (let e of this.edgeSet) g.removeEdge(e.fromNode, e.toNode);
+        g.actionsStack.endGroup();
+    }
+    deleteAll() {
+        let g = this.getGraph();
+        g.actionsStack.startGroup();
+        for (let n of this.nodeSet) g.removeNode(n.nodeId);
         for (let e of this.edgeSet) g.removeEdge(e.fromNode, e.toNode);
         g.actionsStack.endGroup();
     }
@@ -65,5 +72,33 @@ class GraphSelection {
     }
     nodeArray() {
         return Array.from(this.nodeSet);
+    }
+
+    toJSON() {
+        let g = this.getGraph();
+        if (g.selection.empty()) return;
+        let data = {
+            nodes: [],
+            edges: [],
+        }
+        for (let n of this.nodeSet) data.nodes.push(n.props);
+        for (let e of this.edgeSet) data.edges.push(e.props);
+        return JSON.stringify(data);
+    }
+
+    static parseFromJSON(obj) {
+        let g = Graph.selected, idMap = new Map();
+    
+        g.actionsStack.startGroup();
+        for (let props of obj.nodes) {
+            idMap.set(props.details.id, props.details.id=g.nextAvailableID());
+            g.addNode(props);
+        }
+        for (let props of obj.edges) {
+            props.from = idMap.get(props.from);
+            props.to = idMap.get(props.to);
+            g.addEdge(props);
+        }
+        g.actionsStack.endGroup();
     }
 }

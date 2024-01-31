@@ -134,10 +134,34 @@ graph-tab{
     z-index: 10;
 }
 
-/* graph-node{
-    box-shadow: 0 0 7px var(--node-border-color);
-    text-shadow: 0 0 3px var(--color), 0 0 2px var(--node--color);
-} */
+graph-node{
+    position: absolute;
+    z-index: 100;
+    display: flex;
+    align-items: center; justify-content: center;
+    
+    min-width: var(--node-width);
+    min-height: var(--node-height);
+    border-radius: 2px;
+    border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
+    background: var(--node-background);
+    font-size: calc(0.5* var(--node-width));
+    padding: 0 3px;
+
+    &.selected{
+        box-shadow:
+        0 0 var(--node-emission) var(--graph-main-color),
+        0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
+    }
+
+    & text-input{
+        background-color: transparent;
+        box-shadow: none;
+        &:focus{
+            background-color: var(--ui-select2);
+        }
+    }
+}
 
 .menu-bar{
     grid-area: menu-bar;

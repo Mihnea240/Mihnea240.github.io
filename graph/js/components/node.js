@@ -1,47 +1,14 @@
 
 const _node_template = /* html */`
-    <style>
-        :host{
-            position: absolute;
-            z-index: 100;
-        }
-        .hide{display:none;}
-        div{
-            color: var(--node-color);
-            display: grid;
-            place-content: center;
-            user-select: none;
-        }
-        .hide{
-            display: none;
-        }
-
-        [name="id"],div{
-            width: var(--node-width);
-            height: var(--node-height);
-            border-radius: var(--node-border-radius);
-            border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
-            background: var(--node-background);
-            font-size: calc(var(--node-width) * 0.5);
-        }
-        :not(.hide).selected{
-            box-shadow:
-                0 0 var(--node-emission) var(--graph-main-color),
-                0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
-        }
-
-
-
-    </style>
-    <div name="id" class="hide main"></div>
+    <slot></slot>
 `.trim();
 
 class NodeUI extends HTMLElement{
+    static observedAttributes = ["view"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
-        this.main = shadow.querySelector(".main");
 
         this.oncontextmenu = (ev) => ev.preventDefault();
         this.onmove = _ => true;
@@ -51,14 +18,15 @@ class NodeUI extends HTMLElement{
     init(props) {
         this.props = props;
         this.id = `g${this.graphId} ${this.nodeId}`;
-        this.viewMode = this.props.states.viewMode;
+
+        this.setAttribute("view", this.props.states.viewMode);
         this.position(this.transform.position.x, this.transform.position.y, false);
     }
     get nodeId() { return this.props.details.id }
     get graphId() { return this.props.details.graphId }
     get transform() { return this.props.physics.transform }
     
-    set selected(flag) { this.main.classList.toggle("selected", this.props.states.selected = flag) }
+    set selected(flag) { this.classList.toggle("selected", this.props.states.selected = flag) }
     get selected() { return this.props.states.selected }
 
     set active(flag) { this.props.states.active = flag }
@@ -67,20 +35,19 @@ class NodeUI extends HTMLElement{
     set new_node_protocol(flag) { this.props.states.new_node_protocol = flag };
     get new_node_protocol() { return this.props.states.new_node_protocol };
     
-    set viewMode(mode) {
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name != "view") return;
+        this.props.viewMode = newValue;
 
-        let newEl = this.shadowRoot.querySelector(`[name=${mode}]`);
-        if (!newEl) return;
-        this.props.viewMode = mode;
-
-        this.main.classList.add("hide");
-        this.main = newEl;
-        this.main.classList.remove("hide");
-
-        switch (mode) {
-            case "id": this.main.textContent = this.nodeId; break;
+        switch (newValue) {
+            case "description": {
+                this.textContent = this.props.details.description;
+            }
         }
+        
+
     }
+
     get viewMode() { return this.props.viewMode }
 
     initCurve() {
@@ -105,12 +72,29 @@ class NodeUI extends HTMLElement{
         this.update(update);
     }
     update(updateEdges=true) {
-        this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
+        //this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
+        this.style.cssText += `transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px);`;
         if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
     }
 
     focus() {
         this.parentElement.focus(this.transform.position);
+    }
+    set description(text) {
+        this.textContent = text;
+        this.props.details.description = text;
+    }
+
+    editText() {
+        let input = elementFromHtml(`<text-input allownewline="true" maxLength="64">${this.textContent}</text-input>`);
+        this.textContent = "";
+        this.appendChild(input);
+        input.focus();
+
+        input.addEventListener("change", (ev) => {
+            this.innerHTML = "";
+            this.description = input.value || this.nodeId;
+        }, { once: true });
     }
 }
 
@@ -132,6 +116,7 @@ class NodeProps{
             id: 0,
             graphId: 0,
             template: "default",
+            description: 0
         }
         this.physics = {
             mass: 1,
@@ -142,13 +127,11 @@ class NodeProps{
             selected: false,
             active: false,
             new_node_protocol: false,
-            viewMode: "id",
-        }
-        this.view = {
-            
+            viewMode: "description",
         }
         this.custom = {};
-        if (type==="Object") mergeDeep(this, obj);
+        if (type === "Object") mergeDeep(this, obj);
+        this.details.description ||= this.details.id;
     }
 
     createTemplate(name) {

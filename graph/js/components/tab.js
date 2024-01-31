@@ -84,6 +84,8 @@ const storage = {
     point: new Point(),
     rect: {},
     visibleItems: undefined,
+    timer: 12,
+    timerMax:12,
 }
 const dragHandle = {
     
@@ -97,6 +99,7 @@ const dragHandle = {
             return;
         }
         //collision detection with selection square
+        
         if (ev.buttons == 2) {
             let { x, y } = target.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
             let p = target.selectionRect.pos.clone();
@@ -113,6 +116,9 @@ const dragHandle = {
                 height: ${y}px;
                 display: block;
             `
+            if (storage.timer < 0) storage.timer = storage.timerMax;
+            else return storage.timer--;
+
             storage.rect.x = p.x; storage.rect.y = p.y;
             storage.rect.width = x; storage.rect.height = y
             
@@ -181,7 +187,6 @@ const dragHandle = {
                 graph.actionsStack.endGroup();
             }
         } else if (ev.button == 2) {
-            console.log(Graph.get(ev.target.graphId).selection, ev.target);
             Graph.get(ev.target.graphId).selection.toggle(ev.target);
         }
         originalNode.transform.velocity.copy(appData.cursorVelocity);
@@ -306,8 +311,10 @@ class Tab extends HTMLElement {
                     for (let c of this.curvesArray) c.selected = false
                     this.curvesArray.clear();
                 }
-            } else {
-                if (ev.detail == 2) inspector.observe(ev.target);
+            } else { 
+                //if (ev.detail == 2) inspector.observe(ev.target);
+
+                if (ev.target.matches("graph-node") && ev.detail==2) ev.target.editText();
             }
         })
 
@@ -420,12 +427,12 @@ class Tab extends HTMLElement {
         }
         return newNode;
     }
-    addEdge(props) {
+    addEdge(props, type) {
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
 
         let edge =this.appendChild(elementFromHtml(`<graph-edge slot="edges"></graph-edge>`));
-        edge.init(props);
+        edge.init(props, type);
         edge.initPos(n1.middle(),n2.middle());
         
         if (props.type == ORDERED) edge.curve.addArrow();
