@@ -156,7 +156,7 @@ const defaultSettingsTemplate = {
 const actionMenuTemplate = {
     categoryCollapse: false,
     "Graph actions": {
-        _condition(ev){return ev.target.matches(".graph-header")},
+        condition(ev){return ev.target.matches(".graph-header")},
         rename: {
             type: "button",
             title: "Double click header",
@@ -174,20 +174,20 @@ const actionMenuTemplate = {
             onclick(ev) { createGraph(Graph.selected.dataTemplate()); greatMenus.actionMenu.close(); }
         }
     },
-    "Node actions": {
-        _condition(ev){return ev.target.matches("graph-tab")},
-        delete: {
+    "Selection actions": {
+        condition(ev){return ev.target.matches("graph-tab")},
+        "Delete Nodes": {
             type: "button",
             onclick(ev) { Graph.selected.selection.deleteNodes(); greatMenus.actionMenu.close(); },
-            _condition() { return Graph.selected.selection.nodeSet.size > 0; },
+            condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
-        add: {
+        "Add Node": {
             type: "button",
             onclick() { Graph.selected.addNode(); greatMenus.actionMenu.close(); },
             title: "Ads a new node. Press + to add a node to cursor position"
         },
-        disconnect: {
+        Disconnect: {
             type: "button",
             onclick(ev) {
                 let g = Graph.selected;
@@ -204,7 +204,7 @@ const actionMenuTemplate = {
                 g.actionsStack.endGroup();
                 greatMenus.actionMenu.close();
             },
-            _condition() { return Graph.selected.selection.nodeSet.size > 0; },
+            condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all edges connected to the selected nodes /n Hold Ctrl to only delete "
         },
         complete: {
@@ -231,17 +231,14 @@ const actionMenuTemplate = {
                 greatMenus.actionMenu.close();
                 
             },
-            _condition() { return Graph.selected.selection.nodeSet.size > 1; },
+            condition() { return Graph.selected.selection.nodeSet.size > 1; },
             title: "Ads all posible edges between the selected nodes \n If the graph is ordered by holding (ctrl) the direction of the edge will be randomised",
-        }
+        },
 
-    },
-    "Edge actions": {
-        _condition(ev) {return ev.target.matches("graph-tab")},
         delete: {
             type: "button",
             onclick() { Graph.selected.selection.deleteEdges(); greatMenus.actionMenu.close(); },
-            _condition() { return Graph.selected.selection.edgeSet.size > 0; },
+            condition() { return Graph.selected.selection.edgeSet.size > 0; },
             title: "Delets all selected edges"
         },
         add: {
@@ -290,5 +287,39 @@ const nodeTemplates = {
                 max: "20",
             }
         }
+    }
+}
+
+
+const physicsTemplate = {
+    categoryCollapse: false,
+    gravity: {
+        _display:"Gravitational constant",
+        type: "number",
+        max: "999999999",
+        value: "0",
+    },
+    spring: {
+        _display: "Spring constant",
+        type: "number",
+        value: "0.001",
+        max: "999999999",
+    },
+    energyLoss: {
+        _display: "Energy lost on collision",
+        type: "range",
+        value: "0.2",
+        max: "1", step: "0.1",
+    },
+    Drag: {
+        type: "range",
+        value: "0",
+        max: "1", step: "0.1",
+        title: "Procentage of speed which is lost on each frame",
+    },
+    "Interactions": {
+        type: "select",
+        options: ["All", "Between neighbours", "Between direct neighbours"],
+        title: "Decides whitch nodes are effected by forces"
     }
 }

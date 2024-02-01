@@ -148,6 +148,13 @@ const dragHandle = {
         }
     },
     nodeDrag: (target, ev, delta) => {
+        if (ev.ctrlKey) {
+            for (let n of target.getGraph().selection.nodeSet) {
+                n.translate(delta.x, delta.y);
+                n.transform.velocity.copy(appData.cursorVelocity);
+            }
+            return;
+        }
         switch (ev.buttons) {
             case 1: {
                 target.translate(delta.x, delta.y);

@@ -77,6 +77,10 @@ class NodeUI extends HTMLElement{
         if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
     }
 
+    getGraph() {
+        return Graph.get(this.graphId);
+    }
+
     focus() {
         this.parentElement.focus(this.transform.position);
     }
@@ -120,7 +124,7 @@ class NodeProps{
         }
         this.physics = {
             mass: 1,
-            isAffectedByGravity: true,
+            isStatic: false,
             transform: new Transform(),
         }
         this.states= {

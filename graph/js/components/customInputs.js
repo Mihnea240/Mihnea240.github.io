@@ -2,58 +2,36 @@ class TextInput extends HTMLElement{
     static observedAttributes = ["inputmode","allownewline"];
     constructor() {
         super();
-        this.contentEditable = true;
         this.oldValue = "";
         this.isNumber = false;
+        this._value = "";
 
         this.addEventListener("keydown", (ev) => {
-            let len = this.textContent.length, add = 0, remove = 0;
             switch (ev.key) {
                 case "Enter": {
                     if (!this.allownewline) ev.preventDefault();
-                    break;
+                    return;
                 }
-                case "ArrowLeft": case "ArrowRight": return;
-                case "Delete": case "Backspace": remove = 1; break;
-                case "ArrowUp": {
-                    if (this.isNumber) this.value++;
-                    break;
-                }
-                case "ArrowDown": {
-                    if (this.isNumber) this.value--;
-                    break;
-                }
-                default: add = 1;
+                case "ArrowUp": if (this.isNumber) this.value++; break;
+                case "ArrowDown": if (this.isNumber) this.value--; break;
             }
-            ev.stopPropagation();
-            ev.stopImmediatePropagation();
+            ev.stopImmediatePropagation(); ev.stopPropagation();
             this.oldValue = this.textContent;
             return true;
         })
         this.addEventListener("input", (ev) => {
             this.value = this.innerText;
         })
-         this.addEventListener("blur", (ev) => {
+        this.addEventListener("blur", (ev) => {
             if (this.isNumber) {
                 let rez = 0;
-                try {
-                    rez = eval(this.textContent);
-                } catch (error) {
-                    console.log(error);
-                }
-                let string = "" + rez;
-                let maxLength = parseInt(this.getAttribute("maxLength")), minLength = parseInt(this.getAttribute("minLength"));
-                let max = parseInt(this.getAttribute("max")), min = parseInt(this.getAttribute("min"));
-                if (string.length > maxLength) string.slice(maxLength);
-                if (string.length < minLength) string.padEnd(minLength, "0");
-
-                rez = parseFloat(string);
-                if (rez > max) rez = max;
-                if (rez < min) rez = min;
-                this.value = "" + rez;
+                try { rez = eval(this.textContent); }
+                catch (error) { console.log(error) }
+                this.value=rez;
             }
             this.dispatchEvent(new Event("change",{bubbles: true}));
         })
+        customElements.upgrade(this);
     }
 
     set value(text) {
@@ -62,10 +40,17 @@ class TextInput extends HTMLElement{
         let maxLength = parseInt(this.getAttribute("maxLength")), minLength = parseInt(this.getAttribute("minLength"));
 
         if (pattern) text = text.replace(new RegExp(pattern), "");
-        if (this.isNumber) text = text.replace(/[^0-9*.+-\/]+/g, "");
-        if (text.length < minLength) text = this.oldValue;
-        if (text.length > maxLength) text = this.oldValue;
-
+        if (this.isNumber) {
+            text = text.replace(/[^0-9*.+-\/]+/g, "");
+            let rez = parseFloat(text);
+            if (!isNaN(rez)) {
+                let max = parseFloat(this.getAttribute("max")), min = parseFloat(this.getAttribute("min"));
+                if (rez > max || rez < min) return this.textContent = this.oldValue;
+                text = "" + rez;
+            }
+            
+        }
+        if (text.length < minLength || text.length > maxLength) text = this.oldValue;
         this.textContent = text;
     }
     get value() {
@@ -73,14 +58,16 @@ class TextInput extends HTMLElement{
         return this.textContent;
     }
     attributeChangedCallback(name, oldValue, newValue) {
-        console.log(name);
         switch (name) {
-            case "inputmode": {
-                this.isNumber = Boolean(newValue === "numeric" || newValue === "decimal");
-                break;
-            }
-            case "allownewline": this.allownewline = !!newValue;  break;
+            case "inputmode": this.isNumber = Boolean(newValue === "numeric" || newValue === "decimal"); break;
+            case "allownewline": this.allownewline = !!newValue; break;
+            case "value": this.value = newValue; break;
         }
+    }
+
+    connectedCallback() {
+        this.contentEditable = true;
+        this.value = this.getAttribute("value") || "";
     }
 
 }
@@ -93,26 +80,26 @@ class CustomInputs{
 
     static initTemplate(name,template,input,tag="div") {
         let display = template._display || name.replace("_", " ") || "",rez;
-        if (tag == "button") {
-            rez = elementFromHtml(`<button name="${name}"><span>${display}</span></button}>`);
-            input = rez;
-        } else {
-            rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
-            rez.appendChild(input);
-        }
+        
+        rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
+        if (tag == "button") input = rez;
+        else rez.appendChild(input);
 
+        
         for (let key in template || []) {
-            if (key[0]=="_" || key=="onclick" || key=="title") continue;
-            input.setAttribute(key, template[key]);
+            if (key[0] == "_") continue;
+            switch (key) {
+                case "onclick": rez.onclick = template.onclick; break;
+                case "title": rez.setAttribute("title", template.title); break;
+                case "condition": rez.condition = template.condition; break;
+                case "value": input.setAttribute("value", template.value); break;
+                default: input.setAttribute(key, template[key]);
+            }
         }
-        if (template.title) rez.setAttribute("title", template.title);
-        rez.onclick = template.onclick;
-        rez._condition = template._condition;
-
         rez.set = function (value) { this.children[1].value = value}
         rez.get = function () { return this.children[1].value }
         rez.validate = function (param) {
-            let v = this._condition?.(param);
+            let v = this.condition?.(param);
             if (v === undefined) return true;
             this.classList.toggle("hide", !v);
             return v;
@@ -143,7 +130,7 @@ class CustomInputs{
         return rez;
     }
     static checkbox(name, template) {
-        let el = CustomInputs.initTemplate(name, template, elementFromHtml("<input type='checkbox'> </input>"));
+        let el = CustomInputs.initTemplate(name, template, elementFromHtml("<input type='checkbox'> </input>"),"label");
         el.get = function () { return this.querySelector("input").checked }
         el.set = function (value) {
             let el = this.querySelector("input");
@@ -152,10 +139,10 @@ class CustomInputs{
         }
         return el;
     }
-    static select(name, template) {
+    static select(name, {options, ...template}) {
         let el = elementFromHtml("<select></select>");
-        for (let opt of template.options) {
-            el.appendChild(elementFromHtml(`<option>${opt}</option>`))
+        for (let opt of options) {
+            el.appendChild(elementFromHtml(`<option>${opt}</option>`));
         }
         return CustomInputs.initTemplate(name, template, el);
     }
@@ -163,7 +150,7 @@ class CustomInputs{
         return CustomInputs.initTemplate(name, template, "", "button");
     }
 
-    static category(name, {display="", categoryCollapse = true,_condition, ...rest }) {
+    static category(name, {display="", categoryCollapse = true,condition, ...rest }) {
         display ||= name;
         
         let element = elementFromHtml(`<div class="category" name="${name}"><div>${display} ${categoryCollapse ? `<input type="checkbox" checked>` : ''}</div></div>`);
@@ -172,7 +159,7 @@ class CustomInputs{
             let type = rest[i].type || "category";
             element.appendChild(CustomInputs[type]?.(i, rest[i]));
         }
-        element._condition=_condition;
+        element.condition=condition;
         
         element.set = function (chain, value) {
             this.get(chain, true)?.set?.(value);
@@ -194,7 +181,7 @@ class CustomInputs{
         element.validate = function (param) {
             this.classList.remove("hide");
             let value = false;
-            if (this._condition) this.classList.toggle("hide", value = !this._condition(param));
+            if (this.condition) this.classList.toggle("hide", value = !this.condition(param));
 
             let children = this.querySelectorAll(":scope >[name]"), n=children.length;
             for (let el of children) {
@@ -211,7 +198,7 @@ class CustomInputs{
     static getChainFromEvent(root,ev) {
         let value = [],name;
         for (let t of ev.composedPath()) {
-            name = t.getAttribute("name");
+            name = t.getAttribute?.("name");
             if (name) value.push(name);
             if (t == root) return value;
         }

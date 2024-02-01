@@ -95,12 +95,22 @@ function initGreatMenus() {
 
     greatMenus.fileMenu = menuBar.querySelector("pop-menu[name='file']");
 
+    greatMenus.forceMenu = elementFromHtml("<pop-menu name='physics'></pop-menu>");
+    greatMenus.forceMenu.appendChild(CustomInputs.category("", physicsTemplate));
+    menuBar.appendChild(greatMenus.forceMenu);
+    greatMenus.forceMenu.addEventListener("input", function(ev){
+        let chain = CustomInputs.getChainFromEvent(this,ev);
+        physicsMode[chain[0]] = ev.target.parentElement.get();
+    })
+
+
     greatMenus.actionMenu = elementFromHtml("<pop-menu></pop-menu>");
     greatMenus.actionMenu.appendChild(CustomInputs.category("", actionMenuTemplate));
     document.body.appendChild(greatMenus.actionMenu);
     document.body.addEventListener("mouseup", (ev) => {
         if (ev.button == 2) openActionMenu(ev);
     })
+
 }
 
 function openActionMenu(ev, graph) {

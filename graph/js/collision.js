@@ -2,7 +2,7 @@
 
 
 class Transform{
-    static drag = 0.9;
+    static drag = 1;
 
     constructor() {
         this.position = new Point();
@@ -32,8 +32,8 @@ class PhysicsMode{
         this.p1 = new Point();
         this.p2 = new Point();
 
-        this.gravity = 0;
-        this.spring = 0.001;
+        this.gravity = 10000;
+        //this.spring = 0.001;
         this.springIdealLength = 200;
         this.forceUpperBound = 100;
     }
@@ -51,15 +51,15 @@ class PhysicsMode{
      * @param {NodeUI} b 
     */
     calculateForces(a, b) {
-        let forceA = 0, forceB = 0, dist=1;
-        let mA = a?.props?.physics?.mass || 1, mB = b?.props?.physics?.mass || 1;
+        let forceA = 0, forceB = 0, dist = 1;
+        let mA = a.props.physics?.mass || 1, mB = b.props.physics?.mass || 1;
 
         this.p1.copy(a.transform.position).sub(b.transform.position);
         dist = this.p1.mag();
         
         if (this.gravity) {
-            forceA -= this.gravity * mB / (dist * (dist + 15));
-            forceB -= this.gravity * mA / (dist * (dist + 15));
+            forceA -= this.gravity * mB / (dist * (dist + 150));
+            forceB -= this.gravity * mA / (dist * (dist + 150));
         }
         if (this.spring) {
             forceA += -this.spring * (dist - this.springIdealLength);

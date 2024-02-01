@@ -88,18 +88,34 @@ class GraphSelection {
 
     static parseFromJSON(obj) {
         let g = Graph.selected, idMap = new Map();
+        let min = new Point(Infinity, Infinity);
+        let newNodes = [];
+
+        for (let props of obj.nodes) {
+            let { x, y } = props.physics.transform.position;
+            min.x = Math.min(min.x, x);
+            min.y = Math.min(min.y, y);
+        }
+
+        g.tab.screenToWorld(appData.cursorPos);
+        min.set(appData.cursorPos.x - min.x, appData.cursorPos.y - min.y);
     
         g.actionsStack.startGroup();
         for (let props of obj.nodes) {
-            if(props.details.description==props.details.id)props.details.description="";
-            idMap.set(props.details.id, props.details.id=g.nextAvailableID());
-            g.addNode(props);
+            if (props.details.description == props.details.id) props.details.description = "";
+            props.states.selected = false;
+            idMap.set(props.details.id, props.details.id = g.nextAvailableID());
+
+            newNodes.push(g.addNode(props));
         }
         for (let props of obj.edges) {
             props.from = idMap.get(props.from);
             props.to = idMap.get(props.to);
+            props.states.selected = false;
             g.addEdge(props);
         }
         g.actionsStack.endGroup();
+
+        for (const n of newNodes) n.translate(min.x, min.y);
     }
 }

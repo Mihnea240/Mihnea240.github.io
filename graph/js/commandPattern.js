@@ -77,7 +77,7 @@ class GroupCommands extends Command {
         for (let c of this.commands) if(!this.condition(c))c.redo(graph);
     }
     undo(graph) {
-        for (let c of this.commands) if(this.condition(c))c.undo(graph);
+        for (let c of this.commands) if(this.condition(c))c.undo(graph), console.log(this);
         for (let c of this.commands) if(!this.condition(c))c.undo(graph);
     }
 }
@@ -91,7 +91,7 @@ class AddNodesCommand extends Command {
         graph.addNode(this.props, false);
     }
     undo(graph) {
-        graph.removeNode(this.props.id, false);
+        graph.removeNode(this.props.details.id, false);
     }
 
 }

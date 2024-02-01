@@ -76,6 +76,7 @@ class Graph {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
         return this.a_nodeId;
     }
+    /**@returns {NodeUI} */
     addNode(options, addToStack = true) {
         let props;
         switch (options?.constructor.name || null) {
@@ -94,6 +95,7 @@ class Graph {
     }
     removeNode(id, addToStack = true) {
         let n = this.getNodeUI(id);
+        console.log(id);
         if (!n) return;
 
         this.tab.sizeObserver.unobserve(n);
@@ -124,6 +126,7 @@ class Graph {
         if (rez && id < this.a_nodeId) this.a_nodeId = id;
         return rez;
     }
+    /**@returns {EdgeUI} */
     addEdge(options, addToStack = true) {
         let props;
         switch (options?.constructor.name || null) {
@@ -222,8 +225,10 @@ class Graph {
         console.log(obj.type, {UNORDERED,ORDERED})
         let newG = new Graph(obj.type, obj.settings);
 
+        newG.actionsStack.startGroup();
         for (let node of obj.nodeProps) newG.addNode(node);
         for (let edge of obj.edgeProps) newG.addEdge(edge);
+        newG.actionsStack.endGroup();
 
         return newG;
     }

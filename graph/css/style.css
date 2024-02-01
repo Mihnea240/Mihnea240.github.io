@@ -142,7 +142,7 @@ graph-node{
     
     min-width: var(--node-width);
     min-height: var(--node-height);
-    border-radius: 2px;
+    border-radius: var(--node-width);
     border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     background: var(--node-background);
     font-size: calc(0.5* var(--node-width));
@@ -168,15 +168,15 @@ graph-node{
     display: flex;
     align-items: center;
     color: white;
-    gap: 2vw;
+    gap: 1.5vw;
     margin-left: 2vw;
-    font-weight: bolder;
 
     & > button{
         background-color: inherit;
         color: inherit;
         &:hover{
             border-bottom: 1px double white;
+            transform: translate(0,-1px);
         }
     }
 }
