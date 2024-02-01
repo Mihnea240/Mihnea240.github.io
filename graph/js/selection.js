@@ -91,6 +91,7 @@ class GraphSelection {
     
         g.actionsStack.startGroup();
         for (let props of obj.nodes) {
+            if(props.details.description==props.details.id)props.details.description="";
             idMap.set(props.details.id, props.details.id=g.nextAvailableID());
             g.addNode(props);
         }
