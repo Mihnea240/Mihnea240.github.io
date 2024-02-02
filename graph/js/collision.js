@@ -2,7 +2,6 @@
 
 
 class Transform{
-    static drag = 1;
 
     constructor() {
         this.position = new Point();
@@ -13,9 +12,7 @@ class Transform{
 
     update() {
         this.position.add(this.velocity.add(this.acceleration));
-        this.velocity.multiplyScalar(Transform.drag);
     }
-
     copy() {
         let rez = new Transform();
         rez.position.copy(this.position);
@@ -32,8 +29,9 @@ class PhysicsMode{
         this.p1 = new Point();
         this.p2 = new Point();
 
-        this.gravity = 10000;
-        //this.spring = 0.001;
+        this.gravity = 0;
+        this.spring = 0.0001;
+        this.drag=0;
         this.springIdealLength = 200;
         this.forceUpperBound = 100;
     }
@@ -60,6 +58,7 @@ class PhysicsMode{
         if (this.gravity) {
             forceA -= this.gravity * mB / (dist * (dist + 150));
             forceB -= this.gravity * mA / (dist * (dist + 150));
+            console.log(forceA,forceB);
         }
         if (this.spring) {
             forceA += -this.spring * (dist - this.springIdealLength);

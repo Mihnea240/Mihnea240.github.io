@@ -40,7 +40,7 @@ shuffleArray(colors);
 let colorIndex = 1;
 
 /**@param {Graph} graph */
-function createTabUI(graph, settings) {
+function createTabUI(graph) {
     tab_template.id = "g" + graph.id;
     header_template.id = "h" + graph.id;
     graph.tab=tabArea.appendChild(tab_template.cloneNode(true));
@@ -101,6 +101,7 @@ function initGreatMenus() {
     greatMenus.forceMenu.addEventListener("input", function(ev){
         let chain = CustomInputs.getChainFromEvent(this,ev);
         physicsMode[chain[0]] = ev.target.parentElement.get();
+        console.log(physicsMode);
     })
 
 

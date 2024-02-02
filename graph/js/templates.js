@@ -301,9 +301,14 @@ const physicsTemplate = {
     },
     spring: {
         _display: "Spring constant",
+        type: "range",
+        value: "0.0001", step:"0.0001",
+        max: "0.001",
+    },
+    "springIdealLength":{
+        _display: "Spring ideal length",
         type: "number",
-        value: "0.001",
-        max: "999999999",
+        max: "1000",
     },
     energyLoss: {
         _display: "Energy lost on collision",
@@ -311,10 +316,10 @@ const physicsTemplate = {
         value: "0.2",
         max: "1", step: "0.1",
     },
-    Drag: {
+    drag: {
         type: "range",
         value: "0",
-        max: "1", step: "0.1",
+        max: "1", step: "0.01",
         title: "Procentage of speed which is lost on each frame",
     },
     "Interactions": {

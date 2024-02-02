@@ -224,7 +224,9 @@ const ACTIONS = {
             }
             for (let n of list) {
                 if (n.props.physics.isStatic) continue;
+                n.transform.velocity.multiplyScalar(parseFloat(1-physicsMode.drag));
                 n.transform.update();
+
                 if (n.transform.position.x < rect.x || n.transform.position.x > rect.x + rect.width) n.transform.velocity.x *= -1;
                 if (n.transform.position.y < rect.y || n.transform.position.y > rect.y + rect.height) n.transform.velocity.y *= -1;
                 n.update();

@@ -188,7 +188,6 @@ class CustomInputs{
                 el.classList.remove("hide");
                 if(!el.validate(param))n--;
             }
-            console.log(n, value);
             if (n == 0) this.classList.add("hide");
             return (!n || !value);
         }
