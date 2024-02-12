@@ -7,7 +7,7 @@ const defaultGraphJSON = {
             show_ruller: "false",
             zoom: 1,
         },
-        node: {
+       /*  node: {
             size: "25",
             bg: "#242424",
             color: "#ffffff",
@@ -16,7 +16,7 @@ const defaultGraphJSON = {
             border_style: "solid",
             border_color: "#ffffff",
             emission: "10",
-        },
+        }, */
         edge: {
             width: "1",
             emission: "3",
@@ -28,7 +28,7 @@ const defaultGraphJSON = {
         }
     },
     type: ORDERED,
-    nodeProps: [new NodeProps({ details: { id: 1 } })],
+    nodeProps: [{nodeId: 1}],
     edgeProps: [],
 }
 
@@ -74,7 +74,7 @@ const defaultSettingsTemplate = {
         }
 
     },
-    node: {
+   /*  node: {
         size: {
             type: "range",
             max: "60", _unit: "px",
@@ -116,7 +116,7 @@ const defaultSettingsTemplate = {
             max: "20", _unit: "px",
             _property: "--node-emission"
         }
-    },
+    }, */
     edge: {
         width: {
             type: "range",
@@ -152,6 +152,15 @@ const defaultSettingsTemplate = {
         },
     }
 }
+
+const nodeDefaultTemplate = `
+    background-color: #242424;
+    color: #ffffff;
+    border-radius: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #ffffff;
+`.trim();
 
 const actionMenuTemplate = {
     categoryCollapse: false,
@@ -250,60 +259,25 @@ const actionMenuTemplate = {
     }
 }
 
-const nodeTemplates = {
-    default: {
-        details: {
-            "view mode": {
-                type: "select",
-                options: ["id"],
-            },
-            id: {
-                type: "number",
-                readonly: true, 
-            },
-            template: {
-                type: "text",
-                readonly: true,
-                description: "Something"
-            }
-
-        },
-        physics: {
-            mass: {
-                value: 1,
-                type: "number",
-                max: "9999999"
-            },
-            position: {
-                type: "point",
-                max: "200",
-            },
-            velocity: {
-                type: "point",
-                max: "200",
-            },
-            acceleration: {
-                type: "point",
-                max: "20",
-            }
-        }
-    }
-}
-
 
 const physicsTemplate = {
     categoryCollapse: false,
+    isRunning: {
+        type: "button",
+        onclick() { ACTIONS.togglePhysicsSimulation(); },
+        _display: "Toggle",
+        title: "Turns green when active (F)"
+    },
     gravity: {
         _display:"Gravitational constant",
         type: "number",
         max: "999999999",
-        value: "0",
     },
     spring: {
         _display: "Spring constant",
         type: "range",
-        value: "0.0001", step:"0.0001",
-        max: "0.001",
+        step:"0.1",
+        max: "2"
     },
     "springIdealLength":{
         _display: "Spring ideal length",
@@ -313,7 +287,6 @@ const physicsTemplate = {
     energyLoss: {
         _display: "Energy lost on collision",
         type: "range",
-        value: "0.2",
         max: "1", step: "0.1",
     },
     drag: {
@@ -322,9 +295,38 @@ const physicsTemplate = {
         max: "1", step: "0.01",
         title: "Procentage of speed which is lost on each frame",
     },
-    "Interactions": {
+    "interactions": {
         type: "select",
         options: ["All", "Between neighbours", "Between direct neighbours"],
         title: "Decides whitch nodes are effected by forces"
+    },
+    "reset": {
+        type: "button",
+        onclick() {
+            for (let n of Graph.selected.tab.getNodeArray()) {
+                n.transform.velocity.set(0, 0);
+                n.transform.acceleration.set(0, 0);
+            }
+        },
+        title: "Resets the velocity and acceleration of all nodes to 0"
+    },
+    frameRate: {
+        _display: "Frame rate",
+        type: "number",
+        max: "60",
+    }
+}
+
+const nodeInspectorTemplate = {
+    categoryCollapse: false,
+    id: {
+        type: "number",
+        readonly: true,
+    },
+    description: {
+        type: "text",
+    },
+    static: {
+        
     }
 }

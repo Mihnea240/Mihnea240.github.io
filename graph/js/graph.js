@@ -77,21 +77,17 @@ class Graph {
         return this.a_nodeId;
     }
     /**@returns {NodeUI} */
-    addNode(options, addToStack = true) {
-        let props;
-        switch (options?.constructor.name || null) {
-            case "NodeProps": props = options; break;
-            case "Object": props = new NodeProps(options); break;
-            case null: {
-                props = new NodeProps();
-                props.details.id = this.nextAvailableID();
-            }
-        }
-        props.details.graphId = this.id;
-        props.details.description ||= props.details.id;
-        this.nodes.set(props.details.id, new Set());
-        if (addToStack) this.actionsStack.push(new AddNodesCommand(props));
-        return this.tab.addNode(props);
+    addNode(options={}, addToStack = true) {
+        options.nodeId ||= this.nextAvailableID();
+        options.graphId ||= this.id;
+        options.description ||= options.nodeId;
+
+        this.nodes.set(options.nodeId, new Set());
+        console.log(options);
+        let newNode = this.tab.addNode(options);
+        
+        if (addToStack) this.actionsStack.push(new AddNodesCommand(newNode.data()));
+        return newNode;
     }
     removeNode(id, addToStack = true) {
         let n = this.getNodeUI(id);
@@ -181,7 +177,7 @@ class Graph {
         return rez;
     }
     isEdge(x, y) {
-        return this.adjacentNodes(x)?.has(y) > 0;
+        return this.adjacentNodes(x)?.has(y);
     }
     getNodeUI(id) {
         return this.tab.getNode(id);
@@ -215,14 +211,13 @@ class Graph {
         };
 
         for (const child of this.tab.children) {
-            if (child.matches("graph-node")) obj.nodeProps.push(child.props);
-            else if (child.matches("graph-edge")) obj.edgeProps.push(child.props);
+            if (child.matches("graph-node")) obj.nodeProps.push(child.data());
+            else if (child.matches("graph-edge")) obj.edgeProps.push(child.data());
         }
         return obj;
     }
 
     static parse(obj = defaultGraphJSON) {
-        console.log(obj.type, {UNORDERED,ORDERED})
         let newG = new Graph(obj.type, obj.settings);
 
         newG.actionsStack.startGroup();

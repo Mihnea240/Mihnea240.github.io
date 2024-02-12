@@ -9,8 +9,8 @@ class TextInput extends HTMLElement{
         this.addEventListener("keydown", (ev) => {
             switch (ev.key) {
                 case "Enter": {
-                    if (!this.allownewline) ev.preventDefault();
-                    return;
+                   /*  if (!this.allownewline) ev.preventDefault();
+                    return; */
                 }
                 case "ArrowUp": if (this.isNumber) this.value++; break;
                 case "ArrowDown": if (this.isNumber) this.value--; break;
@@ -20,15 +20,11 @@ class TextInput extends HTMLElement{
             return true;
         })
         this.addEventListener("input", (ev) => {
-            this.value = this.innerText;
+            console.log(this.innerHTML.replace("</div>", "").replace("<div>", "\n"));
+            //this.value = this.innerText;
         })
         this.addEventListener("blur", (ev) => {
-            if (this.isNumber) {
-                let rez = 0;
-                try { rez = eval(this.textContent); }
-                catch (error) { console.log(error) }
-                this.value=rez;
-            }
+            this.parseAsNumber();
             this.dispatchEvent(new Event("change",{bubbles: true}));
         })
         customElements.upgrade(this);
@@ -40,22 +36,23 @@ class TextInput extends HTMLElement{
         let maxLength = parseInt(this.getAttribute("maxLength")), minLength = parseInt(this.getAttribute("minLength"));
 
         if (pattern) text = text.replace(new RegExp(pattern), "");
-        if (this.isNumber) {
-            text = text.replace(/[^0-9*.+-\/]+/g, "");
-            let rez = parseFloat(text);
-            if (!isNaN(rez)) {
-                let max = parseFloat(this.getAttribute("max")), min = parseFloat(this.getAttribute("min"));
-                if (rez > max || rez < min) return this.textContent = this.oldValue;
-                text = "" + rez;
-            }
-            
-        }
+        if (this.isNumber) text = text.replace(/[^0-9*.+-\/]+/g, "");
         if (text.length < minLength || text.length > maxLength) text = this.oldValue;
         this.textContent = text;
     }
     get value() {
         if (this.isNumber) return parseFloat(this.textContent);
         return this.textContent;
+    }
+    parseAsNumber() {
+        if (!this.isNumber) return;
+        let rez = 0;
+        try { rez = eval(this.textContent); }
+        catch (error) { console.log(error) }
+
+        let max = parseFloat(this.getAttribute("max")), min = parseFloat(this.getAttribute("min"));
+        if (rez > max || rez < min) return this.textContent = this.oldValue;
+        this.textContent = rez;
     }
     attributeChangedCallback(name, oldValue, newValue) {
         switch (name) {
@@ -76,6 +73,8 @@ customElements.define("text-input", TextInput);
 
 
 
+
+
 class CustomInputs{
 
     static initTemplate(name,template,input,tag="div") {
@@ -92,7 +91,11 @@ class CustomInputs{
                 case "onclick": rez.onclick = template.onclick; break;
                 case "title": rez.setAttribute("title", template.title); break;
                 case "condition": rez.condition = template.condition; break;
-                case "value": input.setAttribute("value", template.value); break;
+                case "value": {
+                    input.setAttribute("value", template.value);
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                    break;
+                }
                 default: input.setAttribute(key, template[key]);
             }
         }
@@ -119,7 +122,7 @@ class CustomInputs{
     }
     static range(name, template) {
         let el = elementFromHtml("<input type='range'></input>");
-        el.addEventListener("input", function (ev) { this.setAttribute("value",this.value) });
+        el.addEventListener("input", function (ev) { this.setAttribute("value", this.value + (this.getAttribute("unit") || "")) });
 
         let rez = CustomInputs.initTemplate(name, template, el);
         rez.set = function (value) {

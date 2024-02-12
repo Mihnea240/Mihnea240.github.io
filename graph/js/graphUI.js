@@ -99,9 +99,16 @@ function initGreatMenus() {
     greatMenus.forceMenu.appendChild(CustomInputs.category("", physicsTemplate));
     menuBar.appendChild(greatMenus.forceMenu);
     greatMenus.forceMenu.addEventListener("input", function(ev){
-        let chain = CustomInputs.getChainFromEvent(this,ev);
-        physicsMode[chain[0]] = ev.target.parentElement.get();
-        console.log(physicsMode);
+        let chain = CustomInputs.getChainFromEvent(this, ev);
+        let value = ev.target.parentElement.get();
+        
+        switch (chain[0]) {
+            case "spring": physicsMode.spring = value / 100; break;
+            case "isRunning":break;
+            case "frameRate": appData.physicsSettings.frameRate = value; break;
+            case "interactions": if (physicsMode.isRunning()) physicsMode.stop(), ACTIONS.togglePhysicsSimulation();
+            default: physicsMode[chain[0]] = value;
+        }
     })
 
 

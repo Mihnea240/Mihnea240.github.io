@@ -5,13 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://kit.fontawesome.com/7878e75ccc.js" crossorigin="anonymous"></script>
 
     <link rel="stylesheet" type="text/css" href="css/style.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap" rel="stylesheet">
 
     <script defer src="js/utilities.js"></script>
     <script defer src="js/components/customInputs.js"></script>
@@ -63,7 +58,6 @@
         </dialog>
 
         <button for="physics">Force Model</button>
-        <pop-menu name="Physics"></pop-menu>
     </div>
 
     <div class="header">
@@ -73,7 +67,7 @@
     <div class="tab-area" draggable="false"></div>
     <graph-inspector id="inspector">
         <div>
-            <span>Placeholder</span>
+            Viewing <span></span>
             <select>
                 <option value="graph">Graph View</option>
                 <option value="node" >Node View</option>
@@ -81,7 +75,7 @@
             </select>
         </div>
         <div class="tabs">
-            <div class="hide" name="graph">1 <text-input inputmode="decimal" min="12" maxLength="12">12321</text-input></div>
+            <div class="hide" name="graph">1</div>
             <div class="hide" name="node">2</div>
             <div class="hide" name="edge">3</div>
         </div>

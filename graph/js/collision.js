@@ -10,8 +10,8 @@ class Transform{
         this.acceleration = new Point();
     }
 
-    update() {
-        this.position.add(this.velocity.add(this.acceleration));
+    update(timeStep=1) {
+        this.position.add(this.velocity.translate(this.acceleration.x * timeStep, this.acceleration.y * timeStep));
     }
     copy() {
         let rez = new Transform();
@@ -30,8 +30,8 @@ class PhysicsMode{
         this.p2 = new Point();
 
         this.gravity = 0;
-        this.spring = 0.0001;
-        this.drag=0;
+        this.spring = 0;
+        this.drag=0.01;
         this.springIdealLength = 200;
         this.forceUpperBound = 100;
     }
@@ -50,7 +50,7 @@ class PhysicsMode{
     */
     calculateForces(a, b) {
         let forceA = 0, forceB = 0, dist = 1;
-        let mA = a.props.physics?.mass || 1, mB = b.props.physics?.mass || 1;
+        let mA = a.mass || 1, mB = b.mass || 1;
 
         this.p1.copy(a.transform.position).sub(b.transform.position);
         dist = this.p1.mag();
@@ -58,7 +58,6 @@ class PhysicsMode{
         if (this.gravity) {
             forceA -= this.gravity * mB / (dist * (dist + 150));
             forceB -= this.gravity * mA / (dist * (dist + 150));
-            console.log(forceA,forceB);
         }
         if (this.spring) {
             forceA += -this.spring * (dist - this.springIdealLength);
@@ -68,6 +67,13 @@ class PhysicsMode{
         this.p2.copy(this.p1.multiplyScalar(1 / dist));
         if(!a.active)a.transform.acceleration.add(this.p1.multiplyScalar(forceA));
         if(!b.active)b.transform.acceleration.add(this.p2.multiplyScalar(-forceB));
+    }
+
+    getSettings() {
+        const { p1, p2, clock, update, forceUpperBound, ...rest } = this;
+        rest.spring *= 100;
+        rest.spring.toFixed(2);
+        return rest;
     }
 }
 
@@ -83,7 +89,7 @@ function AABB(rect1,rect2) {
 }
 
 
-function visibleElements(graph) {
+function visibleElements(graph,includeNodes=true,includEdges=true) {
     let viewRect = graph.tab.viewRect, rez = [];
     let p = new Point();
     let { top, left } = graph.tab.rect;
@@ -91,14 +97,14 @@ function visibleElements(graph) {
     let { scrollLeft, scrollTop } = graph.tab.tab;
     for (let el of graph.tab.children) {
         let rect = {};
-        if (el.tagName == "GRAPH-NODE") {
+        if (includeNodes && el.tagName == "GRAPH-NODE") {
             rect = {
                 x: el.transform.position.x,
                 y: el.transform.position.y,
                 width: el.transform.size.x,
                 height: el.transform.size.y,
             }
-        } else if (el.tagName == "GRAPH-EDGE") {
+        } else if (includEdges && el.tagName == "GRAPH-EDGE") {
             let r = el.getBoundingClientRect();
             console.log(zoom);
             p.set(r.x, r.y).translate(scrollLeft - left/zoom, scrollTop - top/zoom  );

@@ -76,10 +76,14 @@ input[type="range"]{
     position: relative;
     -webkit-appearance: none;
     appearance: none;
+    display: flex;
+    align-items: center;
     background: transparent;
     cursor: pointer;
     height: 2px;
     background-color: var(--input-background);
+    margin: .3rem;
+
     &::-webkit-slider-thumb{
         -webkit-appearance: none;
         background-color: var(--input-background);
@@ -87,10 +91,9 @@ input[type="range"]{
         height: .8rem;
     }
     &::after{
-        content: attr(value);
         position: absolute;
-        left: calc(101%);
-        translate: 0 -50%;
+        left: 100%;
+        content: attr(value);
     }
 }
 input[type="file"]{
@@ -142,11 +145,15 @@ graph-node{
     
     min-width: var(--node-width);
     min-height: var(--node-height);
-    border-radius: var(--node-width);
+    border-radius: calc(max(var(--node-width),var(--node-height)) * 0.6);
     border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     background: var(--node-background);
     font-size: calc(0.5* var(--node-width));
     padding: 0 3px;
+    user-select: text;
+    text-wrap: wrap;
+    /* overflow: hidden;
+    resize:both; */
 
     &.selected{
         box-shadow:
@@ -177,6 +184,9 @@ graph-node{
         &:hover{
             border-bottom: 1px double white;
             transform: translate(0,-1px);
+        }
+        &.active{
+            color: #50C878;
         }
     }
 }

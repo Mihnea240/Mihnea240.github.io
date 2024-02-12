@@ -45,8 +45,8 @@ class EdgeUI extends HTMLElement {
 
     update() {
         let n1 = this.parentElement.getNode(this.fromNode), n2 = this.parentElement.getNode(this.toNode);
-        this.curve.from = n1.middle();
-        this.curve.to = n2.middle();
+        this.curve.from = n1.anchor();
+        this.curve.to = n2.anchor();
         this.curve.update();
     }
     init(props,type) {
@@ -227,8 +227,8 @@ class BezierCurve extends HTMLElement {
         let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
 
         this.paths.forEach(p => p.setAttribute("d", new_val));
-        this.p1.style.cssText += `left: ${this.p1.pos.x}px; top: ${this.p1.pos.y}px;`
-        this.p2.style.cssText += `left: ${this.p2.pos.x}px; top: ${this.p2.pos.y}px;`
+        this.p1.style.cssText += `transform: translate(${this.p1.pos.x}px, ${this.p1.pos.y}px);`
+        this.p2.style.cssText += `transform: translate(${this.p2.pos.x}px, ${this.p2.pos.y}px);`
 
         this.l1.setAttribute("x1", this.fromCoords.x);
         this.l1.setAttribute("y1", this.fromCoords.y);
@@ -306,24 +306,22 @@ class BezierCurve extends HTMLElement {
     }
     get selected() { return this.select }
 
+    static translationFunctions = {
+        /**@param {BezierCurve} curve */
+        absoluteTranslation: (curve, p) => {
+            if (p == 0) curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
+            else curve.p2.pos.translate(curve.toCoords.x - curve.lto.x, curve.toCoords.y - curve.lto.y);
+        },
+        /**@param {BezierCurve} curve */
+        relativeTranslation: (curve, p) => {
+            let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
+            let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
+            let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
 
-}
-
-BezierCurve.translationFunctions = {
-    /**@param {BezierCurve} curve */
-    absoluteTranslation: (curve, p) => {
-        if (p == 0) curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
-        else curve.p2.pos.translate(curve.toCoords.x - curve.lto.x, curve.toCoords.y - curve.lto.y);
-    },
-    /**@param {BezierCurve} curve */
-    relativeTranslation: (curve, p) => {
-        let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
-        let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
-        let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
-
-        curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(curve.p1.angle || 0).multiplyScalar(curve.p1.mag));
-        curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(curve.p2.angle || 0).multiplyScalar(curve.p2.mag));
-    },
+            curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(curve.p1.angle || 0).multiplyScalar(curve.p1.mag));
+            curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(curve.p2.angle || 0).multiplyScalar(curve.p2.mag));
+        },
+    }
 }
 
 customElements.define("curved-path", BezierCurve);

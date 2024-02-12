@@ -148,6 +148,7 @@ const dragHandle = {
         }
     },
     nodeDrag: (target, ev, delta) => {
+        if (target.focused) return;
         if (ev.ctrlKey) {
             for (let n of target.getGraph().selection.nodeSet) {
                 n.translate(delta.x, delta.y);
@@ -185,7 +186,7 @@ const dragHandle = {
 
                 let newNode = graph.addNode();
                 storage.point.set(ev.clientX, ev.clientY);
-                console.log(storage.point);
+                
                 originalNode.parentElement.screenToWorld(storage.point);
                 
                 newNode.position(storage.point.x, storage.point.y);
@@ -275,7 +276,13 @@ class Tab extends HTMLElement {
                 evTarget = ev.target;
                 switch (ev.target.tagName) {
                     case "GRAPH-EDGE": storage.fromNode = this.getNode(ev.target.fromNode); break;
-                    case "GRAPH-NODE": if (ev.buttons == 4) ev.preventDefault(), evTarget = this; break;
+                    case "GRAPH-NODE": {
+                        if (ev.buttons == 4) ev.preventDefault(), evTarget = this;
+                        /*this.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
+                        let v = storage.point.sub(ev.target.middle(1, 1)).magSq();
+                        if (v < 250) return false;*/
+                        break;
+                    }
                     case "GRAPH-TAB": {
                         if (ev.buttons == 2) {
                             this.screenToWorld(this.selectionRect.pos.set(ev.clientX, ev.clientY));
@@ -319,9 +326,9 @@ class Tab extends HTMLElement {
                     this.curvesArray.clear();
                 }
             } else { 
-                //if (ev.detail == 2) inspector.observe(ev.target);
-
-                if (ev.target.matches("graph-node") && ev.detail==2) ev.target.editText();
+                ev.preventDefault();
+                if (ev.detail == 2) inspector.observe(ev.target);
+                if (ev.target.matches("graph-node") && ev.detail == 3) ev.target.editText();
             }
         })
 
@@ -422,7 +429,7 @@ class Tab extends HTMLElement {
     }
 
     addNode(props) {
-        let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.details.id}" slot="nodes"></graph-node>`));
+        let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.nodeId}" slot="nodes"></graph-node>`));
         this.sizeObserver.observe(newNode);
         newNode.init(props);
 
@@ -434,15 +441,15 @@ class Tab extends HTMLElement {
         }
         return newNode;
     }
-    addEdge(props, type) {
+    addEdge(props,type) {
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
-
-        let edge =this.appendChild(elementFromHtml(`<graph-edge slot="edges"></graph-edge>`));
-        edge.init(props, type);
-        edge.initPos(n1.middle(),n2.middle());
+        let edge = this.appendChild(elementFromHtml(`<graph-edge slot="edges"></graph-edge>`));
         
-        if (props.type == ORDERED) edge.curve.addArrow();
+        edge.init(props, props.to);
+        edge.initPos(n1.anchor(), n2.anchor());
+        
+        if (type == ORDERED) edge.curve.addArrow();
         return edge;
     }
     /**@returns {NodeUI} */

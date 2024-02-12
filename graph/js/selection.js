@@ -81,8 +81,8 @@ class GraphSelection {
             nodes: [],
             edges: [],
         }
-        for (let n of this.nodeSet) data.nodes.push(n.props);
-        for (let e of this.edgeSet) data.edges.push(e.props);
+        for (let n of this.nodeSet) data.nodes.push(n.data());
+        for (let e of this.edgeSet) data.edges.push(e.data());
         return JSON.stringify(data);
     }
 
@@ -92,7 +92,7 @@ class GraphSelection {
         let newNodes = [];
 
         for (let props of obj.nodes) {
-            let { x, y } = props.physics.transform.position;
+            let { x, y } = props.transform.position;
             min.x = Math.min(min.x, x);
             min.y = Math.min(min.y, y);
         }
@@ -102,16 +102,14 @@ class GraphSelection {
     
         g.actionsStack.startGroup();
         for (let props of obj.nodes) {
-            if (props.details.description == props.details.id) props.details.description = "";
-            props.states.selected = false;
-            idMap.set(props.details.id, props.details.id = g.nextAvailableID());
+            if (props.description == props.nodeId) props.description = "";
+            idMap.set(props.nodeId, props.nodeId = g.nextAvailableID());
 
             newNodes.push(g.addNode(props));
         }
         for (let props of obj.edges) {
             props.from = idMap.get(props.from);
             props.to = idMap.get(props.to);
-            props.states.selected = false;
             g.addEdge(props);
         }
         g.actionsStack.endGroup();

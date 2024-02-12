@@ -1,10 +1,22 @@
 
 const _node_template = /* html */`
+    <style>
+        .description{
+            user-select: none;
+            margin: .1rem .2rem;
+            &:focus{
+                outline: none;
+            }
+
+        }
+    </style>
+    <div class="description"></div>
     <slot></slot>
 `.trim();
 
 class NodeUI extends HTMLElement{
-    static observedAttributes = ["view"];
+    static observedAttributes = ["view","template"];
+    static _p = new Point();
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -12,55 +24,51 @@ class NodeUI extends HTMLElement{
 
         this.oncontextmenu = (ev) => ev.preventDefault();
         this.onmove = _ => true;
+        this.nodeId;
+        this.graphId;
+        this._description = 0;
+        this._selected = false;
+        this.active = false;
+        this.focused = false;
+        this.new_node_protocol=false;
+        this.mass = 1;
+        this.isStatic = false;
+        this.transform = new Transform();
+        this.template = "default";
+
     }
 
-    /**@param {NodeProps} props  */
     init(props) {
-        this.props = props;
-        this.id = `g${this.graphId} ${this.nodeId}`;
-
-        this.setAttribute("view", this.props.states.viewMode);
-        this.position(this.transform.position.x, this.transform.position.y, false);
+        mergeDeep(this, props);
+        this.update(false);
     }
-    get nodeId() { return this.props.details.id }
-    get graphId() { return this.props.details.graphId }
-    get transform() { return this.props.physics.transform }
     
-    set selected(flag) { this.classList.toggle("selected", this.props.states.selected = flag) }
-    get selected() { return this.props.states.selected }
-
-    set active(flag) { this.props.states.active = flag }
-    get active() { return this.props.states.active }
-
-    set new_node_protocol(flag) { this.props.states.new_node_protocol = flag };
-    get new_node_protocol() { return this.props.states.new_node_protocol };
+    set selected(flag) { this.classList.toggle("selected", this._selected = flag) }
+    get selected() { return this._selected }
     
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name != "view") return;
-        this.props.viewMode = newValue;
-
-        switch (newValue) {
-            case "description": {
-                this.textContent = this.props.details.description;
-            }
-        }
-        
-
+    set description(text) {
+        this.shadowRoot.querySelector(".description").textContent = this._description = text;
     }
+    get description() { return this._description }
 
-    get viewMode() { return this.props.viewMode }
-
+    set template(string) {this.setAttribute("template", string);}
+    get template() { return this.getAttribute("template"); }
+    
     initCurve() {
         this.parentElement.curve.classList.remove("hide");
-        this.parentElement.curve.from = this.parentElement.curve.to = this.middle();
+        this.parentElement.curve.from = this.parentElement.curve.to = this.relativePosition(0.5, 0.5, NodeUI._p);
         this.new_node_protocol = true;
     }
-
-    middle(x = 0.5, y = 0.5) {
-        return new Point(
+    relativePosition(x = 0, y = 0, point = new Point()) {
+        return point.set(
             this.transform.position.x + this.transform.size.x * x,
             this.transform.position.y + this.transform.size.y * y
-        );   
+        ); 
+    }
+
+    anchor(point = new Point()) {
+        let { x, y } = this.getTemplate().anchor;
+        return this.relativePosition(x, y, point);
     }
 
     position(x, y , updateEdges=true) {
@@ -74,71 +82,54 @@ class NodeUI extends HTMLElement{
     update(updateEdges=true) {
         //this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
         this.style.cssText += `transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px);`;
-        if(updateEdges)this.parentElement.recalculateEdges(this.nodeId, this.middle());
+        if (updateEdges) this.parentElement.recalculateEdges(this.nodeId, this.anchor(NodeUI._p));
     }
 
     getGraph() {
         return Graph.get(this.graphId);
     }
+    getTemplate() {
+        return NodeTemplate.get(this.template);
+    }
 
-    focus() {
-        this.parentElement.focus(this.transform.position);
-    }
-    set description(text) {
-        this.textContent = text;
-        this.props.details.description = text;
-    }
+
 
     editText() {
-        let input = elementFromHtml(`<text-input allownewline="true" maxLength="64">${this.textContent}</text-input>`);
-        this.textContent = "";
-        this.appendChild(input);
-        input.focus();
-
-        input.addEventListener("change", (ev) => {
-            this.innerHTML = "";
-            this.description = input.value || this.nodeId;
-        }, { once: true });
+        let des = this.shadowRoot.querySelector(".description");
+        des.setAttribute("contenteditable", true);
+        this.focused = true;
+        des.addEventListener("blur", (ev) => {
+            des.setAttribute("contenteditable", false);
+            this._description = des.textContent;
+            this.focused = false;
+        },{once: true})
+    }
+    data() {
+        return {
+            nodeId: this.nodeId,
+            template: this.templatem,
+            isStatic: this.isStatic,
+            mass: this.mass,
+            description: this.description,
+            transform: this.transform,
+        }
     }
 }
 
 customElements.define("graph-node", NodeUI);
 
+class NodeTemplate{
+    /**@type {Map<string,NodeTemplate>} */
+    static map = new Map();
+    static get(name) { return NodeTemplate.map.get(name) }
+    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
 
-class NodeProps{
-    /**@type {Map<string,NodeProps>} */
-    static templates = new Map();
-    constructor(obj) {
+    constructor(name,styles,data) {
+        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{`+ styles+"}");
+        this.anchor = { x: 0.5, y: 0.5 };
+        this.viewMode = "description";
+        mergeDeep(this, data);
 
-        let type = obj?.constructor.name;
-        switch (type) {
-            case "NodeProps": return mergeDeep(new NodeProps(), this);
-            case "String": return mergeDeep(new NodeProps(), NodeProps.templates.get(obj));
-        }
-        
-        this.details = {
-            id: 0,
-            graphId: 0,
-            template: "default",
-            description: 0
-        }
-        this.physics = {
-            mass: 1,
-            isStatic: false,
-            transform: new Transform(),
-        }
-        this.states= {
-            selected: false,
-            active: false,
-            new_node_protocol: false,
-            viewMode: "description",
-        }
-        this.custom = {};
-        if (type === "Object") mergeDeep(this, obj);
-        this.details.description ||= this.details.id;
-    }
-
-    createTemplate(name) {
-        NodeProps.templates[name] = mergeDeep(new NodeProps(), this);
+        NodeTemplate.map.set(name, this);
     }
 }

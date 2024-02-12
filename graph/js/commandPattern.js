@@ -91,7 +91,7 @@ class AddNodesCommand extends Command {
         graph.addNode(this.props, false);
     }
     undo(graph) {
-        graph.removeNode(this.props.details.id, false);
+        graph.removeNode(this.props.nodeId, false);
     }
 
 }
@@ -102,7 +102,7 @@ class RemoveNodesCommand extends Command {
         this.props = props;
     }
     redo(graph) {
-        graph.removeNode(this.props.id, false);
+        graph.removeNode(this.props.nodeId, false);
     }
     undo(graph) {
         graph.addNode(this.props, false);

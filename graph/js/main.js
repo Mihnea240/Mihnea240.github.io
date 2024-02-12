@@ -4,24 +4,51 @@ window.onload = () => {
     document.oncontextmenu = ev => ev.preventDefault();
 
     let storedGraphs = JSON.parse(sessionStorage.getItem("stored-graphs"));
-    console.log(storedGraphs);
+    let appSettings = JSON.parse(sessionStorage.getItem("app-data"));
+    let templates = JSON.parse(sessionStorage.getItem("templates"));
+    
     if (storedGraphs?.length) {
-
         for (let i of storedGraphs) createGraph(i);
     } else createGraph();
+
+    window.appData = {
+        cursorPos: new Point(),
+        cursorVelocity: new Point(),
+        dt: 0,
+        lastTime:0,
+        physicsSettings: {
+            frameRate: 24,
+            gravity: 0,
+            spring: 0.01,
+            springIdealLength: 200,
+            energyLoss: 0.2,
+            drag: 0.01,
+            interactions: "All",
+        },
+    }
+    if (appSettings) {
+        mergeDeep(appData, appSettings);
+        appData.physicsSettings.spring /= 100;
+    }
+    mergeDeep(physicsMode, appData.physicsSettings);
+    greatMenus.forceMenu.querySelector(".category").load(appData.physicsSettings);
+
+    if (templates) {
+        
+    } else {
+        let d = new NodeTemplate("default", nodeDefaultTemplate);
+    }
 }
 window.onbeforeunload = (ev) => {
     let array = [];
-    for (let [key, value] of Graph.graphMap) console.log(value), array.push(value.dataTemplate());
+    for (let [key, value] of Graph.graphMap)array.push(value.dataTemplate());
     sessionStorage.setItem("stored-graphs", JSON.stringify(array));
+    appData.physicsSettings = physicsMode.getSettings();
+
+    sessionStorage.setItem("app-data", JSON.stringify(appData));
 }
 
 const physicsMode = new PhysicsMode();
-const appData = {
-    cursorPos: new Point(),
-    cursorVelocity: new Point(),
-    physicsModeFrameRate: 24,
-}
 
 function createGraph(obj = defaultGraphJSON) {
     let newGraph = Graph.parse(obj);
@@ -72,7 +99,7 @@ function loadPotrocol(input) {
 
 const keyBindings = {
     F2: "fullscreen",
-    Enter: "blur",
+    //Enter: "blur",
     Escape: "closeModal",
     Delete: "deleteSelection",
     ArrowLeft: "selectionMove",
@@ -203,29 +230,39 @@ const ACTIONS = {
         if (greatMenus.viewMenu.open) Graph.selected.settingsStack.redo();
         else Graph.selected.actionsStack.redo();
     },
-    togglePhysicsSimulation() {
-        if (physicsMode.isRunning()) return physicsMode.stop();
+    togglePhysicsSimulation(ev) {
+        //if (ev && !ev.ctrlKey) return;
+        if (physicsMode.isRunning()) {
+            menuBar.querySelector("button[for='physics']")?.classList.remove("active");
+            return physicsMode.stop();
+        }
+        menuBar.querySelector("button[for='physics']").classList.add("active");
 
         /**@type {Graph}*/
         let g = Graph.selected;
         let list = g.tab.getNodeArray();
         let rect = g.tab.viewRect;
-
-        //for (let n of list)n.transform.velocity.copy(n.transform.acceleration.set(0, 0));
+        let check;
+        let dt = 1 / physicsMode.frameRate;
+        switch (physicsMode.interactions) {
+            case "Between direct neighbours": check = (a, b) => g.isEdge(a.nodeId, b.nodeId); break;
+            case "Between neighbours": check = (a, b) => (g.isEdge(a.nodeId, b.nodeId) || g.isEdge(a.nodeId, -b.nodeId)); break;
+            default: check = () => true;
+        }
 
         physicsMode.update = () => {
             for (let i = 0; i < list.length; i++) {
                 let a = list[i];
                 for (let j = i + 1; j < list.length; j++) {
                     let b = list[j];
-                    physicsMode.calculateForces(a, b);
+                    if (check(a, b)) physicsMode.calculateForces(a, b);
                 }
-                //a.transform.velocity.set(0, 0);
             }
-            for (let n of list) {
-                if (n.props.physics.isStatic) continue;
+
+            for (const n of list) {
+                if (n.isStatic) continue;
                 n.transform.velocity.multiplyScalar(parseFloat(1-physicsMode.drag));
-                n.transform.update();
+                n.transform.update(dt);
 
                 if (n.transform.position.x < rect.x || n.transform.position.x > rect.x + rect.width) n.transform.velocity.x *= -1;
                 if (n.transform.position.y < rect.y || n.transform.position.y > rect.y + rect.height) n.transform.velocity.y *= -1;
@@ -234,7 +271,7 @@ const ACTIONS = {
                 n.transform.acceleration.set(0, 0);
             }
         }
-        physicsMode.start(list, 1 / appData.physicsModeFrameRate);
+        physicsMode.start(list, dt);
     }
 
 }
@@ -252,6 +289,8 @@ document.addEventListener("keydown", (ev) => {
 });
 
 document.addEventListener("mousemove", (ev) => {
-    appData.cursorVelocity.set(ev.clientX, ev.clientY).sub(appData.cursorPos);
+    appData.dt = Date.now() - appData.lastTime;
+    appData.lastTime = Date.now();
+    appData.cursorVelocity.set(ev.clientX, ev.clientY).sub(appData.cursorPos).multiplyScalar(1 / appData.dt);
     appData.cursorPos.set(ev.clientX, ev.clientY);
 })

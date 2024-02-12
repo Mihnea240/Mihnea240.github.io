@@ -26,10 +26,6 @@ class Inspector extends HTMLElement{
         this.viewModeToggle = this.querySelector("select");
         this.viewModeToggle.addEventListener("change", ev => this.viewMode = ev.target.value);
 
-        /*this.nodeDetailsMenu = createOptionsMenu(nodeTemplates.default);
-        this.nodeDetailsMenu.closeOnClick = false;
-        this.viewTabs.node.appendChild(this.nodeDetailsMenu);
-        this.nodeDetailsMenu.show();*/
     }
 
 
@@ -38,31 +34,11 @@ class Inspector extends HTMLElement{
         switch (element.tagName) {
             case "GRAPH-NODE": {
                 this.viewMode = "node";
-                if (this.nodeDetailsMenu.get("details", "template") !== element.props.details.template) {
-                    this.nodeDetailsMenu = createOptionsMenu(nodeTemplates.default);
-                    this.nodeDetailsMenu.closeOnClick = false;
-    
-                    this.viewMode.textContent = "";
-                    this.viewMode.appendChild(this.nodeDetailsMenu);
-                    this.nodeDetailsMenu.show();
-                }
-
-                for (let category in element.props) {
-                    let props = element.props[category]; 
-                    for (let p in props) {
-                        this.nodeDetailsMenu.set(category, p, props[p]);
-                        if (p == "transform") {
-                            this.nodeDetailsMenu.set("physics", "position", props[p].position);
-                            this.nodeDetailsMenu.set("physics", "velocity", props[p].velocity);
-                            this.nodeDetailsMenu.set("physics", "acceleration", props[p].acceleration);
-                        }
-                    }
-                }
-                this.nodeDetailsMenu.show(0,0);
                 break;
             }
             case "GRAPH-TAB": {
                 this.viewMode = "graph";
+                
                 break;
             }
             case "GRAPH-EDGE": {
