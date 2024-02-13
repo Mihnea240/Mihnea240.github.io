@@ -77,7 +77,7 @@ class Graph {
         return this.a_nodeId;
     }
     /**@returns {NodeUI} */
-    addNode(options={}, addToStack = true) {
+    addNode(options = {}, addToStack = true) {
         options.nodeId ||= this.nextAvailableID();
         options.graphId ||= this.id;
         options.description ||= options.nodeId;
@@ -85,7 +85,7 @@ class Graph {
         this.nodes.set(options.nodeId, new Set());
         console.log(options);
         let newNode = this.tab.addNode(options);
-        
+
         if (addToStack) this.actionsStack.push(new AddNodesCommand(newNode.data()));
         return newNode;
     }
@@ -153,12 +153,13 @@ class Graph {
                 break;
             }
         }
+        let newEdge = this.tab.addEdge(props, this.type);
 
-        if (addToStack) this.actionsStack.push(new AddEdgesCommand(props));
+        if (addToStack) this.actionsStack.push(new AddEdgesCommand(newEdge.data()));
         this.edgeCount++;
 
 
-        return this.tab.addEdge(props, this.type);
+        return newEdge;
 
     }
     removeEdge(x, y, addToStack = true) {

@@ -73,12 +73,12 @@ class GroupCommands extends Command {
         return (c.constructor.name == "AddNodesCommand" || c.constructor.name == "RemoveNodesCommand");
     }
     redo(graph) {
-        for (let c of this.commands) if(this.condition(c))c.redo(graph);
-        for (let c of this.commands) if(!this.condition(c))c.redo(graph);
+        for (let c of this.commands) if (this.condition(c)) c.redo(graph);
+        for (let c of this.commands) if (!this.condition(c)) c.redo(graph);
     }
     undo(graph) {
-        for (let c of this.commands) if(this.condition(c))c.undo(graph), console.log(this);
-        for (let c of this.commands) if(!this.condition(c))c.undo(graph);
+        for (let c of this.commands) if (this.condition(c)) c.undo(graph), console.log(this);
+        for (let c of this.commands) if (!this.condition(c)) c.undo(graph);
     }
 }
 

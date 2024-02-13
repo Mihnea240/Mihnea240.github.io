@@ -21,10 +21,18 @@ class EdgeUI extends HTMLElement {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _edge_template;
-        /**@type {EdgeProps} */
-        this.props;
 
-        shadow.appendChild(this.curve = document.createElement("curved-path")); 
+        this.mode = "absolute";
+        this.symmetry = true;
+        this.from;
+        this.to;
+        this.graphId;
+        this._selected = false;
+        this._active = false;
+        this.focused = false;
+        this.custom = {};
+
+        shadow.appendChild(this.curve = document.createElement("curved-path"));
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (name == "symmetry") {
@@ -44,14 +52,13 @@ class EdgeUI extends HTMLElement {
     }
 
     update() {
-        let n1 = this.parentElement.getNode(this.fromNode), n2 = this.parentElement.getNode(this.toNode);
+        let n1 = this.parentElement.getNode(this.from), n2 = this.parentElement.getNode(this.to);
         this.curve.from = n1.anchor();
         this.curve.to = n2.anchor();
         this.curve.update();
     }
-    init(props,type) {
-        this.props = props;
-        this.id = `g${props.graphId} ${props.from} ${props.to}`;
+    init(props, type) {
+
         if (type === ORDERED) this.curve.addArrow();
 
         this.curve.p1.pos = this.props.p1;
@@ -59,12 +66,12 @@ class EdgeUI extends HTMLElement {
     }
     initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
         this.curve.fromCoords.copy(v1);
-        if (this.props.p1.magSq()==0) {
+        if (this.props.p1.magSq() == 0) {
             this.props.p1.set(v1.x, v1.y);
             this.curve.lfrom.set(v1.x, v1.y);
         }
         this.curve.toCoords.copy(v2);
-        if (this.props.p2.magSq()==0) {
+        if (this.props.p2.magSq() == 0) {
             this.props.p2.set(v2.x, v2.y);
             this.curve.lto.set(v2.x, v2.y);
         }
@@ -74,25 +81,36 @@ class EdgeUI extends HTMLElement {
     getBoundingClientRect() {
         return this.curve.paths[0].getBoundingClientRect();
     }
-    get graphId() { return this.props.graphId }
-    get toNode() { return this.props.to }
-    get fromNode() { return this.props.from }
 
-    set from(point) {this.curve.from = point}
-    get from() { return this.curve.from }
-    
-    set to(point) {this.curve.to = point}
-    get to() { return this.curve.to }
-    
-    set selected(flag) {
-        if (flag) this.classList.add("selected");
-        else this.classList.remove("selected");
-        this.props.states.selected = !!flag;
+    fromPosition(point) {
+        if (!point) return this.curve.from;
+        return this.curve.from = point
     }
-    get selected() { return this.props.states.selected; }
+    toPosition(point) {
+        if (!point) return this.curve.to;
+        return this.curve.from
+    }
 
-    set active(flag) {this.props.states.active = this.curve.selected = flag}
-    get active() {return this.props.states.active}
+    set selected(flag) {
+        this.classList.toggle("selected", flag);
+        this._selected = flag;
+    }
+    get selected() { return this._selected }
+
+    set active(flag) { this._active = this.curve.selected = flag }
+    get active() { return this._active }
+
+
+    data() {
+        return {
+            from: this.from,
+            to: this.to,
+            p1: this.p1,
+            p2: this.p2,
+            symmetry: this.symmetry,
+            mode: this.mode,
+        }
+    }
 }
 
 customElements.define("graph-edge", EdgeUI);
@@ -327,7 +345,7 @@ class BezierCurve extends HTMLElement {
 customElements.define("curved-path", BezierCurve);
 
 
-class EdgeProps{
+class EdgeProps {
     constructor(obj) {
         this.mode = "absolute";
         this.symmetry = true;
