@@ -18,14 +18,29 @@ class Inspector extends HTMLElement{
     constructor() {
         super();
         this.observed = null;
+    }
+
+    connectedCallback() {
         this.viewTabs = {
             graph: this.querySelector("[name='graph']"),
             node: this.querySelector("[name='node']"),
             edge: this.querySelector("[name='edge']"),
         }
-        this.viewModeToggle = this.querySelector("select");
-        this.viewModeToggle.addEventListener("change", ev => this.viewMode = ev.target.value);
+        this.activeTab = this.viewTabs.graph;
+        this.firstElementChild.addEventListener("click", (ev) => {
+            let name = ev.target.getAttribute("for");
+            console.log(name);
+            if (!name) return;
+            let el = this.querySelector(`.tabs [name='${name}']`);
+            if (!el) return;
 
+            this.activeTab.classList.add("hide");
+            this.firstElementChild.querySelector(`[for="${this.activeTab.getAttribute("name")}"]`).classList.remove("active");
+            el.classList.remove("hide");
+            ev.target.classList.add("active");
+            this.activeTab = el;
+            //ev.target.scrollIntoView()
+        })
     }
 
 
@@ -34,6 +49,9 @@ class Inspector extends HTMLElement{
         switch (element.tagName) {
             case "GRAPH-NODE": {
                 this.viewMode = "node";
+                let cat = CustomInputs.category("Node details",nodeInspectorTemplate);
+                this.viewTabs.node.appendChild(cat);
+                cat.load(element);
                 break;
             }
             case "GRAPH-TAB": {
@@ -46,22 +64,6 @@ class Inspector extends HTMLElement{
                 break;
             }
         }
-    }
-
-    set viewMode(mode) {
-        let newMode = this.viewTabs[mode];
-        let current = this.viewMode;
-        if (newMode === current) return;
-
-        current?.classList.add("hide");
-        newMode.classList.remove("hide");
-        this.viewTabs.active = newMode;
-        this.viewModeToggle.value = mode;
-    }
-    get viewMode() { return this.viewTabs.active }
-
-    connectedCallback() {
-        this.viewMode = "graph";
     }
 }
 

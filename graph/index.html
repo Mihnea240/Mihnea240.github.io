@@ -35,11 +35,8 @@
             <button onclick="savePotrocol()">Save</button>
         </pop-menu>
         
-        <button for="node templates">Node templates</button>
-        <pop-menu name="node templates"></pop-menu>
-
-        <button for="edge templates">Edge templates</button>
-        <pop-menu name="edge templates"></pop-menu>
+        <button for="templates">Templates</button>
+        <pop-menu name="templates"></pop-menu>
 
         <button for="view">View</button>
         <dialog id="file-dialog">
@@ -64,15 +61,14 @@
         <button class="new-graph" style="font-size: 1.3em;">+</button>
     </div>
 
-    <div class="tab-area" draggable="false"></div>
+    <div class="tab-area" draggable="false">
+    </div>
     <graph-inspector id="inspector">
         <div>
-            Viewing <span></span>
-            <select>
-                <option value="graph">Graph View</option>
-                <option value="node" >Node View</option>
-                <option value="edge" >Edge View</option>
-            </select>
+            <div for="graph">Graph</div>
+            <div for="node">Node</div>
+            <div for="edge">Edge</div>
+            <div>Conex components</div>
         </div>
         <div class="tabs">
             <div class="hide" name="graph">1</div>

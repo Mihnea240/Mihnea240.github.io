@@ -40,6 +40,8 @@ class NodeUI extends HTMLElement{
 
     init(props) {
         mergeDeep(this, props);
+        this.getTemplate().load(this);
+
         this.update(false);
     }
     
@@ -56,7 +58,8 @@ class NodeUI extends HTMLElement{
     
     initCurve() {
         this.parentElement.curve.classList.remove("hide");
-        this.parentElement.curve.from = this.parentElement.curve.to = this.relativePosition(0.5, 0.5, NodeUI._p);
+        let p = this.relativePosition(0.5, 0.5, NodeUI._p);
+        this.parentElement.curve.fromPosition(p);
         this.new_node_protocol = true;
     }
     relativePosition(x = 0, y = 0, point = new Point()) {
@@ -104,10 +107,10 @@ class NodeUI extends HTMLElement{
             this.focused = false;
         },{once: true})
     }
-    data() {
+    toJSON() {
         return {
             nodeId: this.nodeId,
-            template: this.templatem,
+            template: this.template,
             isStatic: this.isStatic,
             mass: this.mass,
             description: this.description,
@@ -125,11 +128,34 @@ class NodeTemplate{
     static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
 
     constructor(name,styles,data) {
-        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{`+ styles+"}");
+        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{` + styles + "}");
+        this.name = name;
+        
         this.anchor = { x: 0.5, y: 0.5 };
         this.viewMode = "description";
         mergeDeep(this, data);
 
         NodeTemplate.map.set(name, this);
+    }
+    load(node) {
+        node.viewMode = this.viewMode;
+        node.transform.size.set(25, 25);
+    }
+    set style(data) {
+        this.id = NodeTemplate.styleSheet.insertRule(data);
+    }
+
+    get style() {
+        return NodeTemplate.styleSheet.cssRules[this.id];
+    }
+
+    toJSON() {
+        return {
+            name: this.name,
+            anchor: this.anchor,
+            viewMode: this.viewMode,
+            custom: this.custom,
+            css: this.style.cssText,
+        }
     }
 }

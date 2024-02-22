@@ -38,7 +38,7 @@ class GraphSelection {
     }
 
     deleteNodes() {
-        let g = this.getGraph(), commands = [];
+        let g = this.getGraph();
         g.actionsStack.startGroup();
         for (let n of this.nodeSet) g.removeNode(n.nodeId), console.log(g.actionsStack.top());
         g.actionsStack.endGroup();
@@ -46,14 +46,14 @@ class GraphSelection {
     deleteEdges() {
         let g = this.getGraph();
         g.actionsStack.startGroup();
-        for (let e of this.edgeSet) g.removeEdge(e.fromNode, e.toNode);
+        for (let e of this.edgeSet) g.removeEdge(e.from, e.to);
         g.actionsStack.endGroup();
     }
     deleteAll() {
         let g = this.getGraph();
         g.actionsStack.startGroup();
+        for (let e of this.edgeSet) g.removeEdge(e.from, e.to);
         for (let n of this.nodeSet) g.removeNode(n.nodeId);
-        for (let e of this.edgeSet) g.removeEdge(e.fromNode, e.toNode);
         g.actionsStack.endGroup();
     }
     getGraph() {
@@ -81,9 +81,9 @@ class GraphSelection {
             nodes: [],
             edges: [],
         }
-        for (let n of this.nodeSet) data.nodes.push(n.data());
-        for (let e of this.edgeSet) data.edges.push(e.data());
-        return JSON.stringify(data);
+        for (let n of this.nodeSet) data.nodes.push(n.toJSON());
+        for (let e of this.edgeSet) data.edges.push(e.toJSON());
+        return data;
     }
 
     static parseFromJSON(obj) {

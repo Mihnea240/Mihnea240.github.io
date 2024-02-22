@@ -1,146 +1,25 @@
-
-const _edge_template = /* html */`
-    <style>
-        :host{
-            position: absolute;
-            pointer-events: stroke;
-        }
-        :host(.selected) {
-            filter:
-                drop-shadow(0 0 var(--edge-emission) var(--graph-main-color))
-                drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color))
-                drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color))
-            ;
-        }
-    </style>
-`.trim();
-
-class EdgeUI extends HTMLElement {
-    static observedAttributes = ["symmetry", "mode"];
-    constructor() {
-        super();
-        const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML = _edge_template;
-
-        this.mode = "absolute";
-        this.symmetry = true;
-        this.from;
-        this.to;
-        this.graphId;
-        this._selected = false;
-        this._active = false;
-        this.focused = false;
-        this.custom = {};
-
-        shadow.appendChild(this.curve = document.createElement("curved-path"));
-    }
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (name == "symmetry") {
-            let val = false;
-            if (newValue == "true") val = true;
-            else if (newValue == "false") val = false;
-            else if (newValue) val = true;
-
-            this.curve.symmetry = val;
-            this.props.symmetry = val;
-        }
-        if (name == "mode") {
-            if (newValue == "relative") this.curve.tf = BezierCurve.translationFunctions.relativeTranslation;
-            else if (newValue == "absolute") this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
-            this.props.mode = newValue;
-        }
-    }
-
-    update() {
-        let n1 = this.parentElement.getNode(this.from), n2 = this.parentElement.getNode(this.to);
-        this.curve.from = n1.anchor();
-        this.curve.to = n2.anchor();
-        this.curve.update();
-    }
-    init(props, type) {
-
-        if (type === ORDERED) this.curve.addArrow();
-
-        this.curve.p1.pos = this.props.p1;
-        this.curve.p2.pos = this.props.p2;
-    }
-    initPos(v1, v2, offset1 = Point.ORIGIN, offset2 = offset1) {
-        this.curve.fromCoords.copy(v1);
-        if (this.props.p1.magSq() == 0) {
-            this.props.p1.set(v1.x, v1.y);
-            this.curve.lfrom.set(v1.x, v1.y);
-        }
-        this.curve.toCoords.copy(v2);
-        if (this.props.p2.magSq() == 0) {
-            this.props.p2.set(v2.x, v2.y);
-            this.curve.lto.set(v2.x, v2.y);
-        }
-        this.curve.update();
-    }
-
-    getBoundingClientRect() {
-        return this.curve.paths[0].getBoundingClientRect();
-    }
-
-    fromPosition(point) {
-        if (!point) return this.curve.from;
-        return this.curve.from = point
-    }
-    toPosition(point) {
-        if (!point) return this.curve.to;
-        return this.curve.from
-    }
-
-    set selected(flag) {
-        this.classList.toggle("selected", flag);
-        this._selected = flag;
-    }
-    get selected() { return this._selected }
-
-    set active(flag) { this._active = this.curve.selected = flag }
-    get active() { return this._active }
-
-
-    data() {
-        return {
-            from: this.from,
-            to: this.to,
-            p1: this.p1,
-            p2: this.p2,
-            symmetry: this.symmetry,
-            mode: this.mode,
-        }
-    }
-}
-
-customElements.define("graph-edge", EdgeUI);
-
-
 const _curve_template =/* html */`
      <style>
-        :host{
-            position: absolute;
-            
-        }
-        .hide{display: none};
-        .curve,svg,path{
+        .svg, path{
             position: absolute;
             pointer-events: stroke;
-        }
-        .curve path,.curve line{
-            background-color: rgba(255,255,255);
             stroke: var(--edge-color);
         }
-        .visible{
+        #curve{
+            position: absolute;
+            stroke: var(--edge-color);
+            fill: transparent;
+        }
+        #visible{
             stroke-width: var(--edge-width);
             z-index: 1;
         }
-        .hit-area{
+        #hit-area{
             stroke-width: calc(5*var(--edge-width));
             stroke-opacity: 0;
-            z-index: 11;
+            z-index: 2;
         }
-        .hit-area:hover{
+        #hit-area:hover{
             stroke-opacity: 0.4;
             cursor: pointer;
         }
@@ -150,219 +29,334 @@ const _curve_template =/* html */`
             aspect-ratio: 1;
             background-color: var(--edge-color);
             border-radius: 100%;
-            transform: translate(-50%,-50%) rotate(90deg);
+            translate: -50% -50%;
             user-select:none;
 
             outline: 2px solid gray;
             outline-offset: calc(var(--point-width,10px)/-3);
             z-index: 101;
         }
-        .arrow{
-            position: absolute;
-            fill: var(--arrow-color,var(--edge-color));
-            width: calc(15px + 0.8*var(--edge-width));
-            aspect-ratio:1;
-            overflow: visible;
-        }
     </style>
 
-    <div class="point" draggable="false"></div>
-    <div class="point" draggable="false"></div>
-    <svg class="curve" width="40" height="20" draggable="false" fill="none" overflow="visible" part="svg" >
-        <path class="visible"/>
-        <path class="hit-area" />
-        <line/>
-        <line/>
+    <svg id="curve" overflow="visible">
+        <path id="visible"></path>
+        <path id="hit-area"></path>
     </svg>
 `.trim();
 
 class BezierCurve extends HTMLElement {
+    static activeEvent = new CustomEvent("curveselect", { composed: true, bubbles: true });
+    static observedAttributes = ["symmetry", "mode"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML = _curve_template;
+        
+        this.shadowRoot.innerHTML = _curve_template;
+        this.fromCoords = new Point();
+        this.toCoords = new Point();
+        this.P1 = new Point();
+        this.P2 = new Point();
+        this.a1 = new Point();
+        this.a2 = new Point();
+        this.a3 = new Point();
+        this.lastDirection = new Point();
+        this.polar = {
+            P1: new Point(),
+            P2: new Point()
+        }
 
-        this.fromCoords = new Point(0, 0);
-        this.toCoords = new Point(0, 0);
-        this.lfrom = new Point(0, 0);
-        this.lto = new Point(0, 0);
+        this.tf = BezierCurve.absoluteTranslation;
+        this.symmetry = 0;
+        this._active = false;
 
-        [this.p1, this.p2] = shadow.querySelectorAll("div");
-        [this.l1, this.l2] = shadow.querySelectorAll("line");
 
-        this.paths = shadow.querySelectorAll("path");
-        this.p1.pos = new Point(0, 0);
-        this.p2.pos = new Point(0, 0);
-        this.p1.mag = 0;
-        this.p2.mag = 0;
-        this.tf = BezierCurve.translationFunctions.absoluteTranslation;
-        this.symmetry = true;
-
-        this.auxP = new Point();
-        this.auxPP = new Point();
-        addCustomDrag(this.p1, {
-            onmove: (ev, delta) => {
-                ev.stopPropagation(); ev.stopImmediatePropagation();
-                this.p1.pos.translate(delta.x, delta.y);
-                this.updateP1();
-                if (this.symmetry) {
-                    this.p2.pos.translate(-delta.x, -delta.y);
-                    this.updateP2();
-                }
-                this.update();
-            }
-        })
-        addCustomDrag(this.p2, {
-            onmove: (ev, delta) => {
-                ev.stopPropagation(); ev.stopImmediatePropagation();
-                this.p2.pos.translate(delta.x, delta.y);
-                this.updateP2();
-                if (this.symmetry) {
-                    this.p1.pos.translate(-delta.x, -delta.y);
-                    this.updateP1();
-                }
-                this.update();
-            }
-        })
-        this.selectEvent = new CustomEvent("curveselect", {
-            composed: true,
-            bubbles: true,
-            detail: {}
-        })
-        this.selected = false;
+        this.controlPoints = {};
     }
-
-    updateP1() {
-        this.p1.mag = this.auxP.copy(this.p1.pos).sub(this.fromCoords).mag();
-        this.p1.angle = Point.angle2(this.auxPP.copy(this.toCoords).sub(this.fromCoords), this.auxP) || 0;
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name == "symmetry") {
+            this.symmetry = parseInt(newValue);
+        }
+        if (name == "mode") {
+            if (newValue == "relative") this.tf = BezierCurve.relativeTranslation;
+            else if (newValue == "absolute") this.tf = BezierCurve.absoluteTranslation;
+        }
     }
-    updateP2() {
-        this.p2.mag = this.auxP.copy(this.p2.pos).sub(this.toCoords).mag();
-        this.p2.angle = Point.angle2(this.auxPP.copy(this.fromCoords).sub(this.toCoords), this.auxP) || 0;
+    toggleControlPoints() {
+        if (this.active) {
+            for (let k in this.controlPoints) this.controlPoints[k].remove?.();
+            return this.controlPoints = {};   
+        }
+        let namespace = this.shadowRoot.querySelector("#curve").namespaceURI;
+        
+        this.controlPoints.p1 = this.shadowRoot.appendChild(elementFromHtml(`<div class="point" draggable="false"></div>`));
+        this.controlPoints.p2 = this.shadowRoot.appendChild(elementFromHtml(`<div class="point" draggable="false"></div>`));
+        this.controlPoints.l1 = this.shadowRoot.querySelector("svg").appendChild(document.createElementNS(namespace,"line"));
+        this.controlPoints.l2 = this.shadowRoot.querySelector("svg").appendChild(document.createElementNS(namespace,"line"));
+        addCustomDrag(this.controlPoints.p1, { onmove: (ev, delta) => { ev.stopPropagation(); ev.stopImmediatePropagation(); this.translateP1(delta) } });
+        addCustomDrag(this.controlPoints.p2, { onmove: (ev, delta) => { ev.stopPropagation(); ev.stopImmediatePropagation(); this.translateP2(delta) } });
     }
 
     update() {
-        let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.p1.pos.x} ${this.p1.pos.y}, ${this.p2.pos.x} ${this.p2.pos.y}, ${this.toCoords.x} ${this.toCoords.y}`;
+        let new_val = `M ${this.fromCoords.x} ${this.fromCoords.y} C${this.P1.x} ${this.P1.y}, ${this.P2.x} ${this.P2.y}, ${this.toCoords.x} ${this.toCoords.y}`;
+        this.shadowRoot.querySelectorAll("#hit-area, #visible").forEach(p => p.setAttribute("d", new_val));
 
-        this.paths.forEach(p => p.setAttribute("d", new_val));
-        this.p1.style.cssText += `transform: translate(${this.p1.pos.x}px, ${this.p1.pos.y}px);`
-        this.p2.style.cssText += `transform: translate(${this.p2.pos.x}px, ${this.p2.pos.y}px);`
+        if (this.active) {
+            this.controlPoints.p1.style.cssText += `transform: translate(${this.P1.x}px, ${this.P1.y}px);`
+            this.controlPoints.p2.style.cssText += `transform: translate(${this.P2.x}px, ${this.P2.y}px);`
+    
+            this.controlPoints.l1.setAttribute("x1", this.fromCoords.x);
+            this.controlPoints.l1.setAttribute("y1", this.fromCoords.y);
+            this.controlPoints.l1.setAttribute("x2", this.P1.x);
+            this.controlPoints.l1.setAttribute("y2", this.P1.y);
+    
+            this.controlPoints.l2.setAttribute("x1", this.toCoords.x);
+            this.controlPoints.l2.setAttribute("y1", this.toCoords.y);
+            this.controlPoints.l2.setAttribute("x2", this.P2.x);
+            this.controlPoints.l2.setAttribute("y2", this.P2.y);
+        }
 
-        this.l1.setAttribute("x1", this.fromCoords.x);
-        this.l1.setAttribute("y1", this.fromCoords.y);
-        this.l1.setAttribute("x2", this.p1.pos.x);
-        this.l1.setAttribute("y2", this.p1.pos.y);
+    }
 
-        this.l2.setAttribute("x1", this.toCoords.x);
-        this.l2.setAttribute("y1", this.toCoords.y);
-        this.l2.setAttribute("x2", this.p2.pos.x);
-        this.l2.setAttribute("y2", this.p2.pos.y);
+    f(t = 0, point=new Point()) {
+        if (t > 1) t = 1;
+        return point.set(
+            ((1 - t) ** 3) * this.fromCoords.x + 3 * t * ((1 - t) ** 2) * this.P1.x + 3 * (t ** 2) * (1 - t) * this.P2.x + (t ** 3) * this.toCoords.x,
+            ((1 - t) ** 3) * this.fromCoords.y + 3 * t * ((1 - t) ** 2) * this.P1.y + 3 * (t ** 2) * (1 - t) * this.P2.y + (t ** 3) * this.toCoords.y,
+        )
+    }
 
-        if (this.arrow) {
-            let middle = this.f(0.5), slope = this.df(0.5);
-            this.arrow.style.cssText = `
-                left: ${middle.x}px; top: ${middle.y}px; 
-                transform-origin: 0 0;
-                transform: rotate(${Math.atan2(slope.y, slope.x) * Math.rad2Deg}deg) translate(-50%,-50%);
-            `;
+    df(t = 0, point=new Point()) {
+        return point.set(
+            ((3 * (1 - t) ** 2) * (this.P1.x - this.fromCoords.x) + 6 * (1 - t) * t * (this.P2.x - this.P1.x) + 3 * t ** 3 * (this.toCoords.x - this.P2.x)),
+            ((3 * (1 - t) ** 2) * (this.P1.y - this.fromCoords.y) + 6 * (1 - t) * t * (this.P2.y - this.P1.y) + 3 * t ** 3 * (this.toCoords.y - this.P2.y))
+        )
+    }
+
+    length() {
+        this.auxPP.copy(this.fromCoords);
+        let length = 0;
+        for (let t = 0.1; t < 1; t+=0.1){
+            length += this.auxPP.sub(this.f(t)).mag();
+            this.auxPP.copy(this.auxP);
+        }
+        return length;
+    }
+
+    direction(point=new Point()) {
+        return point.copy(this.toCoords).sub(this.fromCoords).normalize();
+    }
+
+    fromPosition(p, update=true) {
+        if (!p) return this.fromCoords;
+        let x = p.x - this.fromCoords.x, y = p.y - this.fromCoords.y;
+        this.fromCoords.set(p.x, p.y);
+        this.tf(this, 0, x, y);
+        
+        if (update) this.update();
+    }
+    translateFrom(p, update = true) { this.fromPosition(this.a3.copy(this.fromCoords).add(p), update) }
+    
+    toPosition(p, update = true) {
+        if (!p) return this.toCoords;
+        let x = p.x - this.toCoords.x, y = p.y - this.toCoords.y;
+        this.toCoords.set(p.x, p.y);
+        this.tf(this, 1, x, y);
+        
+        if (update) this.update();
+    }
+    translateTo(p, update = true) { this.fromPosition(this.a3.copy(this.toCoords).add(p), update) }
+
+
+
+    p1Position(p, update = true) {
+        if (!p) return this.P1;
+        if (this.symmetry) {
+            this.P2.add(this.a2.copy(p).sub(this.P1).multiplyScalar(this.symmetry));
+            this.pointData();
+        }else this.pointData(1);
+        this.P1.set(p.x, p.y);
+        if (update) this.update();
+    }
+    translateP1(p, update = true) { this.p1Position(this.a1.copy(this.P1).add(p), update); }
+    
+    p2Position(p, update = true) {
+        if (!p) return this.P2;
+        if (this.symmetry) {
+            this.P1.add(this.a1.copy(p).sub(this.P2).multiplyScalar(this.symmetry));
+            this.pointData();
+        }else this.pointData(2);
+        this.P2.set(p.x, p.y);
+        if (update) this.update();
+    }
+    translateP2(p, update = true) { this.p2Position(this.a2.copy(this.P2).add(p), update); }
+    
+    relativeP1(point=new Point()) {
+        return point.copy(this.P1).sub(this.fromCoords);
+    }
+    relativeP2(point=new Point()) {
+        return point.copy(this.P2).sub(this.toCoords);
+    }
+
+    pointData(p) {
+        let dir = this.direction();
+        if (p != 2) {
+            this.relativeP1(this.a3);
+            this.polar.P1.set(Point.angle2(dir, this.a3) || 0, this.a3.mag());
+        }
+        if (p != 1) {
+            this.relativeP2(this.a3);
+            dir.multiplyScalar(-1);
+            this.polar.P2.set(Point.angle2(dir, this.a3)|| 0, this.a3.mag());
         }
     }
 
-    addArrow() {
-        this.arrow = this.shadowRoot.appendChild(
-            elementFromHtml(`
-            <svg viewBox="0 0 256 512" class="arrow">
-                <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128"/>
-            </svg>
-            `)
-        );
+    set active(flag) {
+        if (this._active == !!flag) return;
+        this.toggleControlPoints();
+        this._active = !!flag;
         this.update();
+        this.dispatchEvent(BezierCurve.activeEvent);
     }
+    get active() { return this._active }
 
-    f(t = 0) {
-        if (t > 1) t = 1;
-        return new Point(
-            ((1 - t) ** 3) * this.from.x + 3 * t * ((1 - t) ** 2) * this.p1.pos.x + 3 * (t ** 2) * (1 - t) * this.p2.pos.x + (t ** 3) * this.to.x,
-            ((1 - t) ** 3) * this.from.y + 3 * t * ((1 - t) ** 2) * this.p1.pos.y + 3 * (t ** 2) * (1 - t) * this.p2.pos.y + (t ** 3) * this.to.y,
-        )
+    /**@param {BezierCurve} curve */
+    static absoluteTranslation(curve, p, x=0, y=0){
+        if (p == 0) curve.P1.translate(x, y);
+        else curve.P2.translate(x, y);
     }
+    /**@param {BezierCurve} curve */
+    static relativeTranslation(curve, p){
+        let dir1 = curve.direction(curve.a3);
+        let dir2 = curve.a2.copy(dir1).multiplyScalar(-1);
 
-    df(t = 0) {
-        return new Point(
-            ((3 * (1 - t) ** 2) * (this.p1.pos.x - this.from.x) + 6 * (1 - t) * t * (this.p2.pos.x - this.p1.pos.x) + 3 * t ** 3 * (this.to.x - this.p2.pos.x)),
-            ((3 * (1 - t) ** 2) * (this.p1.pos.y - this.from.y) + 6 * (1 - t) * t * (this.p2.pos.y - this.p1.pos.y) + 3 * t ** 3 * (this.to.y - this.p2.pos.y))
-        )
-    }
-
-
-
-
-    set from({ x, y }) {
-        this.lfrom.copy(this.fromCoords);
-        this.fromCoords.set(x, y);
-        this.tf(this, 0);
-        this.update();
-    }
-    get from() { return this.fromCoords }
-    set to({ x, y }) {
-        this.lto.copy(this.toCoords);
-        this.toCoords.set(x, y);
-        this.tf(this, 1);
-        this.update();
-    }
-    get to() { return this.toCoords };
-
-    set selected(flag) {
-        this.select = !!flag;
-        this.selectEvent.detail.selected = this.select;
-        this.dispatchEvent(this.selectEvent);
-
-        this.p1.classList.toggle("hide", !flag);
-        this.l1.classList.toggle("hide", !flag);
-        this.p2.classList.toggle("hide", !flag);
-        this.l2.classList.toggle("hide", !flag);
-    }
-    get selected() { return this.select }
-
-    static translationFunctions = {
-        /**@param {BezierCurve} curve */
-        absoluteTranslation: (curve, p) => {
-            if (p == 0) curve.p1.pos.translate(curve.fromCoords.x - curve.lfrom.x, curve.fromCoords.y - curve.lfrom.y);
-            else curve.p2.pos.translate(curve.toCoords.x - curve.lto.x, curve.toCoords.y - curve.lto.y);
-        },
-        /**@param {BezierCurve} curve */
-        relativeTranslation: (curve, p) => {
-            let middle = new Point().copy(curve.toCoords).add(curve.fromCoords).multiplyScalar(0.5);
-            let dir1 = new Point().copy(middle).sub(curve.fromCoords).normalize();
-            let dir2 = new Point().copy(middle).sub(curve.toCoords).normalize();
-
-            curve.p1.pos.copy(curve.fromCoords).add(dir1.rotateAround(curve.p1.angle || 0).multiplyScalar(curve.p1.mag));
-            curve.p2.pos.copy(curve.toCoords).add(dir2.rotateAround(curve.p2.angle || 0).multiplyScalar(curve.p2.mag));
-        },
+        curve.P1.copy(curve.fromCoords).add(dir1.rotateAround(curve.polar.P1.x).multiplyScalar(curve.polar.P1.y));
+        curve.P2.copy(curve.toCoords).add(dir2.rotateAround(curve.polar.P2.x).multiplyScalar(curve.polar.P2.y));
     }
 }
 
 customElements.define("curved-path", BezierCurve);
 
 
-class EdgeProps {
-    constructor(obj) {
-        this.mode = "absolute";
-        this.symmetry = true;
+class EdgeUI extends BezierCurve {
+    constructor() {
+        super();
+
+        this.template = "default";
         this.from;
         this.to;
         this.graphId;
-        this.p1 = new Point();
-        this.p2 = new Point();
+        this._selected = false;
+        this._active = false;
+        this.focused = false;
         this.custom = {};
-        this.states = {
-            selected: false,
-            active: false,
-        }
-
-        if (obj) mergeDeep(this, obj);
+        this.offset = 0;
     }
-    copy() {
-        return Object.assign(new EdgeProps(), JSON.parse(JSON.stringify(this)));
+
+    init({ p1, p2, ...props }, v1, v2,update=true) {
+        mergeDeep(this, props);
+        EdgeTemplate.get(this.template ||= "default").load(this);
+
+        this.fromCoords.copy(v1);
+        this.toCoords.copy(v2);
+        this.P1.copy(v1); 
+        this.P2.copy(v2);
+        
+        if (p1) this.P1.add(p1);
+        
+        if (p2) this.P2.add(p2);
+        
+        this.pointData();
+
+        if(update)this.update();
+    }
+    update() {
+        if (this.arrow) {
+            let middle = this.f(0.5), slope = this.df(0.5);
+            this.arrow.style.cssText += `    
+                left: ${middle.x}px;  top: ${middle.y}px;
+                transform: rotate(${Math.atan2(slope.y,slope.x)}rad);
+            `
+        }
+        super.update();
+    }
+
+    addArrow() {
+        this.arrow = this.shadowRoot.appendChild(elementFromHtml(`
+        <svg viewBox="0 0 256 512" part="arrow">
+            <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128"></path>
+        </svg>
+        `))
+    }
+
+    set template(string) {this.setAttribute("template", string);}
+    get template() { return this.getAttribute("template"); }
+
+    getBoundingClientRect() {
+        return this.shadowRoot.querySelector("path").getBoundingClientRect();
+    }
+
+    getTemplate() {
+        return EdgeTemplate.get(this.template);
+    }
+
+    set selected(flag) {
+        this.classList.toggle("selected", flag);
+        this._selected = flag;
+    }
+    get selected() { return this._selected }
+
+    toJSON() {
+        return {
+            from: this.from,
+            to: this.to,
+            p1: this.relativeP1(),
+            p2: this.relativeP2(),
+            symmetry: this.symmetry,
+            mode: this.mode,
+        }
+    }
+}
+
+customElements.define("graph-edge", EdgeUI);
+
+
+class EdgeTemplate{
+    /**@type {Map<string,NodeTemplate>} */
+    static map = new Map();
+    static get(name) { return EdgeTemplate.map.get(name) }
+    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
+
+    constructor(name,styles,data) {
+        this.id = EdgeTemplate.styleSheet.insertRule(`graph-edge[template="${name}"]{` + styles + "}");
+        this.name = name;
+
+        this.mode = "absolute";
+        this.symmetry = -1;
+        this.arrowAnchor = 0.5;
+        this.offsetWhenOverlapping = 30;
+        this.pointOffsetWhenOverlapping = 0;
+        
+        mergeDeep(this, data);
+
+        EdgeTemplate.map.set(name, this);
+    }
+    load(edge) {
+        edge.setAttribute("mode", this.mode);
+        edge.symmetry = this.symmetry;
+    }
+    set style(data) {
+        this.id = EdgeTemplate.styleSheet.insertRule(data);
+    }
+
+    get style() {
+        return EdgeTemplate.styleSheet.cssRules[this.id];
+    }
+
+    toJSON() {
+        return {
+            name: this.name,
+            custom: this.custom,
+            css: this.style.cssText,
+        }
     }
 }

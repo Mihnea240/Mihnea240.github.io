@@ -5,27 +5,9 @@ window.onload = () => {
 
     let storedGraphs = JSON.parse(sessionStorage.getItem("stored-graphs"));
     let appSettings = JSON.parse(sessionStorage.getItem("app-data"));
-    let templates = JSON.parse(sessionStorage.getItem("templates"));
-    
-    if (storedGraphs?.length) {
-        for (let i of storedGraphs) createGraph(i);
-    } else createGraph();
+    let nodeTemplates = JSON.parse(sessionStorage.getItem("nodeTemplates"));
+    let edgeTemplates = JSON.parse(sessionStorage.getItem("edgeTemplates"));
 
-    window.appData = {
-        cursorPos: new Point(),
-        cursorVelocity: new Point(),
-        dt: 0,
-        lastTime:0,
-        physicsSettings: {
-            frameRate: 24,
-            gravity: 0,
-            spring: 0.01,
-            springIdealLength: 200,
-            energyLoss: 0.2,
-            drag: 0.01,
-            interactions: "All",
-        },
-    }
     if (appSettings) {
         mergeDeep(appData, appSettings);
         appData.physicsSettings.spring /= 100;
@@ -33,19 +15,51 @@ window.onload = () => {
     mergeDeep(physicsMode, appData.physicsSettings);
     greatMenus.forceMenu.querySelector(".category").load(appData.physicsSettings);
 
-    if (templates) {
-        
-    } else {
-        let d = new NodeTemplate("default", nodeDefaultTemplate);
-    }
+    if (nodeTemplates?.length) {
+        for (const t of nodeTemplates) new NodeTemplate(t.name, "", t);
+    } else new NodeTemplate("default", nodeDefaultTemplate);
+    
+    if (edgeTemplates?.length) {
+        for (const t of edgeTemplates) new EdgeTemplate(t.name, "", t);
+    } else  new EdgeTemplate("default", edgeDefaultTemplate);
+
+
+    if (storedGraphs?.length) {
+        for (let i of storedGraphs) createGraph(i);
+    } else createGraph();
 }
 window.onbeforeunload = (ev) => {
     let array = [];
-    for (let [key, value] of Graph.graphMap)array.push(value.dataTemplate());
+    for (let [key, value] of Graph.graphMap)array.push(value.toJSON());
     sessionStorage.setItem("stored-graphs", JSON.stringify(array));
-    appData.physicsSettings = physicsMode.getSettings();
 
+    appData.physicsSettings = physicsMode.getSettings();
     sessionStorage.setItem("app-data", JSON.stringify(appData));
+    array = [];
+    
+    for (const [_,t] of NodeTemplate.map) array.push(t);
+    sessionStorage.setItem("nodeTemplates", JSON.stringify(array));
+    array = [];
+
+    for (const [_,t] of EdgeTemplate.map) array.push(t);
+    sessionStorage.setItem("edgeTemplates", JSON.stringify(array));
+    array = [];
+
+}
+const appData = {
+    cursorPos: new Point(),
+    cursorVelocity: new Point(),
+    dt: 0,
+    lastTime:0,
+    physicsSettings: {
+        frameRate: 24,
+        gravity: 0,
+        spring: 0.01,
+        springIdealLength: 200,
+        energyLoss: 0.2,
+        drag: 0.01,
+        interactions: "All",
+    },
 }
 
 const physicsMode = new PhysicsMode();
@@ -180,17 +194,14 @@ const ACTIONS = {
         let g = Graph.selected;
 
         if (g.selection.empty()) {
-            let data = JSON.stringify(Graph.selected.dataTemplate());
-
-            navigator.clipboard.writeText(data).then(
+            navigator.clipboard.writeText(JSON.stringify(g)).then(
                 (resolve) => {
-                    alert(`Moved copy of "${Graph.selected.settings.graph.name}" to clipboard \n`);
+                    alert(`Moved copy of "${g.settings.graph.name}" to clipboard \n`);
                 },
                 (error) => console.log(error)
             )
         } else {
-            let data = g.selection.toJSON();
-            navigator.clipboard.writeText(data).then(
+            navigator.clipboard.writeText(JSON.stringify(g.selection)).then(
                 (resolve) => {
                     alert(`Copied selection\n`);
                 },

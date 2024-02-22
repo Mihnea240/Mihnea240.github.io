@@ -110,6 +110,13 @@ class Point {
     cross({ x, y }) {
         return this.x * y - x * this.y;
     }
+    setMag(mag) {
+        return this.normalize().multiplyScalar(mag);
+    }
+    setDirection(dir) {
+        let mag = this.mult(dir);
+        return this.copy(dir).setMag(mag);
+    }
     rotateAround(angle, { x, y }=Point.ORIGIN) {
         //cos -sin x
         //sin  cos y

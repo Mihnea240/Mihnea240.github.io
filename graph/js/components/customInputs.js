@@ -1,10 +1,11 @@
 class TextInput extends HTMLElement{
-    static observedAttributes = ["inputmode","allownewline"];
+    static observedAttributes = ["inputmode","allownewline","readonly","value"];
     constructor() {
         super();
         this.oldValue = "";
         this.isNumber = false;
         this._value = "";
+        this.contentEditable = true;
 
         this.addEventListener("keydown", (ev) => {
             switch (ev.key) {
@@ -20,7 +21,7 @@ class TextInput extends HTMLElement{
             return true;
         })
         this.addEventListener("input", (ev) => {
-            console.log(this.innerHTML.replace("</div>", "").replace("<div>", "\n"));
+            this.innerHTML.replace("</div>", "").replace("<div>", "\n");
             //this.value = this.innerText;
         })
         this.addEventListener("blur", (ev) => {
@@ -59,11 +60,14 @@ class TextInput extends HTMLElement{
             case "inputmode": this.isNumber = Boolean(newValue === "numeric" || newValue === "decimal"); break;
             case "allownewline": this.allownewline = !!newValue; break;
             case "value": this.value = newValue; break;
+            case "readonly": {
+                if (newValue === "true" || newValue === true) this.setAttribute("contenteditable", false),console.log("dfmdk");
+                else this.setAttribute("contenteditable", true);
+            }
         }
     }
 
     connectedCallback() {
-        this.contentEditable = true;
         this.value = this.getAttribute("value") || "";
     }
 
@@ -151,6 +155,9 @@ class CustomInputs{
     }
     static button(name,template) {
         return CustomInputs.initTemplate(name, template, "", "button");
+    }
+    static textarea(name, template) {
+        return CustomInputs.initTemplate(name, template, elementFromHtml("<textarea></textarea>"));
     }
 
     static category(name, {display="", categoryCollapse = true,condition, ...rest }) {

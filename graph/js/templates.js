@@ -156,15 +156,22 @@ const defaultSettingsTemplate = {
 const nodeDefaultTemplate = `
     background-color: #242424;
     color: #ffffff;
-    border-radius: 0;
+    border-radius: 100px;
     border-width: 1px;
     border-style: solid;
     border-color: #ffffff;
 `.trim();
 
+const edgeDefaultTemplate = `
+    width: 1px;
+    background-color: #ffffff;
+    --emmision: 10px;
+`
+
 const actionMenuTemplate = {
     categoryCollapse: false,
     "Graph actions": {
+        categoryCollapse: false,
         condition(ev){return ev.target.matches(".graph-header")},
         rename: {
             type: "button",
@@ -184,6 +191,7 @@ const actionMenuTemplate = {
         }
     },
     "Selection actions": {
+        categoryCollapse: false,
         condition(ev){return ev.target.matches("graph-tab")},
         "Delete Nodes": {
             type: "button",
@@ -324,9 +332,22 @@ const nodeInspectorTemplate = {
         readonly: true,
     },
     description: {
-        type: "text",
+        type: "textarea",
     },
     static: {
-        
+        type: "checkbox"
+    },
+    mass: {
+        type: "number",
+        max: 100000,
+    },
+    degree: {
+        type: "number",
+        readonly: "true",
+    },
+    template: {
+        type: "text",
+        readonly: true,
     }
+
 }

@@ -126,11 +126,11 @@ graph-tab{
     --node-border-style: solid;
     --node-border-color: white;
     --node-border-radius: 100%;
-    --node-width: 38px;
+    --node-width: 25px;
     --node-height: var(--node-width);
     --node-background: #242424;
     --node-emission: 10px;
-    --edge-width: 1px;
+    --edge-width: 100px;
     --edge-color: white;
     --edge-emission: 10px;
     --zoom: 1;
@@ -149,7 +149,7 @@ graph-node{
     border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     background: var(--node-background);
     font-size: calc(0.5* var(--node-width));
-    padding: 0 3px;
+   /*  padding: 0 3px; */
     user-select: text;
     text-wrap: wrap;
     /* overflow: hidden;
@@ -168,6 +168,28 @@ graph-node{
             background-color: var(--ui-select2);
         }
     }
+}
+
+graph-edge{
+    
+    position: absolute;
+    pointer-events: stroke;
+    
+    &.selected{
+        filter:
+            drop-shadow(0 0 var(--edge-emission) var(--graph-main-color))
+            drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color))
+            drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color))
+        ;
+    }
+    &::part(arrow){
+        position: absolute;
+        fill: white;
+        translate: -50% -50%;
+        width: calc(15  * var(--edge-width));
+        aspect-ratio: 1;
+    }
+    
 }
 
 .menu-bar{
@@ -251,12 +273,6 @@ graph-node{
         width: 100%;    height: 100%;
         background: var(--tab-background);
     }
-}
-
-span[contenteditable="true"]{
-    outline: none;
-    padding: .1rem;
-    background-color: var(--ui-select);
 }
 /* Menu bar */
 
@@ -407,16 +423,36 @@ pop-menu{
     padding: .2rem;
 
     --input-background: var(--menu-background);
-
-    &> :first-child{
+    
+    & >div:first-child{
+        position: absolute;
         display: flex;
-        justify-content: space-between;
-        flex-wrap: none;
-        font-weight: 900;
+        font-weight: lighter;
+        gap: 2px;
         border-bottom: 1px solid white;
+        width: inherit;
+        overflow: scroll;
+        width: 100%;
+        height: 2rem;
+        
+        & >*{
+            padding: .2rem .5rem;
+            text-wrap: nowrap;
+            background-color: var(--menu-background);
+            border-radius: 5px 5px 0 0;
+            &:hover{
+                text-decoration: underline;
+            }
+        }
+
+        & .active{
+            background-color: var(--ui-select2);
+        }
     }
 
     & .tabs{
+        position: relative;
+        top: 2rem;
         flex: 1 0 auto;
 
         &> *{

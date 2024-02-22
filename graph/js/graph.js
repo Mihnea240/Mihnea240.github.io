@@ -83,23 +83,17 @@ class Graph {
         options.description ||= options.nodeId;
 
         this.nodes.set(options.nodeId, new Set());
-        console.log(options);
         let newNode = this.tab.addNode(options);
 
-        if (addToStack) this.actionsStack.push(new AddNodesCommand(newNode.data()));
+        if (addToStack) this.actionsStack.push(new AddNodesCommand(newNode.toJSON()));
         return newNode;
     }
     removeNode(id, addToStack = true) {
         let n = this.getNodeUI(id);
-        console.log(id);
         if (!n) return;
 
-        this.tab.sizeObserver.unobserve(n);
-        this.tab.removeChild(n);
-        if (n.selected) this.selection.toggle(n);
-
         this.actionsStack.startGroup();
-        if (addToStack) this.actionsStack.push(new RemoveNodesCommand(n.props));
+        if (addToStack) this.actionsStack.push(new RemoveNodesCommand(n.toJSON()));
         for (let n1 of this.adjacentNodes(id)) {
             if (n1 < 0) {
                 this.removeEdge(-n1, id, addToStack);
@@ -113,6 +107,10 @@ class Graph {
         }
         this.actionsStack.endGroup();
 
+        this.tab.sizeObserver.unobserve(n);
+        this.tab.removeChild(n);
+        if (n.selected) this.selection.toggle(n);
+
         if (physicsMode.isRunning()) {
             physicsMode.stop();
             ACTIONS.togglePhysicsSimulation();
@@ -123,16 +121,12 @@ class Graph {
         return rez;
     }
     /**@returns {EdgeUI} */
-    addEdge(options, addToStack = true) {
-        let props;
-        switch (options?.constructor.name || null) {
-            case "EdgeProps": props = options; break;
-            case "Object": props = new EdgeProps(options); break;
-        }
+    addEdge(props={}, addToStack = true) {
 
-        props.graphId = this.id;
         let x = props.from, y = props.to;
         if ((x == y) || this.isEdge(x, y)) return;
+        
+        props.graphId = this.id;
 
         let reverse = false;
         let xSet = this.adjacentNodes(x);
@@ -149,13 +143,13 @@ class Graph {
             } case UNORDERED: {
                 xSet.add(y);
                 ySet.add(x)
-                if (x > y) [x, y] = [y, x];
+                if (x > y) [props.from, props.to] = [props.to, props.from];
                 break;
             }
         }
-        let newEdge = this.tab.addEdge(props, this.type);
+        let newEdge = this.tab.addEdge(props, this.type,reverse);
 
-        if (addToStack) this.actionsStack.push(new AddEdgesCommand(newEdge.data()));
+        if (addToStack) this.actionsStack.push(new AddEdgesCommand(newEdge.toJSON()));
         this.edgeCount++;
 
 
@@ -163,16 +157,29 @@ class Graph {
 
     }
     removeEdge(x, y, addToStack = true) {
-        let rez = this.nodes.get(x)?.delete(y);
+        let xSet = this.adjacentNodes(x);
+        let ySet = this.adjacentNodes(y);
+        let rez = xSet?.delete(y);
         if (rez) {
             let e = this.getEdgeUI(x, y);
-            this.tab.removeChild(e);
 
             if (e.selected) this.selection.toggle(e);
-            if (this.type == UNORDERED) this.nodes.get(y).delete(x);
-            else this.nodes.get(y)?.delete(-x);
+            this.tab.removeChild(e);
 
-            if (addToStack) this.actionsStack.push(new RemoveEdgesCommand(e.props));
+            if (this.type == UNORDERED) ySet.delete(x);
+            else {
+                //1-2
+                //2-1
+                rez = ySet.delete(-x);
+                if (!rez) {
+                    xSet.add(-y);
+                    let e2 = this.getEdgeUI(y, x);
+                    e2.offset = 0;
+                    e2.update();
+                }
+            }
+
+            if (addToStack) this.actionsStack.push(new RemoveEdgesCommand(e.toJSON()));
             this.edgeCount--;
         }
         return rez;
@@ -203,7 +210,7 @@ class Graph {
         delete this;
     }
 
-    dataTemplate() {
+    toJSON() {
         let obj = {
             settings: this.settings,
             type: this.type,
@@ -212,8 +219,8 @@ class Graph {
         };
 
         for (const child of this.tab.children) {
-            if (child.matches("graph-node")) obj.nodeProps.push(child.data());
-            else if (child.matches("graph-edge")) obj.edgeProps.push(child.data());
+            if (child.matches("graph-node")) obj.nodeProps.push(child.toJSON());
+            else if (child.matches("graph-edge")) obj.edgeProps.push(child.toJSON());
         }
         return obj;
     }
@@ -221,6 +228,7 @@ class Graph {
     static parse(obj = defaultGraphJSON) {
         let newG = new Graph(obj.type, obj.settings);
 
+        console.log(obj);
         newG.actionsStack.startGroup();
         for (let node of obj.nodeProps) newG.addNode(node);
         for (let edge of obj.edgeProps) newG.addEdge(edge);

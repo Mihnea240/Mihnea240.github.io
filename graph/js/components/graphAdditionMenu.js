@@ -22,15 +22,15 @@ function formatNewGraphData() {
     let data = newGraphDialog.querySelector(".tabs :not(.hide)").value;
 
     let objectTemplate = JSON.parse(JSON.stringify(defaultGraphJSON));
+    objectTemplate.nodeProps = [];
     objectTemplate.type = type;
-    objectTemplate.data = {
-    }
+    let map = new Map();
     let addNode = (i) => {
-        objectTemplate.data.nodes.push(i);
-        objectTemplate.data.connections[i] = [];
+        objectTemplate.nodeProps.push({ nodeId: i });
+        map.set(i, true);
     }
-    let exists = (node) => !!objectTemplate.data.connections[node];
-    let addEdge = (from, to) => objectTemplate.data.connections[from].push(to);
+    let exists = (node) => map.has(node);
+    let addEdge = (from, to) => objectTemplate.edgeProps.push({ from, to });
 
 
     for (let i = 1; i <= nodeNumber; i++) addNode(i);
@@ -54,7 +54,6 @@ function formatNewGraphData() {
                 if (b > nodeNumber && !exists(b)) addNode(b);
 
                 addEdge(a, b);
-                if (type == UNORDERED) addEdge(b, a);
             }
             return objectTemplate;
         }
@@ -76,6 +75,7 @@ function formatNewGraphData() {
             let array = data.replace(/[a-z]|\n+/g, "").split(/[\ :,.]+/g).filter(el => el !== '');
             let root = array.indexOf("0");
             if (root < 0 || array.lastIndexOf("0") != root) return;
+            root++;
             
             for (let i = 1; i <= array.length; i++) {
                 if (i == root) continue;

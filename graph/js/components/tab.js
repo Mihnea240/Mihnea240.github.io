@@ -163,10 +163,7 @@ const dragHandle = {
             }
             case 2: {
                 if (target.new_node_protocol == false) target.initCurve();
-                let c = target.parentElement.curve;
-                c.toCoords.translate(delta.x, delta.y);
-                c.p2.pos.translate(delta.x, delta.y);
-                c.update();
+                target.parentElement.curve.translateTo(delta);
             } 
             default: return;
         }
@@ -190,8 +187,9 @@ const dragHandle = {
                 originalNode.parentElement.screenToWorld(storage.point);
                 
                 newNode.position(storage.point.x, storage.point.y);
+                
                 graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
-
+                
                 graph.actionsStack.endGroup();
             }
         } else if (ev.button == 2) {
@@ -212,9 +210,8 @@ const dragHandle = {
             tab.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
             c.to=storage.point;
         }
-        c.toCoords.translate(delta.x, delta.y);
-        c.p2.pos.translate(delta.x, delta.y);
-        c.update();
+        c.translateTo(delta,false);
+        c.translateP2(delta);
     },
     edgeDragEnd: (originalEdge,ev) => {
         if (storage.fromNode?.new_node_protocol) {
@@ -224,11 +221,10 @@ const dragHandle = {
             originalEdge.parentElement.curve.classList.add("hide");
 
             if (ev.target.tagName == "GRAPH-NODE") {
-                if (ev.target.nodeId != originalEdge.toNode) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
+                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
                 else {
                     originalEdge.classList.remove("hide");
-                    storage.fromNode = undefined;
-                    return;
+                    return storage.fromNode = undefined;
                 }
             } else {
                 graph.actionsStack.startGroup();
@@ -245,8 +241,8 @@ const dragHandle = {
             ev.stopPropagation();
             Graph.get(ev.target.graphId).selection.toggle(ev.target);
         } else if (ev.button == 0) {
-            if (!ev.composedPath()[0].classList.contains("point"))
-            originalEdge.curve.selected = !originalEdge.curve.selected;
+            if (!ev.composedPath()[0].matches(".point"))
+            originalEdge.active = !originalEdge.active;
         }
     },
 
@@ -262,7 +258,7 @@ class Tab extends HTMLElement {
         this.css = getComputedStyle(this);
         this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
-        this.curve.tf = BezierCurve.translationFunctions.absoluteTranslation;
+        this.curve.setAttribute("mode", "absolute");
         this.positionFunction = PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
         this.zoom = 1;
@@ -275,7 +271,7 @@ class Tab extends HTMLElement {
             onstart: (ev) => {
                 evTarget = ev.target;
                 switch (ev.target.tagName) {
-                    case "GRAPH-EDGE": storage.fromNode = this.getNode(ev.target.fromNode); break;
+                    case "GRAPH-EDGE": storage.fromNode = this.getNode(ev.target.from); break;
                     case "GRAPH-NODE": {
                         if (ev.buttons == 4) ev.preventDefault(), evTarget = this;
                         /*this.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
@@ -322,7 +318,7 @@ class Tab extends HTMLElement {
                 }
 
                 if (this.curvesArray.size) {
-                    for (let c of this.curvesArray) c.selected = false
+                    for (let c of this.curvesArray) c.active = false
                     this.curvesArray.clear();
                 }
             } else { 
@@ -377,7 +373,7 @@ class Tab extends HTMLElement {
 
         this.curvesArray = new Set();
         this.addEventListener("curveselect", (ev) => {
-            if (ev.detail.selected) this.curvesArray.add(ev.composedPath()[0]);
+            if (ev.target.active) this.curvesArray.add(ev.target);
         })
     }
 
@@ -404,11 +400,12 @@ class Tab extends HTMLElement {
     }
 
     recalculateEdges(nodeId, point) {
+        let g = this.getGraph();
         this.forEdges((edge) => {
-            if (point === undefined) return edge.update();
+            if (point === undefined) return;
             
-            if (edge.fromNode === nodeId) edge.from = point;
-            else if (edge.toNode === nodeId) edge.to = point;
+            if (edge.from === nodeId) edge.fromPosition(point);
+            else if (edge.to === nodeId) edge.toPosition(point);
         }, nodeId);
     }
     forEdges(callBack, nodeId) {
@@ -441,25 +438,60 @@ class Tab extends HTMLElement {
         }
         return newNode;
     }
-    addEdge(props,type) {
+    addEdge(props, type, overlapping) {
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
-        let edge = this.appendChild(elementFromHtml(`<graph-edge slot="edges"></graph-edge>`));
+        let edge = this.appendChild(elementFromHtml(`<graph-edge id="g${props.graphId} ${props.from} ${props.to}" slot="edges"></graph-edge>`));
+        let template = edge.getTemplate();
         
-        edge.init(props, props.to);
-        edge.initPos(n1.anchor(), n2.anchor());
+        edge.init(props, n1.anchor(), n2.anchor(), false);
         
-        if (type == ORDERED) edge.curve.addArrow();
+        if (type == ORDERED) {
+            edge.addArrow();
+
+            if (overlapping) {
+                let e2 = this.getEdge(props.to, props.from, true);
+                let p = new Point(), bufferDistance = 100;
+                if (template.pointOffsetWhenOverlapping &&
+                    edge.relativeP1(p).magSq() < bufferDistance &&
+                    edge.relativeP2(p).magSq() < bufferDistance &&
+                    e2.relativeP1(p).magSq() < bufferDistance &&
+                    e2.relativeP2(p).magSq() < bufferDistance
+                ) {
+                    let dir = edge.direction();
+                    dir.set(dir.y, -dir.x).multiplyScalar(template.pointOffsetWhenOverlapping);
+                    edge.P1.add(dir);
+                    edge.P2.add(dir);
+                    edge.pointData();
+                    e2.P1.sub(dir);
+                    e2.P2.sub(dir);
+                    e2.pointData();
+                    e2.update();
+                } else if (template.offsetWhenOverlapping) {
+                    /* edge.direction(p);
+                    p.set(p.y, -p.x).multiplyScalar(edge.offset);
+
+                    edge.translateTo(p)
+                    edge.translateFrom(p);
+                    p.multiplyScalar(-1);
+                    e2.translateTo(p)
+                    e2.translateFrom(p); */
+                    
+                }
+    
+            }
+        }
+        edge.update();
         return edge;
     }
     /**@returns {NodeUI} */
     getNode(id) {
-        return document.getElementById("g" + this.graphId + " " + id);
+        return document.getElementById(`g${this.graphId} ${id}`);
     }
     /**@returns {EdgeUI} */
     getEdge(x, y, type=this.getGraph().type) {
         if (type === UNORDERED && x > y) [x, y] = [y, x]; 
-        return document.getElementById("g" + this.graphId + " " + x + " " + y);
+        return document.getElementById(`g${this.graphId} ${x} ${y}`);
     }
 
     getEdgeArray() {
@@ -481,10 +513,10 @@ class Tab extends HTMLElement {
            
     }
     center(items=this.getNodeArray()) {
-        let n = items.length || items.size, pos = new Point();
+        let n = items.length || items.size, pos = new Point(),p=new Point();
         if (!n) return pos;
 
-        for (let node of items) pos.add(node.transform.position);
+        for (let node of items) pos.add(node.anchor(p));
         return pos.multiplyScalar(1 / n);
     }
 
