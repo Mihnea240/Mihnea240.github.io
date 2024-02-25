@@ -35,7 +35,6 @@ class NodeUI extends HTMLElement{
         this.isStatic = false;
         this.transform = new Transform();
         this.template = "default";
-
     }
 
     init(props) {
@@ -85,7 +84,14 @@ class NodeUI extends HTMLElement{
     update(updateEdges=true) {
         //this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
         this.style.cssText += `transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px);`;
-        if (updateEdges) this.parentElement.recalculateEdges(this.nodeId, this.anchor(NodeUI._p));
+        if (updateEdges) {
+            this.parentElement.recalculateEdges(this.nodeId, this.anchor(NodeUI._p));
+        }
+            
+    }
+
+    scrollIntoView() {
+        this.parentElement.focus(this.transform.position);
     }
 
     getGraph() {
@@ -94,7 +100,6 @@ class NodeUI extends HTMLElement{
     getTemplate() {
         return NodeTemplate.get(this.template);
     }
-
 
 
     editText() {

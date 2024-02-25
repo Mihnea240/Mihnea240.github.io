@@ -113,7 +113,7 @@ function loadPotrocol(input) {
 
 const keyBindings = {
     F2: "fullscreen",
-    //Enter: "blur",
+    Enter: "blur",
     Escape: "closeModal",
     Delete: "deleteSelection",
     ArrowLeft: "selectionMove",
@@ -295,7 +295,6 @@ function openNodeCreationDialog() {
 
 
 document.addEventListener("keydown", (ev) => {
-    //console.log(ev.key);
     ACTIONS[keyBindings[ev.key]]?.(ev);
 });
 

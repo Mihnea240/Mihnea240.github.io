@@ -64,6 +64,7 @@ class Graph {
         if (Graph.selected === this) return;
         Graph.selected?.unfocus();
         Graph.selected = this;
+        inspector.observe(this);
 
         this.header.classList.add("selected");
         defaultSettingsTemplate.graph.main_color._update(this);
@@ -243,6 +244,16 @@ class Graph {
     }
 
     get nodeCount() { return this.nodes.size }
+
+    getDegree(id,inOut) {
+        if (this.type == UNORDERED) return this.adjacentNodes(id).size;
+        let array = Array.from(this.adjacentNodes(id)), inner = 0, outer = 0;
+
+        for (let n of array) n < 0 ? inner++ : outer++;
+        if (inOut === true) return inner;
+        else if (inOut === false) return outer;
+        else return { inner, outer };
+    }
 
     toMatrix(toString = false) {
         let mId = this.maxId;

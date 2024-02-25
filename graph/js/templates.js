@@ -326,28 +326,149 @@ const physicsTemplate = {
 }
 
 const nodeInspectorTemplate = {
-    categoryCollapse: false,
-    id: {
-        type: "number",
+    "": {
+        display: "Node details",
+        id: {
+            type: "number",
+            readonly: true,
+        },
+        template: {
+            type: "text",
+            readonly: true,
+        },
+        description: {
+            type: "textarea",
+        },
+        isStatic: {
+            type: "checkbox",
+            display: "static",
+            title: "Physics won't be applied to static nodes"
+        },
+        mass: {
+            type: "number",
+            max: 100000,
+        },
+        degree: {
+            type: "number",
+            readonly: "true",
+            title: "Number of nodes connected to this node",
+        },
+        inner: {
+            type: "number",
+            readonly: "true",
+            display: "Inner degree",
+            condition() { return Graph.selected.type == ORDERED },
+            title: "Number of nodes entering this node",
+        },
+        outer: {
+            type: "number",
+            readonly: "true",
+            display: "Outer degree",
+            condition() { return Graph.selected.type == ORDERED },
+            title: "Number of nodes exiting this node",
+        },
+    },
+    "Adjacent nodes": {
+        
+    },
+    transform: {
+        position: {
+            categoryCollapse: false,
+            tupel: true,
+            x: {
+                type: "number",
+                decimal: "2",
+            },
+            y: {
+                type: "number",
+                decimal: "2",
+            },
+        },
+        velocity: {
+            categoryCollapse: false,
+            tupel: true,
+            x: {
+                type: "number",
+                decimal: "2",
+            },
+            y: {
+                type: "number",
+                decimal: "2",
+            },
+            
+        },
+        acceleration: {
+            categoryCollapse: false,
+            tupel: true,
+            x: {
+                type: "number",
+                decimal: "2",
+            },
+            y: {
+                type: "number",
+                decimal: "2",
+            },
+        },
+        size: {
+            categoryCollapse: false,
+            tupel: true,
+            x: {
+                type: "number",
+                decimal: "0",
+                readonly: true,
+            },
+            y: {
+                type: "number",
+                decimal: "0",
+                readonly: true,
+            },
+        },
+    }
+}
+
+const edgeInspectorTemplate = {
+    from: {
+        type: "text",
         readonly: true,
+        onclick(ev) {
+            let input = ev.target.closest("text-input");
+            let id = parseInt(input.value);
+            Graph.selected.getNodeUI(id).scrollIntoView();
+        }
+    },
+    to: {
+        type: "text",
+        readonly: true,
+        onclick(ev) {
+            let input = ev.target.closest("text-input");
+            let id = parseInt(input.value);
+            Graph.selected.getNodeUI(id).scrollIntoView();
+        }
+    },
+    symmetry: {
+        type: "range",
+        min: "-1", max: "1",
+        title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
+    },
+    mode: {
+        type: "select",
+        options: ["absolute", "relative"],
+        title: "Relative mode moves both control points relative to the edge direction",
+        
     },
     description: {
         type: "textarea",
-    },
-    static: {
-        type: "checkbox"
-    },
-    mass: {
-        type: "number",
-        max: 100000,
-    },
-    degree: {
-        type: "number",
-        readonly: "true",
-    },
-    template: {
+    }
+}
+
+const graphInspectorTemplate = {
+    categoryCollapse: false,
+    id: {
         type: "text",
         readonly: true,
+    },
+    name: {
+        type: "text",
+        maxLength: 32,
     }
-
 }

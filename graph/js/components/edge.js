@@ -218,6 +218,8 @@ class BezierCurve extends HTMLElement {
         this.dispatchEvent(BezierCurve.activeEvent);
     }
     get active() { return this._active }
+    set mode(mode) { this.setAttribute("mode", mode); }
+    get mode() { return this.getAttribute("mode"); }
 
     /**@param {BezierCurve} curve */
     static absoluteTranslation(curve, p, x=0, y=0){
@@ -286,6 +288,10 @@ class EdgeUI extends BezierCurve {
             <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128"></path>
         </svg>
         `))
+    }
+
+    scrollIntoView() {
+        this.parentElement.focus(this.fromCoords.clone().add(this.toCoords).multiplyScalar(0.5));
     }
 
     set template(string) {this.setAttribute("template", string);}

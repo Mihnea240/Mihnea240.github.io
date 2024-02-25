@@ -192,12 +192,10 @@ const dragHandle = {
                 
                 graph.actionsStack.endGroup();
             }
-        } else if (ev.button == 2) {
-            Graph.get(ev.target.graphId).selection.toggle(ev.target);
         }
         originalNode.transform.velocity.copy(appData.cursorVelocity);
         originalNode.active = false;
-        if(ev.button==2)ev.stopPropagation();
+        //if(ev.button==2)ev.stopPropagation();
     },
     edgeDrag: (target, ev, delta) => {
         if (ev.button) return ev.stopPropagation();
@@ -214,36 +212,30 @@ const dragHandle = {
         c.translateP2(delta);
     },
     edgeDragEnd: (originalEdge,ev) => {
-        if (storage.fromNode?.new_node_protocol) {
-            storage.fromNode.new_node_protocol = false;
+        if (storage.fromNode?.new_node_protocol);
+        else return;
+        storage.fromNode.new_node_protocol = false;
 
-            let graph = Graph.get(originalEdge.graphId);
-            originalEdge.parentElement.curve.classList.add("hide");
+        let graph = Graph.get(originalEdge.graphId);
+        originalEdge.parentElement.curve.classList.add("hide");
 
-            if (ev.target.tagName == "GRAPH-NODE") {
-                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
-                else {
-                    originalEdge.classList.remove("hide");
-                    return storage.fromNode = undefined;
-                }
-            } else {
-                graph.actionsStack.startGroup();
-                let newNode = graph.addNode();
-                originalEdge.parentElement.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
-                newNode.position(storage.point.x, storage.point.y);
-                graph.addEdge({ from: storage.fromNode.nodeId, to: newNode.nodeId });
-                graph.actionsStack.endGroup();
+        if (ev.target.tagName == "GRAPH-NODE") {
+            if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
+            else {
+                originalEdge.classList.remove("hide");
+                return storage.fromNode = undefined;
             }
-            
-            graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
-            storage.fromNode = undefined;
-        } else if (ev.button == 2) {
-            ev.stopPropagation();
-            Graph.get(ev.target.graphId).selection.toggle(ev.target);
-        } else if (ev.button == 0) {
-            if (!ev.composedPath()[0].matches(".point"))
-            originalEdge.active = !originalEdge.active;
+        } else {
+            graph.actionsStack.startGroup();
+            let newNode = graph.addNode();
+            originalEdge.parentElement.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
+            newNode.position(storage.point.x, storage.point.y);
+            graph.addEdge({ from: storage.fromNode.nodeId, to: newNode.nodeId });
+            graph.actionsStack.endGroup();
         }
+        
+        graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
+        storage.fromNode = undefined;
     },
 
 }
@@ -308,14 +300,10 @@ class Tab extends HTMLElement {
             }
 
         })
-
         
         this.addEventListener("mouseup", (ev) => {
             if (ev.target.matches("graph-tab")) {
-                if (ev.button !== 2) {
-                    let selection = Graph.get(this.graphId).selection;
-                    if (!selection.empty()) selection.clear();
-                }
+                if (ev.button !== 2) Graph.get(this.graphId).selection.clear();
 
                 if (this.curvesArray.size) {
                     for (let c of this.curvesArray) c.active = false
@@ -323,8 +311,15 @@ class Tab extends HTMLElement {
                 }
             } else { 
                 ev.preventDefault();
-                if (ev.detail == 2) inspector.observe(ev.target);
-                if (ev.target.matches("graph-node") && ev.detail == 3) ev.target.editText();
+                if (ev.detail == 2) return inspector.observe(ev.target);
+                if (ev.target.matches("graph-node")) {
+                    if (ev.detail == 3) ev.target.editText();
+                    else if (ev.button == 2) this.getGraph().selection.toggle(ev.target);
+                }
+                else if (ev.target.matches("graph-edge")) {
+                    if (ev.button == 2) this.getGraph().selection.toggle(ev.target);
+                    else if (!ev.composedPath()[0].matches(".point")) ev.target.active = !ev.target.active;
+                }
             }
         })
 
@@ -365,9 +360,8 @@ class Tab extends HTMLElement {
 
         this.sizeObserver = new ResizeObserver((entries) => {
             for (let entry of entries) {
-                entry.target.transform.size.x = entry.borderBoxSize[0].inlineSize;
-                entry.target.transform.size.y = entry.borderBoxSize[0].blockSize;
-                this.recalculateEdges(entry.target.nodeId); 
+                entry.target.transform.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
+                this.recalculateEdges(entry.target.nodeId);
             }
         })
 
@@ -401,6 +395,7 @@ class Tab extends HTMLElement {
 
     recalculateEdges(nodeId, point) {
         let g = this.getGraph();
+        if (inspector.observed?.nodeId == nodeId) inspector.observe();
         this.forEdges((edge) => {
             if (point === undefined) return;
             
