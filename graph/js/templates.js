@@ -273,7 +273,7 @@ const physicsTemplate = {
     isRunning: {
         type: "button",
         onclick() { ACTIONS.togglePhysicsSimulation(); },
-        _display: "Toggle",
+        display: "Toggle",
         title: "Turns green when active (F)"
     },
     gravity: {
@@ -282,18 +282,18 @@ const physicsTemplate = {
         max: "999999999",
     },
     spring: {
-        _display: "Spring constant",
+        display: "Spring constant",
         type: "range",
         step:"0.1",
         max: "2"
     },
     "springIdealLength":{
-        _display: "Spring ideal length",
+        display: "Spring ideal length",
         type: "number",
         max: "1000",
     },
     energyLoss: {
-        _display: "Energy lost on collision",
+        display: "Energy lost on collision",
         type: "range",
         max: "1", step: "0.1",
     },
@@ -319,7 +319,7 @@ const physicsTemplate = {
         title: "Resets the velocity and acceleration of all nodes to 0"
     },
     frameRate: {
-        _display: "Frame rate",
+        display: "Frame rate",
         type: "number",
         max: "60",
     }

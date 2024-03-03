@@ -162,8 +162,14 @@ const dragHandle = {
                 break;
             }
             case 2: {
-                if (target.new_node_protocol == false) target.initCurve();
-                target.parentElement.curve.translateTo(delta);
+                let tab = target.parentElement;
+                if (target.new_node_protocol == false) {
+                    target.initCurve();
+                    let p = target.anchor();
+                    tab.curve.fromPosition(p);
+                    tab.curve.toPosition(p);
+                }
+                tab.curve.translateTo(delta);
             } 
             default: return;
         }
@@ -172,11 +178,11 @@ const dragHandle = {
     },
     nodeDragEnd: (originalNode, ev) => {
         if (originalNode.new_node_protocol) {
-            originalNode.new_node_protocol = false;
-            originalNode.parentElement.curve.classList.add("hide");
+            originalNode.initCurve();
             
             let graph = Graph.get(originalNode.graphId)
 
+            ev.stopPropagation();
             if (ev.target.tagName == "GRAPH-NODE") graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
             else {
                 graph.actionsStack.startGroup();

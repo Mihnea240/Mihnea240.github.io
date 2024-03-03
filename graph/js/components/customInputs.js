@@ -218,7 +218,7 @@ class CustomInputs{
     static getChainFromEvent(root,ev) {
         let value = [], name;
         for (let t of ev.composedPath()) {
-            if (t.matches(".category ,[type]") && ( name = t.getAttribute?.("name"))) value.push(name);
+            if (t.matches?.(".category ,[type]") && ( name = t.getAttribute?.("name"))) value.push(name);
             if (t == root) return value;
         }
     }

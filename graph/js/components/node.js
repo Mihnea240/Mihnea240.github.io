@@ -16,7 +16,6 @@ const _node_template = /* html */`
 
 class NodeUI extends HTMLElement{
     static observedAttributes = ["view","template"];
-    static _p = new Point();
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -35,6 +34,8 @@ class NodeUI extends HTMLElement{
         this.isStatic = false;
         this.transform = new Transform();
         this.template = "default";
+
+        this.point = new Point();
     }
 
     init(props) {
@@ -56,10 +57,14 @@ class NodeUI extends HTMLElement{
     get template() { return this.getAttribute("template"); }
     
     initCurve() {
+        if (this.new_node_protocol) {
+            this.parentElement.curve.classList.add("hide");
+            this.new_node_protocol = false;
+            return false;
+        }
         this.parentElement.curve.classList.remove("hide");
-        let p = this.relativePosition(0.5, 0.5, NodeUI._p);
-        this.parentElement.curve.fromPosition(p);
         this.new_node_protocol = true;
+        return true;
     }
     relativePosition(x = 0, y = 0, point = new Point()) {
         return point.set(
@@ -85,7 +90,7 @@ class NodeUI extends HTMLElement{
         //this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
         this.style.cssText += `transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px);`;
         if (updateEdges) {
-            this.parentElement.recalculateEdges(this.nodeId, this.anchor(NodeUI._p));
+            this.parentElement.recalculateEdges(this.nodeId, this.anchor(this.point));
         }
             
     }

@@ -149,7 +149,7 @@ class BezierCurve extends HTMLElement {
     fromPosition(p, update=true) {
         if (!p) return this.fromCoords;
         let x = p.x - this.fromCoords.x, y = p.y - this.fromCoords.y;
-        this.fromCoords.set(p.x, p.y);
+        this.fromCoords.copy(p);
         this.tf(this, 0, x, y);
         
         if (update) this.update();
@@ -159,12 +159,12 @@ class BezierCurve extends HTMLElement {
     toPosition(p, update = true) {
         if (!p) return this.toCoords;
         let x = p.x - this.toCoords.x, y = p.y - this.toCoords.y;
-        this.toCoords.set(p.x, p.y);
+        this.toCoords.copy(p);
         this.tf(this, 1, x, y);
         
         if (update) this.update();
     }
-    translateTo(p, update = true) { this.fromPosition(this.a3.copy(this.toCoords).add(p), update) }
+    translateTo(p, update = true) { this.toPosition(this.a3.copy(this.toCoords).add(p), update) }
 
 
 
@@ -174,7 +174,7 @@ class BezierCurve extends HTMLElement {
             this.P2.add(this.a2.copy(p).sub(this.P1).multiplyScalar(this.symmetry));
             this.pointData();
         }else this.pointData(1);
-        this.P1.set(p.x, p.y);
+        this.P1.copy(p);
         if (update) this.update();
     }
     translateP1(p, update = true) { this.p1Position(this.a1.copy(this.P1).add(p), update); }
@@ -185,7 +185,7 @@ class BezierCurve extends HTMLElement {
             this.P1.add(this.a1.copy(p).sub(this.P2).multiplyScalar(this.symmetry));
             this.pointData();
         }else this.pointData(2);
-        this.P2.set(p.x, p.y);
+        this.P2.copy(p);
         if (update) this.update();
     }
     translateP2(p, update = true) { this.p2Position(this.a2.copy(this.P2).add(p), update); }
