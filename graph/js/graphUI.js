@@ -4,8 +4,8 @@ const colors = [
     "slateblue", "pink", "mediumseagreen"
 ];
 const newGraphButton = document.querySelector(".new-graph");
-const tabArea = document.querySelector(".tab-area");
-const headerArea = document.querySelector(".header");
+const tabArea = document.getElementById("main");
+const headerArea = tabArea.querySelector(".header");
 const menuBar = document.querySelector(".menu-bar");
 const tab_template = elementFromHtml(`<graph-tab></graph-tab>`);
 const header_template = elementFromHtml(`
@@ -43,7 +43,7 @@ let colorIndex = 1;
 function createTabUI(graph) {
     tab_template.id = "g" + graph.id;
     header_template.id = "h" + graph.id;
-    graph.tab=tabArea.appendChild(tab_template.cloneNode(true));
+    graph.tab=tabArea.querySelector(".tabs").appendChild(tab_template.cloneNode(true));
     graph.header = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
     
     graph.settings.graph.name ||= "Graph " + graph.id;

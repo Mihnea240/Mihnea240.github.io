@@ -15,6 +15,7 @@
     <script defer src="js/components/tab.js"></script>
     <script defer src="js/components/edge.js"></script>
     <script defer src="js/components/popMenu.js"></script>
+    <script defer src="js/components/tabarea.js"></script>
     <script defer src="js/commandPattern.js"></script>
     <script defer src="js/collision.js"></script>
     <script defer src="js/graph.js"></script>
@@ -36,7 +37,22 @@
         </pop-menu>
         
         <button for="templates">Templates</button>
-        <pop-menu name="templates"></pop-menu>
+        <pop-menu name="templates">
+            <tab-area>
+                <div class="header">
+                    <div for="graph">Graph</div>
+                    <div for="node">Node</div>
+                    <div for="edge">Edge</div>
+                </div>
+                <div class="tabs">
+                    <div class="hide" name="graph">1</div>
+                    <div class="hide" name="node">2</div>
+                    <div class="hide" name="edge">3</div>
+                </div>
+            </tab-area>
+            
+            
+        </pop-menu>
 
         <button for="view">View</button>
         <dialog id="file-dialog">
@@ -57,26 +73,30 @@
         <button for="physics">Force Model</button>
     </div>
 
-    <div class="header">
-        <button class="new-graph" style="font-size: 1.3em;">+</button>
-    </div>
+    <tab-area id="main">
+        <div class="header">
+            <button class="new-graph" style="font-size: 1.3em;">+</button>
+        </div>
 
-    <div class="tab-area" draggable="false">
-    </div>
-    <graph-inspector id="inspector">
-        <div>
-            <div for="graph">Graph</div>
-            <div for="node">Node</div>
-            <div for="edge">Edge</div>
-            <div>Conex components</div>
-        </div>
-        <div class="tabs">
-            <div class="hide" name="graph">1</div>
-            <div class="hide" name="node">2</div>
-            <div class="hide" name="edge">3</div>
-        </div>
-        
-    </graph-inspector>
+        <div class="tabs" draggable="false"></div>
+
+        <graph-inspector id="inspector">
+            <div class="header">
+                <div for="graph">Graph</div>
+                <div for="node">Node</div>
+                <div for="edge">Edge</div>
+                <div>Conex components</div>
+            </div>
+            <div class="tabs">
+                <div class="hide" name="graph">1</div>
+                <div class="hide" name="node">2</div>
+                <div class="hide" name="edge">3</div>
+            </div>
+            
+        </graph-inspector>
+    </tab-area>
+
+    
     
     
     <dialog id="graph-addition-dialog">

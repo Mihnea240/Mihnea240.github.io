@@ -187,7 +187,7 @@ const actionMenuTemplate = {
         },
         copy: {
             type: "button",
-            onclick(ev) { createGraph(Graph.selected.dataTemplate()); greatMenus.actionMenu.close(); }
+            onclick(ev) { createGraph(Graph.selected.toJSON()); greatMenus.actionMenu.close(); }
         }
     },
     "Selection actions": {
@@ -470,5 +470,24 @@ const graphInspectorTemplate = {
     name: {
         type: "text",
         maxLength: 32,
-    }
+    },
+    type: {
+        type: "text",
+        readonly: true,
+    },
+    nodeCount: {
+        type: "text",
+        display:"Node count",
+        readonly: true,
+    },
+    edgeCount: {
+        type: "text",
+        display:"Edge count",
+        readonly: true,
+    },
+    conex: {
+        type: "text",
+        display:"Conex components",
+        readonly: true,
+    },
 }

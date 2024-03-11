@@ -14,7 +14,7 @@ function initInspector() {
 
 }
 
-class Inspector extends HTMLElement{
+class Inspector extends TabArea{
     constructor() {
         super();
         this.observed = null;
@@ -68,6 +68,9 @@ class Inspector extends HTMLElement{
         this.edgeSpan = this.nodeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
         this.edgeSpan.addEventListener("click", scrollIntoView);
         this.edgeDetails.addEventListener("change", onchange);
+        
+        this.graphDetails=this.viewTabs.graph.appendChild(CustomInputs.category("Viewing", graphInspectorTemplate));
+        this.graphDetails.addEventListener("change", onchange);
     }
 
 
@@ -85,8 +88,11 @@ class Inspector extends HTMLElement{
                 break;
             }
             case "GRAPH-TAB": {
-                
-                
+                element = element.getGraph();
+                this.graphDetails.validate();
+                this.graphDetails.load(this.extractGraphData(element));
+
+                this.querySelector("[for='graph']").click();
                 break;
             }
             case "GRAPH-EDGE": {
@@ -131,7 +137,15 @@ class Inspector extends HTMLElement{
         return rez;
     }
     extractGraphData(graph) {
-        
+        let rez = {
+            name: graph.settings.graph.name,
+            id: graph.id,
+            type: (graph.type ? "Unordere" : "Ordered") + (graph.isTree() ? " tree" : ""),
+            edgeCount: graph.edgeCount,
+            nodeCount: graph.nodeCount,
+        }
+
+        return rez;
     }
 }
 

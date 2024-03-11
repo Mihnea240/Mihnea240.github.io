@@ -5,13 +5,8 @@ html,body{
     position: absolute;
 
     width: 100%; height: 100%;
-    display: grid;
-    grid-template-areas: 
-        'menu-bar menu-bar' 
-        'header-bar header-bar' 
-        'tab-area inspector';
-    grid-template-rows: 5% 4% 91%;
-    grid-template-columns: 1fr auto;
+    display: flex;
+    flex-direction: column;
     
     background:var(--background);
     color: var(--color);
@@ -197,7 +192,6 @@ graph-edge{
 }
 
 .menu-bar{
-    grid-area: menu-bar;
     display: flex;
     align-items: center;
     color: white;
@@ -217,67 +211,94 @@ graph-edge{
     }
 }
 
-.header{
-    grid-area: header-bar;
-    display: flex;
-    align-items: end;
+tab-area, graph-inspector{
+    & >.header{
+        display: flex;
+        align-items: end;
+        width: 100%;
+        border-bottom: 1px solid white;
+        overflow: scroll;
 
-    width: 100%;
-    padding-left: 1vw;
-    border-bottom: 3px solid;
-    overflow: hidden;
+        & >*{
+            border-radius: 10px 10px 0 0;
+        }
+    }
+    & >tabs{
 
-    & text-input{
-        height: 80%;
-        border-radius: 5px 5px 0 0;
-        margin: 0 .1vw; padding: .4rem;
-        display: grid;
-        place-content: center center;
-
-        text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
-        min-width: 1%;
-        text-wrap: nowrap;
-        color: rgb(from var(--color) r g b /0.8);
-
-        &.selected{
+        & >*{
+            position: absolute;
+            width: 100%;
             height: 100%;
-            font-weight: bolder;
-            color: var(--color);
-        }
-        &:focus{
-            background-color: var(--ui-select2);
-        }
-
-        &:hover{
-            text-decoration: underline;
         }
     }
+}
 
-    .new-graph{
-        background-color: rgb(36, 36, 36);
-        flex: 0 0 5vw;    height: 80%;
-        color: inherit;
-        border-radius: 5px 5px 0 0;
+#main{
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-rows: 5% auto;
+    grid-auto-columns: 1fr auto;
+
+    width: 100%; height: 100%;
+
+    & >.header{
+        grid-column: span 2;
+        padding-left: 1vw;
+        border-bottom: 3px solid;
+        overflow: hidden;
     
-        &:hover{
-            background-color: var(--ui-select);
+        & text-input{
+            height: 80%;
+            border-radius: 5px 5px 0 0;
+            margin: 0 .1vw; padding: .4rem;
+            display: grid;
+            place-content: center center;
+    
+            text-shadow: 0 0 3px rgb(0, 0, 0), 0 0 5px rgba(0, 0, 0, 0.4);
+            min-width: 1%;
+            text-wrap: nowrap;
+            color: rgb(from var(--color) r g b /0.8);
+    
+            &.selected{
+                height: 100%;
+                font-weight: bolder;
+                color: var(--color);
+            }
+            &:focus{
+                background-color: var(--ui-select2);
+            }
+    
+            &:hover{
+                text-decoration: underline;
+            }
+        }
+    
+        & .new-graph{
+            background-color: rgb(36, 36, 36);
+            flex: 0 0 5vw;    height: 80%;
+            color: inherit;
+            border-radius: 5px 5px 0 0;
+        
+            &:hover{
+                background-color: var(--ui-select);
+            }
+        }
+    }
+    
+    .tabs{
+        position: relative;
+        background-color: transparent;
+        z-index: 1;
+        overflow: hidden;
+    
+        & > *{
+            padding: 0;
+            width: 100%;    height: 100%;
+            background: var(--tab-background);
         }
     }
 }
 
-.tab-area{
-    position: relative;
-    grid-area: tab-area;
-    background-color: transparent;
-    z-index: 1;
-    overflow: hidden;
-
-    & > *{
-        padding: 0;
-        width: 100%;    height: 100%;
-        background: var(--tab-background);
-    }
-}
 /* Menu bar */
 
 
@@ -428,14 +449,9 @@ pop-menu{
 
 #inspector{
     position: relative;
-    display: flex;
-    flex-direction:column;
-    grid-area: inspector;
-    z-index: 10;
-    overflow: hidden;
-    flex-grow: 1 0 auto;
+    grid-area: snj;
 
-    background-color: rgb(from var(--background) r g b /0.9);   
+    background-color: rgb(from var(--background) r g b /0.9);
     box-shadow: 0 0 10px 1px black;
     border-left: 1px solid gray;
     padding: .2rem;
@@ -443,25 +459,12 @@ pop-menu{
 
     --input-background: var(--menu-background);
     
-    & >div:first-child{
-        position: absolute;
-        display: flex;
-        font-weight: lighter;
-        gap: 2px;
-        border-bottom: 1px solid white;
-        width: inherit;
-        overflow: scroll;
-        width: 100%;
-        height: 2rem;
-        
-        & >*{
-            padding: .2rem .5rem;
-            text-wrap: nowrap;
-            background-color: var(--menu-background);
-            border-radius: 5px 5px 0 0;
-            &:hover{
-                text-decoration: underline;
-            }
+    & >.header>*{
+        padding: .2rem .5rem;
+        text-wrap: nowrap;
+        background-color: var(--menu-background);
+        &:hover{
+            text-decoration: underline;
         }
 
         & .active{
@@ -469,25 +472,12 @@ pop-menu{
         }
     }
 
-    & .tabs{
-        position: relative;
-        top: 2rem;
-        flex: 1 0 auto;
-
-        &> *{
-            width: 100%; height: 100%;
-        }
+    & .tabs, .tabs>*{
+        background-color: transparent;
     }
     & text-input{
         max-width: 100%;
     }
-
-    & pop-menu{
-        position: relative;
-        background-color: transparent;
-        width: 100%;
-    }
-
 
     &:hover::before{
         position: absolute;

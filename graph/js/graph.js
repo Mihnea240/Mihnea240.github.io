@@ -70,6 +70,7 @@ class Graph {
         defaultSettingsTemplate.graph.main_color._update(this);
         this.tab.classList.remove("hide");
         this.tab.focus();
+        inspector.observe(this.tab);
 
         greatMenus.viewMenu.querySelector(".category").load(this.settings);
     }
