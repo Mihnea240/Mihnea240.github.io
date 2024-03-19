@@ -467,7 +467,7 @@ pop-menu{
             text-decoration: underline;
         }
 
-        & .active{
+        & >.active{
             background-color: var(--ui-select2);
         }
     }

@@ -10,8 +10,7 @@ class TextInput extends HTMLElement{
         this.addEventListener("keydown", (ev) => {
             switch (ev.key) {
                 case "Enter": {
-                    if (!this.allownewline) ev.preventDefault();
-                    return;
+                    if (!this.allownewline) return ev.preventDefault();
                 }
                 case "ArrowUp": if (this.isNumber) this.value++; break;
                 case "ArrowDown": if (this.isNumber) this.value--; break;

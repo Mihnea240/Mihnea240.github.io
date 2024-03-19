@@ -25,25 +25,12 @@ class Inspector extends TabArea{
     }
 
     connectedCallback() {
+        super.connectedCallback();
         this.viewTabs = {
-            graph: this.querySelector("[name='graph']"),
-            node: this.querySelector("[name='node']"),
-            edge: this.querySelector("[name='edge']"),
+            graph: this.getTab("graph"),
+            node: this.getTab("node"),
+            edge: this.getTab("edge"),
         }
-        this.activeTab = this.viewTabs.graph;
-        this.firstElementChild.addEventListener("click", (ev) => {
-            let name = ev.target.getAttribute("for");
-            if (!name) return;
-            let el = this.querySelector(`.tabs [name='${name}']`);
-            if (!el) return;
-
-            this.activeTab.classList.add("hide");
-            this.firstElementChild.querySelector(`[for="${this.activeTab.getAttribute("name")}"]`).classList.remove("active");
-            el.classList.remove("hide");
-            ev.target.classList.add("active");
-            this.activeTab = el;
-            ev.target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-        });
         this.sizeObserver.observe(this);
 
         let scrollIntoView = () => {

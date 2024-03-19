@@ -91,7 +91,7 @@ function savePotrocol() {
         try {
             const blobURL = URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
             a.setAttribute("href", blobURL);
-            a.setAttribute("download", "");
+            a.setAttribute("download", "My Graphs");
             a.click();
             setTimeout(() => { URL.revokeObjectURL(blobURL); a.remove(); }, 1000);
         } catch (e) {

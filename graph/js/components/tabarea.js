@@ -16,22 +16,42 @@ class TabArea extends HTMLElement{
     connectedCallback() {
         this.header = this.querySelector(".header");
         this.tabs = this.querySelector(".tabs");
+        this.activeHeader = this.header.querySelector(".active") || this.header.querySelector("[for]");
+
+        for (let t of this.tabs.children) t.classList.add("hide");
+        let name = this.activeHeader?.getAttribute("for");
+        this.activeTab = name ? this.getTab(name) : this.tabs.querySelector(":scope >[name]");
 
         this.header?.addEventListener("click", (ev) => {
             let name = ev.target.getAttribute("for");
             if (!name) return;
             this.selectTab(name);
-            ev.target.scrollIntoView(this.scrollBehavior);
         })
     }
 
+    getTab(name) {
+        return this.querySelector(`.tabs > [name="${name}"]`);
+    }
+    getHeader(name) {
+        return this.querySelector(`.header > [name="${name}"]`);
+    }
+
     selectTab(name) {
-        let newSelected = this.querySelector(`.tabs > [name="${name}"]`);
+        let newSelected = this.getTab(name);
+        let newHeader = this.getHeader(name);
         if (!newSelected) return;
 
-        this.active?.classList.add("hide");
-        this.active = newSelected;
-        this.active.classList.remove("hide");
+        this.activeTab?.classList.add("hide");
+        this.activeTab = newSelected;
+        this.activeTab.classList.remove("hide");
+        
+        if (newHeader) {
+            this.activeHeader?.classList.remove("active");
+            this.activeHeader = newHeader;
+            this.activeHeader.classList.add("active");
+            this.activeHeader.scrollIntoView(this.scrollBehavior);
+        }
+
         return true;
     }
 }
