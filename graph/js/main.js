@@ -28,7 +28,11 @@ window.onload = () => {
         for (let i of storedGraphs) createGraph(i);
     } else createGraph();
 
-    window.addEventListener("message", (ev) => console.log(ev));
+    window.addEventListener("message", (ev) => {
+        let graphs = JSON.parse(ev.data);
+        for (let i of graphs) createGraph(i);
+        ev.source.postMessage("close", "*");
+    });
 }
 window.onbeforeunload = (ev) => {
     let array = [];
