@@ -27,6 +27,8 @@ window.onload = () => {
     if (storedGraphs?.length) {
         for (let i of storedGraphs) createGraph(i);
     } else createGraph();
+
+    window.addEventListener("message", (ev) => console.log(ev));
 }
 window.onbeforeunload = (ev) => {
     let array = [];
