@@ -6,9 +6,8 @@
 <body>
     <script>
         window.addEventListener('message', function(event) {
+            console.log(event);
             if (event.origin) {
-                //var msg = JSON.parse(event.data);
-                // var msgKey = Object.keys(msg)[0];
                 if (event.data) {
                     localStorage.setItem("data", event.data);
                 } else {
