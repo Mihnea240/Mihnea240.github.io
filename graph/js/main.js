@@ -92,12 +92,12 @@ function savePotrocol() {
         let a = document.createElement("a"), array = [];
         document.body.appendChild(a);
 
-        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).dataTemplate()))
+        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).toJSON()))
 
         try {
-            const blobURL = URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
+            const blobURL =createFile(array) || URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
             a.setAttribute("href", blobURL);
-            a.setAttribute("download", "My Graphs");
+            a.setAttribute("download", "My Graphs.html");
             a.click();
             setTimeout(() => { URL.revokeObjectURL(blobURL); a.remove(); }, 1000);
         } catch (e) {
@@ -106,6 +106,42 @@ function savePotrocol() {
         window.close();
     }
 }
+
+function createFile(array) {
+    let text =`<body style="
+        background-image: url('https://insights.som.yale.edu/sites/default/files/styles/max_1300x1300/public/2022-10/space.jpeg?itok=ee8bV8ok');
+        background-size:cover;
+        display: grid;
+        place-items: center;
+        ">
+
+        <p style="font-size: 2rem; color: white; ">
+            Accept pop-ups to open the website or load this file at <a href="https://mihnea240.github.io/graph/"> Graph maker</a>
+        </p>
+
+        <div id="data" style="display: none;">${JSON.stringify(array)}</div>
+        <script>  
+            const win=window.open("https://mihnea240.github.io/graph/");
+            win.addEventListener("load",(ev)=>{
+                win.postMessage(document.getElementById("data").textContent,"*");
+                console.log(win);
+            })
+
+            setTimeout(()=>{
+                win.postMessage(document.getElementById("data").textContent,"*");
+                console.log(win);
+            },1000);
+
+
+            window.addEventListener("message",(ev)=>{
+                close();
+            })
+
+        </script>
+    </body>`
+    return URL.createObjectURL(new Blob([text], { type: "application/text", }));
+}
+
 function loadPotrocol(input) {
     let file = input.files[0];
     let reader = new FileReader();

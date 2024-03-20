@@ -197,6 +197,7 @@ graph-edge{
     color: white;
     gap: 1.5vw;
     margin-left: 2vw;
+    height: 5%;
 
     & > button{
         background-color: inherit;
@@ -210,6 +211,9 @@ graph-edge{
         }
     }
 }
+.active{
+    background-color: var(--ui-select2);
+}
 
 tab-area, graph-inspector{
     & >.header{
@@ -217,10 +221,11 @@ tab-area, graph-inspector{
         align-items: end;
         width: 100%;
         border-bottom: 1px solid white;
-        overflow: scroll;
+        overflow-y: scroll;
 
         & >*{
-            border-radius: 10px 10px 0 0;
+            padding: 0 .2rem;
+            border-radius: 2px 2px 0 0;
         }
     }
     & >tabs{
@@ -318,9 +323,8 @@ pop-menu{
     text-transform: capitalize;
     border-top: 1px solid rgba(255, 255, 255, 0.425);
     
-    
     & > div:first-child{
-        padding-left: .5rem;
+        padding: 0 .5rem;
         font-size: 110%;
         font-weight: bolder;
     }
@@ -453,12 +457,11 @@ pop-menu{
 
     background-color: rgb(from var(--background) r g b /0.9);
     box-shadow: 0 0 10px 1px black;
-    border-left: 1px solid gray;
     padding: .2rem;
     font-size: 80%;
 
     --input-background: var(--menu-background);
-    
+
     & >.header>*{
         padding: .2rem .5rem;
         text-wrap: nowrap;
@@ -467,7 +470,7 @@ pop-menu{
             text-decoration: underline;
         }
 
-        & >.active{
+        &.active{
             background-color: var(--ui-select2);
         }
     }
@@ -489,7 +492,10 @@ pop-menu{
     }
 }
 
-
+#template{
+    width: 75vw;
+    height: 75vh;
+}
     
     
 

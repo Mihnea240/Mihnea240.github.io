@@ -33,7 +33,7 @@ class TabArea extends HTMLElement{
         return this.querySelector(`.tabs > [name="${name}"]`);
     }
     getHeader(name) {
-        return this.querySelector(`.header > [name="${name}"]`);
+        return this.querySelector(`.header > [for="${name}"]`);
     }
 
     selectTab(name) {
