@@ -491,3 +491,32 @@ const graphInspectorTemplate = {
         readonly: true,
     },
 }
+
+const graphTemplate = {
+    categoryCollapse: false,
+    name: {
+        type: "text",
+        maxLength: 32,
+    },
+    main_color: {
+        type: "color",
+    },
+    secondary_color: {
+        type: "color",
+    },
+    show_ruller: {
+        type: "checkbox",
+    },
+    zoom: {
+        type: "range",
+        min: "0.1", max: "3", step: "0.1",
+    },
+    node_template: {
+        type: "select",
+        options: ["default"],
+    },
+    edge_template: {
+        type: "select",
+        options: ["default"]
+    }
+}

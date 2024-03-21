@@ -58,7 +58,7 @@ const appData = {
     dt: 0,
     lastTime:0,
     physicsSettings: {
-        frameRate: 24,
+        frameRate: 5,
         gravity: 0,
         spring: 0.01,
         springIdealLength: 200,
@@ -324,7 +324,7 @@ const ACTIONS = {
                 n.transform.acceleration.set(0, 0);
             }
         }
-        physicsMode.start(list, dt);
+        physicsMode.start(dt);
     }
 
 }
@@ -334,6 +334,11 @@ function openNodeCreationDialog() {
 
 }
 
+
+function test(n) {
+    let g = Graph.get(1);
+    for (let i = 1; i <= n; i++)g.addNode();
+}
 
 
 document.addEventListener("keydown", (ev) => {

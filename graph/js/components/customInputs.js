@@ -199,17 +199,21 @@ class CustomInputs{
             }
         }
         element.validate = function (param) {
-            this.classList.remove("hide");
-            let value = false;
-            if (this.condition) this.classList.toggle("hide", value = !this.condition(param));
-
-            let children = this.querySelectorAll(":scope >[name]"), n=children.length;
+            let value = this.condition ? this.condition(param) : true;
+            let children = this.querySelectorAll(":scope >[name]"), n = children.length ||1;
+            
             for (let el of children) {
                 el.classList.remove("hide");
                 if(!el.validate(param))n--;
             }
-            if (n == 0) this.classList.add("hide");
-            return (!n || !value);
+            if (n == 0 || !value) {
+                console.log(this.classList)
+                if(!this.classList.contains("hide"))this.classList.add("hide");
+                return false;
+            } else {
+                this.classList.remove("hide");
+                return true;
+            }
         }
         return element;
     }

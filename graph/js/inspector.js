@@ -20,6 +20,9 @@ class Inspector extends TabArea{
         this.observed = null;
         this.size = new Point();
         this.sizeObserver = new ResizeObserver(([item]) => this.size.set(item.borderBoxSize[0].inlineSize, item.borderBoxSize[0].blockSize));
+        this.nodeStorage = {};
+        this.graphStorage = {};
+        this.edgeStorage = {};
 
         //tabArea.addEventListener("nodemoved",(ev))
     }
@@ -71,7 +74,7 @@ class Inspector extends TabArea{
                 this.nodeDetails.load(this.extractNodeData(element));
                 this.nodeSpan.textContent = "#" + element.nodeId;
 
-                this.querySelector("[for='node']").click();
+                this.getHeader("node").click();
                 break;
             }
             case "GRAPH-TAB": {
@@ -79,7 +82,7 @@ class Inspector extends TabArea{
                 this.graphDetails.validate();
                 this.graphDetails.load(this.extractGraphData(element));
 
-                this.querySelector("[for='graph']").click();
+                this.getHeader("graph").click();
                 break;
             }
             case "GRAPH-EDGE": {
@@ -87,7 +90,7 @@ class Inspector extends TabArea{
                 this.edgeDetails.load(this.extractEdgeData(element));
                 this.edgeSpan.textContent = `#${element.from} ${element.to}`;
 
-                this.querySelector("[for='edge']").click();
+                this.getHeader("edge").click();
                 break;
             }
             default: return;
@@ -96,7 +99,7 @@ class Inspector extends TabArea{
     }
     /**@param {NodeUI} node*/
     extractNodeData(node) {
-        let rez={
+        this.nodeStorage={
             id: node.nodeId,
             mass: node.mass,
             template: node.template,
@@ -104,27 +107,27 @@ class Inspector extends TabArea{
             transform: node.transform,
         }
         let g = node.getGraph();
-        let degree = g.getDegree(rez.id);
-        if (g.type == UNORDERED) rez.degree = degree;
+        let degree = g.getDegree(this.nodeStorage.id);
+        if (g.type == UNORDERED) this.nodeStorage.degree = degree;
         else {
-            rez.degree = degree.inner + degree.outer;
-            rez.inner = degree.inner;
-            rez.outer = degree.outer;
+            this.nodeStorage.degree = degree.inner + degree.outer;
+            this.nodeStorage.inner = degree.inner;
+            this.nodeStorage.outer = degree.outer;
         }
-        //console.log(rez)
-        return rez;
+        //console.log(this.nodeStorage)
+        return this.nodeStorage;
     }
     extractEdgeData(edge) {
-        let rez = {
+        this.edgeStorage = {
             from: edge.from,
             to: edge.to,
             symmetry: edge.symmetry,
             mode: edge.mode,
         }
-        return rez;
+        return this.edgeStorage;
     }
     extractGraphData(graph) {
-        let rez = {
+        this.graphStorage = {
             name: graph.settings.graph.name,
             id: graph.id,
             type: (graph.type ? "Unordere" : "Ordered") + (graph.isTree() ? " tree" : ""),
@@ -132,7 +135,7 @@ class Inspector extends TabArea{
             nodeCount: graph.nodeCount,
         }
 
-        return rez;
+        return this.graphStorage;
     }
 }
 

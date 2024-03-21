@@ -19,8 +19,8 @@ class TabArea extends HTMLElement{
         this.activeHeader = this.header.querySelector(".active") || this.header.querySelector("[for]");
 
         for (let t of this.tabs.children) t.classList.add("hide");
-        let name = this.activeHeader?.getAttribute("for");
-        this.activeTab = name ? this.getTab(name) : this.tabs.querySelector(":scope >[name]");
+        let name = this.activeHeader?.getAttribute("for") || this.querySelector(".tabs >[name]");
+        if (name) this.selectTab(name);
 
         this.header?.addEventListener("click", (ev) => {
             let name = ev.target.getAttribute("for");
@@ -39,7 +39,7 @@ class TabArea extends HTMLElement{
     selectTab(name) {
         let newSelected = this.getTab(name);
         let newHeader = this.getHeader(name);
-        if (!newSelected) return;
+        if (!newSelected || newSelected===this.activeTab) return;
 
         this.activeTab?.classList.add("hide");
         this.activeTab = newSelected;
