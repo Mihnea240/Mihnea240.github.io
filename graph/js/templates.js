@@ -520,3 +520,11 @@ const graphTemplate = {
         options: ["default"]
     }
 }
+
+const nodeTemplate = {
+    categoryCollapse: false,
+}
+
+const edgeTemplate = {
+    categoryCollapse: false,
+}

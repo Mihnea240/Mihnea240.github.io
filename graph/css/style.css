@@ -346,9 +346,11 @@ graph-inspector {
     }
 }
 
-/* Menu bar */
 
-
+list-view{
+    display: flex;
+    
+}
 
 pop-menu {
     background-color: var(--menu-background);
@@ -555,6 +557,14 @@ pop-menu {
 }
 
 #template {
-    width: 75vw;
-    height: 75vh;
+    width: 50vw;    height: 80vh;
+
+    & .tabs >*{
+        display: grid;
+        grid-template-rows: 40% 60%;
+        grid-template-columns: 1fr 1fr;
+    }
+    & list-view{
+        grid-row: span 2;
+    }
 }

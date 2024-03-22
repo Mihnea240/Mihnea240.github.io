@@ -1,5 +1,5 @@
 window.onload = () => {
-    initGreatMenus();
+    greatMenus.init();
     initInspector();
     document.oncontextmenu = ev => ev.preventDefault();
 
@@ -30,6 +30,7 @@ window.onload = () => {
 
     window.addEventListener("message", (ev) => {
         let graphs = JSON.parse(ev.data);
+        for (const [_, g] of Graph.graphMap) g.delete();
         for (let i of graphs) createGraph(i);
         ev.source.postMessage("close", "*");
     });
@@ -78,33 +79,11 @@ function createGraph(obj = defaultGraphJSON) {
 }
 function g(id) { return Graph.get(id) }
 
-function savePotrocol() {
-    let window = menuBar.querySelector("dialog");
-    let gList = window.querySelector("div.list");
-    gList.innerHTML = "";
-    for (let [i, _] of Graph.graphMap) {
-        gList.appendChild(elementFromHtml(`<label><input data-id=${i} checked type="checkbox">${Graph.get(i).settings.graph.name}</label>`));
-    }
-    document.body.click();
-    window.showModal();
-    let saveButton = window.querySelector("button");
-    saveButton.onclick ||= () => {
-        let a = document.createElement("a"), array = [];
-        document.body.appendChild(a);
-
-        window.querySelectorAll(".list input:checked").forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).toJSON()))
-
-        try {
-            const blobURL =createFile(array) || URL.createObjectURL(new Blob([JSON.stringify(array)], { type: "application/json", }));
-            a.setAttribute("href", blobURL);
-            a.setAttribute("download", "My Graphs.html");
-            a.click();
-            setTimeout(() => { URL.revokeObjectURL(blobURL); a.remove(); }, 1000);
-        } catch (e) {
-            console.log(e);
-        }
-        window.close();
-    }
+function saveProtrocol() {
+    greatMenus.fileDialog.showModal();
+    let list = greatMenus.fileDialog.querySelector("list-view");
+    list.clear();
+    for (let [_, g] of Graph.graphMap) list.push(g);
 }
 
 function createFile(array) {
@@ -119,7 +98,7 @@ function createFile(array) {
             Accept pop-ups to open the website or load this file at <a href="https://mihnea240.github.io/graph/"> Graph maker</a>
         </p>
 
-        <div id="data" style="display: none;">${JSON.stringify(array)}</div>
+        <div  style="display: none;" id="data">${JSON.stringify(array)}</div>
         <script>  
             const win=window.open("https://mihnea240.github.io/graph/");
             win.addEventListener("load",(ev)=>{
@@ -148,7 +127,11 @@ function loadPotrocol(input) {
 
     reader.readAsText(file);
     reader.addEventListener("load", (ev) => {
-        let obj = JSON.parse(reader.result);
+        let p1 = reader.result.indexOf('id="data"') + 10;
+        let p2 = reader.result.indexOf("</div>", p1);
+        let json = reader.result.substring(p1, p2);
+        let obj = JSON.parse(json);
+        console.log(obj,json)
         for (let i of obj) createGraph(i);
     })
 }
