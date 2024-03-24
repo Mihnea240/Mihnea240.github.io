@@ -1,19 +1,4 @@
 
-function initInspector() {
-    addCustomDrag(inspector, {
-        onstart(ev, delta) {
-            if (ev.offsetX > 5) return false;
-            return true;
-        },
-        onmove(ev, delta) {
-            inspector.size.x -= delta.x;
-            inspector.style.width = inspector.size.x + "px";
-            inspector.style.cssText += `width: ${inspector.size.x}px; min-width: none;`;
-        }
-    });
-
-}
-
 class Inspector extends TabArea{
     constructor() {
         super();
@@ -37,16 +22,16 @@ class Inspector extends TabArea{
         this.sizeObserver.observe(this);
 
         let scrollIntoView = () => {
-            inspector.observed.scrollIntoView();
-            Graph.selected.selection.toggle(inspector.observed);
+            this.observed.scrollIntoView();
+            Graph.selected.selection.toggle(this.observed);
         }
         let onchange = (ev) => {
             let chain = CustomInputs.getChainFromEvent(this, ev);
             chain.pop();
             let value = ev.target.parentElement.get();
             console.log(chain, value);
-            CustomInputs.setFromChain(inspector.observed, chain, value);
-            if (chain[0] == "x" || chain[0] == "y") inspector.observed.update();
+            CustomInputs.setFromChain(this.observed, chain, value);
+            if (chain[0] == "x" || chain[0] == "y") this.observed.update();
         }
 
         this.nodeDetails = this.viewTabs.node.appendChild(CustomInputs.category("Viewing", nodeInspectorTemplate));

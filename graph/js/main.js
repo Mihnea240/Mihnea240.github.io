@@ -1,6 +1,4 @@
 window.onload = () => {
-    greatMenus.init();
-    initInspector();
     document.oncontextmenu = ev => ev.preventDefault();
 
     let storedGraphs = JSON.parse(sessionStorage.getItem("stored-graphs"));
@@ -8,12 +6,6 @@ window.onload = () => {
     let nodeTemplates = JSON.parse(sessionStorage.getItem("nodeTemplates"));
     let edgeTemplates = JSON.parse(sessionStorage.getItem("edgeTemplates"));
 
-    if (appSettings) {
-        mergeDeep(appData, appSettings);
-        appData.physicsSettings.spring /= 100;
-    }
-    mergeDeep(physicsMode, appData.physicsSettings);
-    greatMenus.forceMenu.querySelector(".category").load(appData.physicsSettings);
 
     if (nodeTemplates?.length) {
         for (const t of nodeTemplates) new NodeTemplate(t.name, "", t);
@@ -22,6 +14,16 @@ window.onload = () => {
     if (edgeTemplates?.length) {
         for (const t of edgeTemplates) new EdgeTemplate(t.name, "", t);
     } else  new EdgeTemplate("default", edgeDefaultTemplate);
+
+    greatMenus.init();
+
+    if (appSettings) {
+        mergeDeep(appData, appSettings);
+        appData.physicsSettings.spring /= 100;
+    }
+    mergeDeep(physicsMode, appData.physicsSettings);
+    greatMenus.forceMenu.querySelector(".category").load(appData.physicsSettings);
+
 
 
     if (storedGraphs?.length) {
@@ -76,6 +78,7 @@ function createGraph(obj = defaultGraphJSON) {
 
     if (!newGraph) alert("Format invalid");
     else newGraph.focus();
+    return newGraph;
 }
 function g(id) { return Graph.get(id) }
 

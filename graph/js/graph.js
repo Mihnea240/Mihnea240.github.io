@@ -230,7 +230,6 @@ class Graph {
     static parse(obj = defaultGraphJSON) {
         let newG = new Graph(obj.type, obj.settings);
 
-        console.log(obj);
         newG.actionsStack.startGroup();
         for (let node of obj.nodeProps) newG.addNode(node);
         for (let edge of obj.edgeProps) newG.addEdge(edge);

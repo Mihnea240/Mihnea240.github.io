@@ -2,13 +2,11 @@ class listView extends HTMLElement{
     static sizeObserver=new ResizeObserver((entries) => {
         for (let entry of entries) {
             let list = entry.target;
-            let {inlineSize: w, blockSize: h } = entry.borderBoxSize[0];
-            console.log(w, h);
-            if (!list.autofit || (list.dir==0 && Math.abs(list.size.x-w)<5) || (list.dir==1 && Math.abs(list.size.y-h)<5)) continue;
+            let { inlineSize: w, blockSize: h } = entry.borderBoxSize[0];
+            
+            if (!list.autofit || (list.dir == 0 && Math.abs(list.size.x - w) < 5) || (list.dir == 1 && Math.abs(list.size.y - h) < 5)) continue;
+            list.autoSize();
 
-            if (list.dir == 0) {
-                
-            }
         }
     })
     static observedAttributes = ["length", "autofit", "break", "autoflow", "direction"];
@@ -22,17 +20,18 @@ class listView extends HTMLElement{
         this.viewLength=0;
         this.break=0;
         this.autoflow = false;
-        this.fit = false;
+        this.autofit = false;
         this.flow = 0;
         this.firstIndex = 0;
-
+        
+        listView.sizeObserver.observe(this);
         //const shadow = this.attachShadow({mode: open})
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch(name){
-            case "length": this.viewLength = parseInt(newValue) || 0; break;
-            case "autofit": this.autofit = newValue; break;
+            case "length": this.length = parseInt(newValue) || 0; break;
+            case "autofit": this.autofit = newValue; this.autoSize(); break;
             case "break": this.break = parseInt(newValue) || 0; break;
             case "autoflow": this.autoflow = newValue; break;
             case "direction": this.direction = newValue; break;
@@ -44,26 +43,38 @@ class listView extends HTMLElement{
         else if (val === "row") this.flow = 1;
         else this.flow = val;
 
-        console.log(this.flow)
-        this.style.flexDirection = this.flow ? "row" : "column";
+        this.style.cssText += `display: flex; flex-direction: ${this.flow ? "row" : "column"}`;
     }
     get direction() { return this.flow; }
 
-    set autofit(val) {
-        if (val) this.viewLength = this.autoSize();
+    set length(val) {
+        if (val == this.viewLength) return;
+        
+        for (let i = this.viewLength; i <= val; i++)this.appendChild(this.template(this.data(i)));
+    
+        for (let i = this.viewLength; i >= val; i--)this.pop();
+        
+        this.viewLength = val;
     }
-    get autofit() { return this.fit; }
+    get length() { return this.viewLength }
+    
+    data(index) {
+        return index < this.list.length ? this.list[index] : this.countingFunction(index);
+    }
 
-    autoSize(){
-        let unit = this.children[0][this.flow ? "clientWidth" : "clientHeight"];
-        return Math.ceil(this[this.flow ? "clientWidth" : "clientHeight"] / unit);
+    autoSize() {
+        if (!this.autofit) return;
+        if (!this.children.length) this.length = 1;
+
+        let unit = this.children[0][this.flow ? "clientWidth" : "clientHeight"] || 1;
+        let fitableItems = Math.ceil(this[this.flow ? "clientWidth" : "clientHeight"] / unit);
+    
+
+        return this.length = this.length > 1 ? Math.min(Infinity, this.length) : fitableItems;
     }
 
     render() {
         this.list.forEach(el => this.push(el));
-        if (this.autoflow && this.viewLength) {
-            for (let i = this.list.length; i <= this.viewLength; i++)this.push(this.countingFunction(i));
-        }
     }
 
     push(val) {
@@ -77,6 +88,7 @@ class listView extends HTMLElement{
     }
     pop() {
         let n = this.children.length;
+        if (n == 0) return;
         this.children[n - 1].remove();
         if (n <= this.list.length) return this.list[n - 1];
     }
@@ -96,8 +108,9 @@ class listView extends HTMLElement{
         let rect=this.getBoundingClientRect();
         this.size = { x: rect.width, y: rect.height }; 
 
-        this.style.display = "flex";
-        this.render();
+        if (!this.getAttribute("direction")) this.direction = "column";
+
+        this.length = this.list.length;
     }
 }
 

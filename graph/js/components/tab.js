@@ -46,6 +46,13 @@ const _tab_template =/*html*/`
         number-line[direction="vertical"]{
             right: 0; top:0;
         }
+
+        list-view[direction="row"]{
+            width: 100%;
+            & >*{
+                padding: 0 .5rem;
+            }
+        }
         #selectionRect{
             position: absolute;
             display: none;
@@ -65,6 +72,7 @@ const _tab_template =/*html*/`
         <slot name="edges"></slot>
   
     </div>
+    <list-view autofit="true" autoflow="true" direction="row"></list-view>
     <number-line unit="100px" for="tab"></number-line>
     <number-line unit="100px" direction="vertical" for="tab"></number-line>
     
@@ -401,7 +409,7 @@ class Tab extends HTMLElement {
 
     recalculateEdges(nodeId, point) {
         let g = this.getGraph();
-        if (inspector.observed?.nodeId == nodeId) inspector.observe();
+        if (greatMenus.inspector.observed?.nodeId == nodeId) greatMenus.inspector.observe();
         this.forEdges((edge) => {
             if (point === undefined) return;
             

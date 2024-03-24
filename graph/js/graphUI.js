@@ -11,7 +11,6 @@ const tab_template = elementFromHtml(`<graph-tab></graph-tab>`);
 const header_template = elementFromHtml(`
     <text-input spellcheck="false" class="graph-header" maxLength="32"></text-input>
 `);
-const inspector = document.getElementById("inspector");
 const graphDialog = document.querySelector("graph-menu");
 
 
@@ -91,10 +90,10 @@ const greatMenus = {
     
         let list = this.fileDialog.querySelector("list-view");
         list.template = function(graph){
-            return elementFromHtml(`<label><input data-id=${graph.id} checked type="checkbox">${graph.settings.graph.name}</label>`);
+            return elementFromHtml(`<label>${graph.settings.graph.name}<input data-id=${graph.id} checked type="checkbox"></label>`);
         }
         this.fileDialog.querySelector("input").addEventListener("change", function () {
-            this.fileDialog.querySelectorAll("list-view input").forEach((el) => el.checked = this.checked);
+            greatMenus.fileDialog.querySelectorAll("list-view input").forEach((el) => el.checked = this.checked);
         })
         
         this.fileDialog.querySelector("button").addEventListener("click", function () {
@@ -141,12 +140,51 @@ const greatMenus = {
     },
     initTemplateMenu() {
         this.templateMenu = document.getElementById("template");
-        let tabs=this.template
-    
-        this.templateMenu.querySelector(".tabs [name='graph']").appendChild(CustomInputs.category("Details", graphTemplate));
-        this.templateMenu.querySelector(".tabs [name='node']").appendChild(CustomInputs.category("Details", nodeTemplate));
-        this.templateMenu.querySelector(".tabs [name='edge']").appendChild(CustomInputs.category("Details", edgeTemplate));
-    
+        let [gTab, nTab, eTab] = this.templateMenu.querySelectorAll(".tabs>*");
+
+        gTab.appendChild(CustomInputs.category("Details", graphTemplate));
+        nTab.appendChild(CustomInputs.category("Details", nodeTemplate));
+        eTab.appendChild(CustomInputs.category("Details", edgeTemplate));
+
+        this.loadTemplateData("node");
+        this.loadTemplateData("edge");
+        this.loadTemplateData("graph");
+
+    },
+    loadTemplateData(tabName) {
+        let tab = this.templateMenu.getTab(tabName);
+        let templateList = tab.querySelector("list-view");
+
+        templateList.clear();
+        switch (tabName) {
+            case "graph": {
+                break;
+            }
+            case "node": {
+                templateList.list = Array.from(NodeTemplate.map, ([i, _]) => i);
+                break;
+            }
+            case "edge": {
+                templateList.list = Array.from(EdgeTemplate.map, ([i, _]) => i);
+                break;
+            }
+        }
+        
+        templateList.render();
+    },
+    initInspector() {
+        this.inspector = document.getElementById("inspector");
+        addCustomDrag(greatMenus.inspector, {
+            onstart(ev, delta) {
+                if (ev.offsetX > 5) return false;
+                return true;
+            },
+            onmove(ev, delta) {
+                greatMenus.inspector.size.x -= delta.x;
+                greatMenus.inspector.style.width = greatMenus.inspector.size.x + "px";
+                greatMenus.inspector.style.cssText += `width: ${greatMenus.inspector.size.x}px; min-width: none;`;
+            }
+        });
     },
     init() {
         for (let button of menuBar.querySelectorAll(":scope > button")) {
@@ -160,7 +198,7 @@ const greatMenus = {
         this.initForceMenu();
         this.initActionMenu();
         this.initTemplateMenu();
-        
+        this.initInspector();
     }
 }
 

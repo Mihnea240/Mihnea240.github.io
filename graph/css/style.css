@@ -423,12 +423,7 @@ pop-menu {
         align-items: center;
     }
 
-    .list {
-        display: flex;
-        flex-direction: column;
-        padding: .2rem 0 0 .2rem;
-        overflow: scroll;
-        height: 90%;
+    & list-view {
         box-shadow: 0 0 5px black;
 
         >:nth-child(odd) {
@@ -441,8 +436,8 @@ pop-menu {
 
         &>* {
             display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
+            justify-content: space-between;
+            padding: 1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.323);
         }
     }
@@ -557,7 +552,7 @@ pop-menu {
 }
 
 #template {
-    width: 50vw;    height: 80vh;
+    width: 25vw;    height: 80vh;
 
     & .tabs >*{
         display: grid;
@@ -566,5 +561,12 @@ pop-menu {
     }
     & list-view{
         grid-row: span 2;
+        text-transform: capitalize;
+        
+
+        & >*{
+            padding: .5rem;
+            border: 1px solid white;
+        }
     }
 }
