@@ -50,7 +50,9 @@ const _tab_template =/*html*/`
         list-view[direction="row"]{
             width: 100%;
             & >*{
-                padding: 0 .5rem;
+                min-width: 3rem;
+                flex-grow: 0;
+                overflow: visible;
             }
         }
         #selectionRect{

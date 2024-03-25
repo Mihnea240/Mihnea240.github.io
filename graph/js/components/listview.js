@@ -4,7 +4,10 @@ class listView extends HTMLElement{
             let list = entry.target;
             let { inlineSize: w, blockSize: h } = entry.borderBoxSize[0];
             
-            if (!list.autofit || (list.dir == 0 && Math.abs(list.size.x - w) < 5) || (list.dir == 1 && Math.abs(list.size.y - h) < 5)) continue;
+            if (!list.autofit || (list.dir == 0 && Math.abs(list.size.x - w) < 1) || (list.dir == 1 && Math.abs(list.size.y - h) < 1)) continue;
+            
+            entry.target.size.x = w;
+            entry.target.size.y = h;
             list.autoSize();
 
         }
@@ -24,6 +27,7 @@ class listView extends HTMLElement{
         this.flow = 0;
         this.firstIndex = 0;
         
+        this.size = { x: 0, y: 0 };
         listView.sizeObserver.observe(this);
         //const shadow = this.attachShadow({mode: open})
     }
@@ -48,13 +52,14 @@ class listView extends HTMLElement{
     get direction() { return this.flow; }
 
     set length(val) {
-        if (val == this.viewLength) return;
+        let n = this.autofit ? this.childElementCount : this.viewLength;
+        if (val == n) return;
         
-        for (let i = this.viewLength; i <= val; i++)this.appendChild(this.template(this.data(i)));
-    
-        for (let i = this.viewLength; i >= val; i--)this.pop();
+        for (let i = n; i <= val; i++)this.appendChild(this.template(this.data(i)));
         
-        this.viewLength = val;
+        for (let i = n; i > val; i--)this.pop();
+        
+        if(!this.autofit)this.viewLength = val;
     }
     get length() { return this.viewLength }
     
@@ -67,8 +72,9 @@ class listView extends HTMLElement{
         if (!this.children.length) this.length = 1;
 
         let unit = this.children[0][this.flow ? "clientWidth" : "clientHeight"] || 1;
-        let fitableItems = Math.ceil(this[this.flow ? "clientWidth" : "clientHeight"] / unit);
-    
+        let fitableItems = Math.floor(this.size[this.flow ? "x" : "y"] / unit)+1;
+        
+        //console.log(unit, fitableItems);
 
         return this.length = this.length > 1 ? Math.min(Infinity, this.length) : fitableItems;
     }
