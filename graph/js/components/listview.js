@@ -28,6 +28,7 @@ class listView extends HTMLElement{
         
         this.size = { x: 0, y: 0 };
         this.unit = { x: 0, y: 0 };
+        this.translation = { x: 1, y: 1 };
         listView.sizeObserver.observe(this);
         //const shadow = this.attachShadow({mode: open})
     }
@@ -56,7 +57,6 @@ class listView extends HTMLElement{
         if (val == n) return;
         
         for (let i = n; i <= val; i++)this.appendChild(this.template(this.data(i+this.firstIndex)));
-        
         for (let i = n; i > val; i--)this.pop();
         
         if(!this.autofit)this.viewLength = val;
@@ -69,7 +69,7 @@ class listView extends HTMLElement{
 
     autoSize() {
         if (!this.autofit) return;  
-        return this.length = this.length > 1 ? this.length : Math.ceil(this.getSize() / this.getUnit());
+        return this.length = this.length > 1 ? this.length : Math.ceil(this.getSize() / this.getUnit())+2;
     }
 
     getUnit() {
@@ -78,6 +78,7 @@ class listView extends HTMLElement{
             let rect = this.children[0].getBoundingClientRect();
             this.unit.x = rect.width;
             this.unit.y = rect.height;
+            this.style.cssText+=`translate: ${-this.getUnit()}px 0;`
         }
         return this.unit[this.flow ? "x" : "y"] || 1;
     }
@@ -120,9 +121,19 @@ class listView extends HTMLElement{
         return this.target || this;
     }
     move(value) {
+        let sign = value > 0 ? 1 : -1; value = Math.abs(value);
         let offset = Math.floor(value / this.getUnit());
-        let translateOffset = value - offset * this.getUnit();
-        this.firstIndex += Math.floor(offset);
+        
+        let to = (value - (offset - 1) * this.getUnit()) * sign;
+
+        this.animation=this.animate([
+            { transform: `translate(${to}px,0)` },
+            { transform: `translate(0,0)` },
+        ], {
+            duration: Math.abs(to)*5,
+            iterations: 1,
+        })
+        this.firstIndex += offset*sign;
         this.update();
     }
 

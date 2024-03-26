@@ -49,6 +49,7 @@ const _tab_template =/*html*/`
 
         list-view[direction="row"]{
             width: 100%;
+            transition: transform 100ms ease-in-out;
             & >*{
                 min-width: 3rem;
                 flex-grow: 0;
@@ -100,11 +101,13 @@ const storage = {
 const dragHandle = {
     
     tabDrag: (target, ev, delta) => {
+        target.shadowRoot.querySelector("list-view").move(-delta.x);
         if (ev.buttons == 4) {
             ev.preventDefault();
             for (let n of target.getGraph().selection.nodeSet) {
                 n.translate(delta.x, delta.y);
                 n.transform.velocity.copy(appData.cursorVelocity);
+                
             }
             return;
         }
