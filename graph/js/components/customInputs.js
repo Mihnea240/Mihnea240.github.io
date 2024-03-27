@@ -64,7 +64,7 @@ class TextInput extends HTMLElement{
             case "allownewline": this.allownewline = !!newValue; break;
             case "value": this.value = newValue; break;
             case "readonly": {
-                if (newValue === "true" || newValue === true) this.setAttribute("contenteditable", false),console.log("dfmdk");
+                if (newValue === "true" || newValue === true) this.setAttribute("contenteditable", false);
                 else this.setAttribute("contenteditable", true);
                 break;
             }

@@ -34,26 +34,24 @@ const _tab_template =/*html*/`
             border-radius: .2em;
         }
         .hide{display: none}
-        number-line{
+        list-view{
             display: var(--show-ruller);
             position: absolute; z-index:10;
             font-size: .7rem;
-            border: .1px solid white;
-        }
-        number-line[direction="horizontal"]{
-            bottom: 0; left:0;
-        }
-        number-line[direction="vertical"]{
-            right: 0; top:0;
         }
 
         list-view[direction="row"]{
             width: 100%;
-            transition: transform 100ms ease-in-out;
+            bottom: 0; left: 0;
             & >*{
                 min-width: 3rem;
-                flex-grow: 0;
-                overflow: visible;
+            }
+        }
+        list-view[direction="column"]{
+            height: 100%;
+            right: 0; top: 0;
+            & >*{
+                min-height: 3rem;
             }
         }
         #selectionRect{
@@ -76,9 +74,7 @@ const _tab_template =/*html*/`
   
     </div>
     <list-view autofit="true" autoflow="true" direction="row"></list-view>
-    <number-line unit="100px" for="tab"></number-line>
-    <number-line unit="100px" direction="vertical" for="tab"></number-line>
-    
+    <list-view autofit="true" autoflow="true" direction="column"></list-view>
 `
 
 const PositionFunctons = {

@@ -8,10 +8,10 @@ class listView extends HTMLElement{
             
             list.size.x = w;
             list.size.y = h;
-            list.autoSize();
+            list.render();
         }
     })
-    static observedAttributes = ["length", "autofit", "break", "autoflow", "direction"];
+    static observedAttributes = ["length", "autofit", "break", "autoflow", "direction","target"];
     constructor(){
         super();
         this.list=[];
@@ -28,18 +28,36 @@ class listView extends HTMLElement{
         
         this.size = { x: 0, y: 0 };
         this.unit = { x: 0, y: 0 };
-        this.translation = { x: 1, y: 1 };
+        this.scrollOffset = { x: 1, y: 1 };
         listView.sizeObserver.observe(this);
-        //const shadow = this.attachShadow({mode: open})
+        const shadow = this.attachShadow({mode: "open"});
+        shadow.innerHTML =/*html */`
+            <style>
+                :host{
+                    display: flex;
+                }
+                :host([direction="row"]){
+                    flex-direction: "row"
+                }
+                :host([direction="column"]){
+                    flex-direction: "column"
+                }
+                :host( *){
+                    overflow: visible;
+                }
+            </style>
+            <slot></slot>
+        `.trim();
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch(name){
             case "length": this.length = parseInt(newValue) || 0; break;
-            case "autofit": this.autofit = newValue; this.autoSize(); break;
+            case "autofit": this.autofit = newValue; this.render(); break;
             case "break": this.break = parseInt(newValue) || 0; break;
             case "autoflow": this.autoflow = newValue; break;
             case "direction": this.direction = newValue; break;
+            case "target": this.target = this.closest(newValue); break; 
         }
     }
 
@@ -48,7 +66,7 @@ class listView extends HTMLElement{
         else if (val === "row") this.flow = 1;
         else this.flow = val;
 
-        this.style.cssText += `display: flex; flex-direction: ${this.flow ? "row" : "column"}`;
+        this.style.cssText += `flex-direction: ${this.flow ? "row" : "column"}`;
     }
     get direction() { return this.flow; }
 
@@ -56,7 +74,7 @@ class listView extends HTMLElement{
         let n = this.autofit ? this.childElementCount : this.viewLength;
         if (val == n) return;
         
-        for (let i = n; i <= val; i++)this.appendChild(this.template(this.data(i+this.firstIndex)));
+        for (let i = n; i < val; i++)this.appendChild(this.template(this.data(i+this.firstIndex)));
         for (let i = n; i > val; i--)this.pop();
         
         if(!this.autofit)this.viewLength = val;
@@ -64,29 +82,22 @@ class listView extends HTMLElement{
     get length() { return this.viewLength }
     
     data(index) {
-        return index < this.list.length ? this.list[index] : this.countingFunction(index);
-    }
-
-    autoSize() {
-        if (!this.autofit) return;  
-        return this.length = this.length > 1 ? this.length : Math.ceil(this.getSize() / this.getUnit())+2;
+        return (index >= 0 && index < this.list.length) ? this.list[index] : this.countingFunction(index);
     }
 
     getUnit() {
-        if (!this.children.length) {
-            this.length = 1;
+        if (!this.children.length) this.length = 1;
+        if (this.unit.x + this.unit.y == 0) {
             let rect = this.children[0].getBoundingClientRect();
             this.unit.x = rect.width;
             this.unit.y = rect.height;
-            this.style.cssText+=`translate: ${-this.getUnit()}px 0;`
-        }
-        return this.unit[this.flow ? "x" : "y"] || 1;
+        } else return this.unit[this.flow ? "x" : "y"] || 1;
     }
     getSize() {
         return this.size[this.flow ? "x" : "y"];
     }
     getScroll() {
-        return this.scrollTarget()[this.flow ? "scrollLeft" : "scrollTop"];
+        return this.target?.[this.flow ? "scrollLeft" : "scrollTop"] || this.scrollOffset[this.flow ? "x" : "y"];
     }
 
     push(val) {
@@ -105,7 +116,8 @@ class listView extends HTMLElement{
         if (n <= this.list.length) return this.list[n - 1];
     }
     render() {
-        this.length = this.list.length;
+        if(this.autofit) return this.length = this.length > 1 ? this.length : Math.ceil(this.getSize() / this.getUnit())+2;
+        return this.length = this.list.length;
     }
 
     update() {
@@ -120,37 +132,43 @@ class listView extends HTMLElement{
     scrollTarget() {
         return this.target || this;
     }
-    move(value) {
-        let sign = value > 0 ? 1 : -1; value = Math.abs(value);
-        let offset = Math.floor(value / this.getUnit());
-        
-        let to = (value - (offset - 1) * this.getUnit()) * sign;
 
-        this.animation=this.animate([
-            { transform: `translate(${to}px,0)` },
-            { transform: `translate(0,0)` },
-        ], {
-            duration: Math.abs(to)*5,
-            iterations: 1,
-        })
-        this.firstIndex += offset*sign;
+    move(value) {
+        if (this.autofit) {
+            this.flow ? this.scrollOffset.x += value : this.scrollOffset.y += value;
+        }
+        this.firstIndex = Math.floor(this.getScroll() / this.getUnit());
         this.update();
+        let v = this.getScroll() / this.getUnit();
+        let to = (Math.floor(v) - v) * this.getUnit();
+        let x = 0, y = 0;
+        this.flow ? x = to : y = to;
+
+        this.style.cssText += `transform: translate(${x}px, ${y}px)`;      
     }
 
     connectedCallback() {
         let rect=this.getBoundingClientRect();
         this.size = { x: rect.width, y: rect.height }; 
+
         if (!this.getAttribute("direction")) this.direction = "column";
         this.tabIndex = 0;
 
         this.addEventListener("keydown", function (ev) {
             let unit = this.getUnit();
-            console.log(ev.key)
             if (ev.key == "ArrowLeft" || ev.key == "ArrowUp") this.move(-unit);
             else if(ev.key=="ArrowRight" || ev.key=="ArrowDown") this.move(unit);
         })
 
-        this.getUnit();
+        this.shadowRoot.querySelector("slot").addEventListener("slotchange", (ev) => {
+            if (this.childElementCount == 1) {
+                this.getUnit();
+                this.render();
+            }
+        })
+
+        this.target?.addEventListener("scroll", (ev) => { if (this.autofit) this.render(); })
+
         this.render();
     }
 }
