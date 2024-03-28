@@ -37,12 +37,12 @@ class listView extends HTMLElement{
                     display: flex;
                 }
                 :host([direction="row"]){
-                    flex-direction: "row"
+                    flex-direction: row;
                 }
                 :host([direction="column"]){
-                    flex-direction: "column"
+                    flex-direction: column;
                 }
-                :host( *){
+                :host( >*){
                     overflow: visible;
                 }
             </style>
@@ -57,7 +57,7 @@ class listView extends HTMLElement{
             case "break": this.break = parseInt(newValue) || 0; break;
             case "autoflow": this.autoflow = newValue; break;
             case "direction": this.direction = newValue; break;
-            case "target": this.target = this.closest(newValue); break; 
+            case "target": this.target = findClosestMatchingNode(this, newValue); break; 
         }
     }
 
@@ -65,8 +65,6 @@ class listView extends HTMLElement{
         if (val === "column") this.flow = 0;
         else if (val === "row") this.flow = 1;
         else this.flow = val;
-
-        this.style.cssText += `flex-direction: ${this.flow ? "row" : "column"}`;
     }
     get direction() { return this.flow; }
 
@@ -80,6 +78,13 @@ class listView extends HTMLElement{
         if(!this.autofit)this.viewLength = val;
     }
     get length() { return this.viewLength }
+
+    set scrollTarget(target) {
+        if (this.target) this.target.removeEventListener("scroll", this.scrollEventHandler);
+        this.target = target;
+        this.target.addEventListener("scroll", this.scrollEventHandler);
+    }
+    get scrollTarget() { return this.target }
     
     data(index) {
         return (index >= 0 && index < this.list.length) ? this.list[index] : this.countingFunction(index);
@@ -98,6 +103,12 @@ class listView extends HTMLElement{
     }
     getScroll() {
         return this.target?.[this.flow ? "scrollLeft" : "scrollTop"] || this.scrollOffset[this.flow ? "x" : "y"];
+    }
+    scrollTarget() {
+        return this.target || this;
+    }
+    scrollEventHandler(ev) {
+        this.move(0);
     }
 
     push(val) {
@@ -129,9 +140,7 @@ class listView extends HTMLElement{
         this.innerHTML = "";
     }
     
-    scrollTarget() {
-        return this.target || this;
-    }
+    
 
     move(value) {
         if (this.autofit) {

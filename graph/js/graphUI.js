@@ -97,7 +97,7 @@ const greatMenus = {
         })
         
         this.fileDialog.querySelector("button").addEventListener("click", function () {
-            let anchor = this.fileDialog.querySelector("a"), array = [];
+            let anchor = greatMenus.fileDialog.querySelector("a"), array = [];
     
             greatMenus.fileDialog.querySelectorAll("list-view input:checked")
                 .forEach(el => array.push(Graph.get(parseInt(el.getAttribute("data-id"))).toJSON()))

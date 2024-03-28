@@ -12,7 +12,7 @@ const _tab_template =/*html*/`
             background-color: transparent;
             pointer-events:none;
             user-select: none;
-           
+
         }
         .tab{
             position: absolute;
@@ -27,7 +27,7 @@ const _tab_template =/*html*/`
             z-index: 5;
         }
         ::-webkit-scrollbar-corner{
-            
+
         }
         ::-webkit-scrollbar-thumb{
             background-color: rgba(0, 0, 0, 0.47);
@@ -35,8 +35,8 @@ const _tab_template =/*html*/`
         }
         .hide{display: none}
         list-view{
-            display: var(--show-ruller);
-            position: absolute; z-index:10;
+            position: absolute;
+            z-index: 10;
             font-size: .7rem;
         }
 
@@ -63,18 +63,18 @@ const _tab_template =/*html*/`
         }
     </style>
 
-    
-    
+
+
     <div class="tab" name="tab">
         <div id="square" draggable="false"></div>
         <div id="selectionRect"></div>
         <curved-path class="hide" style="position: absolute"></curved-path>
         <slot name="nodes"></slot>
         <slot name="edges"></slot>
-  
+
     </div>
-    <list-view autofit="true" autoflow="true" direction="row"></list-view>
-    <list-view autofit="true" autoflow="true" direction="column"></list-view>
+    <list-view autofit="true" autoflow="true" direction="row" target=".tab"></list-view>
+    <list-view autofit="true" autoflow="true" direction="column" target=".tab"></list-view>
 `
 
 const PositionFunctons = {
@@ -97,7 +97,6 @@ const storage = {
 const dragHandle = {
     
     tabDrag: (target, ev, delta) => {
-        target.shadowRoot.querySelector("list-view").move(-delta.x);
         if (ev.buttons == 4) {
             ev.preventDefault();
             for (let n of target.getGraph().selection.nodeSet) {
