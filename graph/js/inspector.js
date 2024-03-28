@@ -8,8 +8,6 @@ class Inspector extends TabArea{
         this.nodeStorage = {};
         this.graphStorage = {};
         this.edgeStorage = {};
-
-        //tabArea.addEventListener("nodemoved",(ev))
     }
 
     connectedCallback() {
@@ -40,7 +38,7 @@ class Inspector extends TabArea{
         this.nodeDetails.addEventListener("change", onchange);
 
         this.edgeDetails = this.viewTabs.edge.appendChild(CustomInputs.category("Viewing", edgeInspectorTemplate));
-        this.edgeSpan = this.nodeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
+        this.edgeSpan = this.edgeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
         this.edgeSpan.addEventListener("click", scrollIntoView);
         this.edgeDetails.addEventListener("change", onchange);
         
@@ -51,7 +49,7 @@ class Inspector extends TabArea{
 
 
 
-    observe(element=this.observed) {
+    observe(element = this.observed) {
         switch (element.tagName) {
             case "GRAPH-NODE": {
                 
@@ -99,7 +97,6 @@ class Inspector extends TabArea{
             this.nodeStorage.inner = degree.inner;
             this.nodeStorage.outer = degree.outer;
         }
-        //console.log(this.nodeStorage)
         return this.nodeStorage;
     }
     extractEdgeData(edge) {

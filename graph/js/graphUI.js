@@ -59,13 +59,9 @@ function createTabUI(graph) {
 
 const greatMenus = {
     initViewMenu() {
-        this.viewMenu = elementFromHtml("<pop-menu name='view'></pop-menu>");
-        this.viewMenu.appendChild(CustomInputs.category("", defaultSettingsTemplate));
-        this.viewMenu.set = function (chain, value) { this.querySelector(".category").set(chain, value) }
+        this.viewMenu = menuBar.appendChild(CustomInputs.category("", {...defaultSettingsTemplate, is: "pop-dialog", name: "view"}, "dialog"));
     
-        menuBar.appendChild(this.viewMenu);
-    
-        this.viewMenu.querySelector(".category").addEventListener("input", function (ev) {
+        this.viewMenu.addEventListener("input", function (ev) {
             let g = Graph.selected;
             let top = g.actionsStack.top();
             let chain = CustomInputs.getChainFromEvent(this, ev);
@@ -79,13 +75,13 @@ const greatMenus = {
             }
         })
     
-        this.viewMenu.querySelector(".category").addEventListener("change", function (ev) {
+        this.viewMenu.addEventListener("change", function (ev) {
             let top = Graph.selected.actionsStack.top();
             if(top)top.acumulate = false;
         })
     },
     initFileDialog() {
-        this.fileMenu = menuBar.querySelector("pop-menu[name='file']");
+        this.fileMenu = menuBar.querySelector("dialog[name='file']");
         this.fileDialog = document.getElementById("file-dialog");
     
         let list = this.fileDialog.querySelector("list-view");
@@ -113,9 +109,8 @@ const greatMenus = {
         })
     },
     initForceMenu() {
-        this.forceMenu = elementFromHtml("<pop-menu name='physics'></pop-menu>");
-        this.forceMenu.appendChild(CustomInputs.category("", physicsTemplate));
-        menuBar.appendChild(this.forceMenu);
+        this.forceMenu = menuBar.appendChild(CustomInputs.category("", { ...physicsTemplate, is: "pop-dialog", name: "physics" }, "dialog"));
+        
         this.forceMenu.addEventListener("input", function(ev){
             let chain = CustomInputs.getChainFromEvent(this, ev);
             let value = ev.target.parentElement.get();
@@ -130,13 +125,8 @@ const greatMenus = {
         })
     },
     initActionMenu() {
-        this.actionMenu = elementFromHtml("<pop-menu></pop-menu>");
-        this.actionMenu.appendChild(CustomInputs.category("", actionMenuTemplate));
-        document.body.appendChild(this.actionMenu);
-        document.body.addEventListener("mouseup", (ev) => {
-            if (ev.button == 2) openActionMenu(ev);
-        })
-    
+        this.actionMenu = tabArea.appendChild(CustomInputs.category("", { ...actionMenuTemplate, is: "pop-dialog" }, "dialog"));
+        tabArea.addEventListener("mouseup", (ev) => {if (ev.button == 2) openActionMenu(ev);})
     },
     initTemplateMenu() {
         this.templateMenu = document.getElementById("template");
@@ -189,8 +179,11 @@ const greatMenus = {
     init() {
         for (let button of menuBar.querySelectorAll(":scope > button")) {
             button.addEventListener("click", (ev) => {
-                let rect = button.getBoundingClientRect();
-                menuBar.querySelector(`[name=${button.getAttribute("for")}]`).toggle(rect.x, rect.bottom);
+                setTimeout(() => {
+                    let rect = button.getBoundingClientRect();
+                    menuBar.querySelector(`[name=${button.getAttribute("for")}]`)?.toggle(rect.left, rect.bottom);
+                    
+                },100)
             })
         }
         this.initViewMenu();
@@ -209,5 +202,5 @@ function openActionMenu(ev, graph) {
     if (greatMenus.actionMenu.open) return greatMenus.actionMenu.close();
     
     greatMenus.actionMenu.show(ev.clientX+5, ev.clientY+5);
-    greatMenus.actionMenu.querySelector(".category").validate(ev);
+    greatMenus.actionMenu.validate(ev);
 }

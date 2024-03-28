@@ -78,40 +78,21 @@ class TextInput extends HTMLElement{
     }
 
 }
-
 customElements.define("text-input", TextInput);
-
-
-
 
 
 class CustomInputs{
 
     static initTemplate(name,template,input,tag="div") {
-        let display = template.display || name.replace("_", " ") || "",rez;
+        template.display ||= name.replace("_", " ") || "";
         
-        rez = elementFromHtml(`<${tag} name="${name}"><span>${display}</span></${tag}>`);
+        let rez = elementFromHtml(`<${tag} ${template.is?`is="${template.is}"` : ""} name="${name}"><span></span></${tag}>`);
         if (tag == "button") input = rez;
         else rez.appendChild(input);
 
         
-        for (let key in template || []) {
-            if (key[0] == "_") continue;
-            switch (key) {
-                case "title": rez.setAttribute("title", template.title); break;
-                case "condition": rez.condition = template.condition; break;
-                case "value": {
-                    input.setAttribute("value", template.value);
-                    input.dispatchEvent(new Event("change", { bubbles: true }));
-                    break;
-                }
-                case "type": rez.setAttribute("type", template[key]); break;
-                default: {
-                    if (key.startsWith("on")) input[key] = template[key];
-                    else input.setAttribute(key, template[key]);
-                }
-            }
-        }
+        for (let key in template || {}) if (key[0] != "_") CustomInputs.parseAttribute(rez, key, template[key]);
+
         rez.set = function (value) { this.children[1].value = value;}
         rez.get = function () { return this.children[1].value }
         rez.validate = function (param) {
@@ -122,6 +103,23 @@ class CustomInputs{
         }
 
         return rez;
+    }
+    static parseAttribute(target, name, value) {
+        switch (name) {
+            case "condition": target.condition = value; break;
+            case "tupel": target.classList.add("tupel"); break;
+            case "categoryCollapse": {
+                if(value)target.appendChild(elementFromHtml(`<input type="checkbox" checked>`));
+                break;
+            }
+            case "display": target.querySelector("span").textContent = value; break;
+            case "value": target.querySelector("input")?.dispatchEvent(new Event("change", { bubbles: true })); //no break
+            case "is": break;
+            default: {
+                if (name.startsWith("on")) target.querySelectorAll("input").forEach(i => i[name] = value);
+                else target.setAttribute(name, value);
+            }
+        }
     }
 
     static number(name,template) {
@@ -169,17 +167,15 @@ class CustomInputs{
         return CustomInputs.initTemplate(name, template, elementFromHtml("<textarea></textarea>"));
     }
 
-    static category(name, {display="", categoryCollapse = true,tupel,condition, ...rest }) {
-        display ||= name;
+    static category(name, template,tag="div") {
+        template.display ||= name.replace("_", " ") || "";
         
-        let element = elementFromHtml(`<div class="category" name="${name}"><div>${display} ${categoryCollapse ? `<input type="checkbox" checked>` : ''}</div></div>`);
-        if (tupel) element.classList.add("tupel");
-        for (let i in rest) {
-            if (typeof rest[i] !== 'object') continue;
-            let type = rest[i].type || "category";
-            element.appendChild(CustomInputs[type]?.(i, rest[i]));
+        let element = elementFromHtml(`<${tag} ${template.is ? `is="${template.is}"` : ""} class="category"><span></span></${tag}>`);
+        CustomInputs.parseAttribute(element, "name", name);
+        for (let i in template) {
+            if (typeof template[i] !== 'object') CustomInputs.parseAttribute(element, i, template[i]);
+            else element.appendChild(CustomInputs[template[i].type || "category"]?.(i, template[i]));
         }
-        element.condition=condition;
         
         element.set = function (chain, value) {
             this.get(chain, true)?.set?.(value);
@@ -193,6 +189,7 @@ class CustomInputs{
         element.load = function (object) {
             for (let key in object) {
                 let el = this.get([key], true);
+               
                 if (!el) continue;
                 if (el.matches(".category")) el.load(object[key]);
                 else el.set(object[key]);
@@ -236,3 +233,35 @@ class CustomInputs{
         return obj[chain[0]] = value;
     }
 }
+
+
+class PopDialog extends HTMLDialogElement{
+    constructor() {
+        super();
+        document.addEventListener("click", (ev)=>{
+            let rect = this.getBoundingClientRect();
+            if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) this.close();
+        })
+    }
+    show(x,y) {
+        if (x === undefined && y === undefined) return super.show();
+        this.style.cssText += `left: ${x}px; top: ${y}px`;
+        super.show();
+    }
+    showModal(x,y) {
+        if (x === undefined && y === undefined) return super.showModal();
+        this.style.cssText += `left: ${x}px; top: ${y}px`;
+        super.showModal();
+    }
+    toggleModal(x,y) {
+        if (this.open) this.close();
+        else this.showModal(x, y);
+        return this.open;
+    }
+    toggle(x,y) {
+        if (this.open) this.close();
+        else this.show(x, y);
+        return this.open;
+    }
+}
+customElements.define("pop-dialog", PopDialog, { extends: "dialog" });

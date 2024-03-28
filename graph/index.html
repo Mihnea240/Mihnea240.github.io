@@ -10,11 +10,9 @@
 
     <script defer src="js/utilities.js"></script>
     <script defer src="js/components/customInputs.js"></script>
-    <script defer src="js/components/axis.js"></script>
     <script defer src="js/components/node.js"></script>
     <script defer src="js/components/tab.js"></script>
     <script defer src="js/components/edge.js"></script>
-    <script defer src="js/components/popMenu.js"></script>
     <script defer src="js/components/listview.js"></script>
     <script defer src="js/components/tabarea.js"></script>
     <script defer src="js/commandPattern.js"></script>
@@ -32,13 +30,13 @@
 <body>
     <div class="menu-bar"> 
         <button for="file">File</button>
-        <pop-menu name="file">
+        <dialog name="file" is="pop-dialog">
             <label>Load from file<input type="file" accept=".html" onchange="loadPotrocol(this)"></label>
             <button onclick="saveProtrocol()">Save</button>
-        </pop-menu>
+        </dialog>
         
         <button for="templates">Templates</button>
-        <pop-menu name="templates">
+        <dialog name="templates" is="pop-dialog">
             <tab-area id="template">
                 <div class="header">
                     <div for="graph">Graph</div>
@@ -60,10 +58,10 @@
                     </div>
                 </div>
             </tab-area> 
-        </pop-menu>
+        </dialog>
 
         <button for="view">View</button>
-        <dialog id="file-dialog">
+        <dialog id="file-dialog" is="pop-dialog">
             <div class="h">
                 <div>Select graphs</div>
                 <label>All<input type="checkbox" checked></label>

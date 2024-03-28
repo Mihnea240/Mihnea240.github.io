@@ -18,6 +18,7 @@ class listView extends HTMLElement{
         this.template = (i) => elementFromHtml(`<div>${i}</div>`);
         this.load = (child, val) => child.textContent = val;
         this.countingFunction = (i) => i;
+        this.scrollEventHandler = () => this.move(0);
         
         this.viewLength=0;
         this.break=0;
@@ -57,7 +58,7 @@ class listView extends HTMLElement{
             case "break": this.break = parseInt(newValue) || 0; break;
             case "autoflow": this.autoflow = newValue; break;
             case "direction": this.direction = newValue; break;
-            case "target": this.target = findClosestMatchingNode(this, newValue); break; 
+            case "target": this.scrollTarget = this.closest(newValue); break; 
         }
     }
 
@@ -79,12 +80,12 @@ class listView extends HTMLElement{
     }
     get length() { return this.viewLength }
 
-    set scrollTarget(target) {
-        if (this.target) this.target.removeEventListener("scroll", this.scrollEventHandler);
-        this.target = target;
-        this.target.addEventListener("scroll", this.scrollEventHandler);
+    set target(target) {
+        this.target?.removeEventListener("scroll", this.scrollEventHandler);
+        this.scrollTarget = target;
+        this.scrollTarget.addEventListener("scroll", this.scrollEventHandler);
     }
-    get scrollTarget() { return this.target }
+    get target() { return this.scrollTarget }
     
     data(index) {
         return (index >= 0 && index < this.list.length) ? this.list[index] : this.countingFunction(index);
@@ -102,13 +103,7 @@ class listView extends HTMLElement{
         return this.size[this.flow ? "x" : "y"];
     }
     getScroll() {
-        return this.target?.[this.flow ? "scrollLeft" : "scrollTop"] || this.scrollOffset[this.flow ? "x" : "y"];
-    }
-    scrollTarget() {
-        return this.target || this;
-    }
-    scrollEventHandler(ev) {
-        this.move(0);
+        return this.scrollTarget?.[this.flow ? "scrollLeft" : "scrollTop"] || this.scrollOffset[this.flow ? "x" : "y"];
     }
 
     push(val) {

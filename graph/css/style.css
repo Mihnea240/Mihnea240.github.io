@@ -34,6 +34,8 @@ body {
     user-select: none;
     box-sizing: border-box;
     font: inherit;
+    font-size: 0.9rem;
+    font-weight: thin;
 }
 
 ::-webkit-scrollbar {
@@ -250,7 +252,7 @@ graph-edge {
 
 tab-area,
 graph-inspector {
-    & >.header {
+    & > .header {
         display: flex;
         align-items: end;
         width: 100%;
@@ -265,10 +267,8 @@ graph-inspector {
     
     & > .tabs {
         height: 100%;
-        flex-grow: 1;
+        display: flex;
         & >* {
-            position: absolute;
-            flex-grow: 1;
             width: 100%;
             height: 100%;
         }
@@ -346,24 +346,22 @@ graph-inspector {
     }
 }
 
-
-list-view{
-    display: flex;
-    
-}
-
-pop-menu {
+dialog[open] {
+    display: flex;  
     background-color: var(--menu-background);
     box-shadow: 1px 1px 7px 4px rgba(30, 30, 30, 0.904);
     border: 1px solid rgba(255, 255, 255, 0.305);
     z-index: 300;
-    height: max-content;
+    padding: 0; margin: 0;
 }
 
-.category {
-    width: 100%;
+.category:not(dialog),dialog[open].category{
     display: flex;
     flex-direction: column;
+    width: fit-content;
+}
+.category {
+    width: 100%;
     text-transform: capitalize;
     border-top: 1px solid rgba(255, 255, 255, 0.425);
 
@@ -380,7 +378,6 @@ pop-menu {
         justify-content: space-between;
         flex-wrap: nowrap;
         text-transform: capitalize;
-
         &:hover {
             background-color: var(--ui-select2);
         }
@@ -508,8 +505,8 @@ pop-menu {
 }
 
 #inspector {
+    grid-area: snj; 
     position: relative;
-    grid-area: snj;
 
     background-color: rgb(from var(--background) r g b /0.9);
     box-shadow: 0 0 10px 1px black;
@@ -518,7 +515,7 @@ pop-menu {
 
     --input-background: var(--menu-background);
 
-    &>.header>* {
+    & > .header >* {
         padding: .2rem .5rem;
         text-wrap: nowrap;
         background-color: var(--menu-background);
@@ -526,14 +523,9 @@ pop-menu {
         &:hover {
             text-decoration: underline;
         }
-
-        &.active {
-            background-color: var(--ui-select2);
-        }
     }
-
-    & .tabs,
-    .tabs>* {
+    & .category, .tabs>*{
+        width: 100%;
         background-color: transparent;
     }
 
@@ -546,14 +538,15 @@ pop-menu {
         content: "";
         left: 0;
         height: 100%;
-        width: 5px;
+        width: 10px;
         cursor: e-resize;
     }
 }
 
 #template {
     width: 25vw;    height: 80vh;
-
+    position: relative;
+    
     & .tabs >*{
         display: grid;
         grid-template-rows: 40% 60%;

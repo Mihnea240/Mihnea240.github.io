@@ -154,9 +154,3 @@ function standardize_color(str){
     ctx.fillStyle = str;
     return ctx.fillStyle;
 }
-
-function findClosestMatchingNode(node, selector){
-    for (let n = node; n.parentNode; n = n.parentNode)
-        if (n.matches && n.matches(selector)) return n;
-    return null;
-};

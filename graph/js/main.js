@@ -22,7 +22,7 @@ window.onload = () => {
         appData.physicsSettings.spring /= 100;
     }
     mergeDeep(physicsMode, appData.physicsSettings);
-    greatMenus.forceMenu.querySelector(".category").load(appData.physicsSettings);
+    greatMenus.forceMenu.load(appData.physicsSettings);
 
 
 

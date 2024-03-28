@@ -37,21 +37,28 @@ const _tab_template =/*html*/`
         list-view{
             position: absolute;
             z-index: 10;
-            font-size: .7rem;
+            & >*{
+                font-size: .5rem;
+                opacity: 0.8;
+                text-shadow: rgba(255, 255, 255, 0.932) 0px 0px 10px;
+            }
         }
 
         list-view[direction="row"]{
             width: 100%;
             bottom: 0; left: 0;
             & >*{
-                min-width: 3rem;
+                min-width: 100px;
+                text-align: left;
+                border-bottom: 1px solid white;
             }
         }
         list-view[direction="column"]{
             height: 100%;
             right: 0; top: 0;
             & >*{
-                min-height: 3rem;
+                border-right: 1px solid white;
+                min-height: 100px;
             }
         }
         #selectionRect{
@@ -73,188 +80,181 @@ const _tab_template =/*html*/`
         <slot name="edges"></slot>
 
     </div>
-    <list-view autofit="true" autoflow="true" direction="row" target=".tab"></list-view>
-    <list-view autofit="true" autoflow="true" direction="column" target=".tab"></list-view>
+    <list-view autofit="true" autoflow="true" direction="row"></list-view>
+    <list-view autofit="true" autoflow="true" direction="column"></list-view>
 `
-
-const PositionFunctons = {
-    randomScreen: (graph_tab, node, recalculateEdges) => {
-        let x_off = graph_tab.tab.scrollLeft;
-        let y_off = graph_tab.tab.scrollTop;
-        let width = random(0, parseFloat(graph_tab.css.width));
-        let height = random(0, parseFloat(graph_tab.css.height));
-
-        node.position(x_off + width, y_off + height,recalculateEdges);
-    }
-}
-const storage = {
-    point: new Point(),
-    rect: {},
-    visibleItems: undefined,
-    timer: 12,
-    timerMax:12,
-}
-const dragHandle = {
-    
-    tabDrag: (target, ev, delta) => {
-        if (ev.buttons == 4) {
-            ev.preventDefault();
-            for (let n of target.getGraph().selection.nodeSet) {
-                n.translate(delta.x, delta.y);
-                n.transform.velocity.copy(appData.cursorVelocity);
-                
-            }
-            return;
-        }
-        //collision detection with selection square
-        
-        if (ev.buttons == 2) {
-            let { x, y } = target.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
-            let p = target.selectionRect.pos.clone();
-            if (x < p.x) [storage.point.x, p.x] = [p.x, storage.point.x];
-            if (y < p.y) [storage.point.y, p.y] = [p.y, storage.point.y];
-            
-            x = Math.abs(storage.point.x - p.x);
-            y = Math.abs(storage.point.y - p.y);
-           
-            target.selectionRect.style.cssText += `
-                left: ${p.x}px;
-                top: ${p.y}px;
-                width: ${x}px;
-                height: ${y}px;
-                display: block;
-            `
-            if (storage.timer < 0) storage.timer = storage.timerMax;
-            else return storage.timer--;
-
-            storage.rect.x = p.x; storage.rect.y = p.y;
-            storage.rect.width = x; storage.rect.height = y
-            
-            storage.visibleItems ||= visibleElements(target.getGraph());
-            
-            for (let [el, rect] of storage.visibleItems) {
-                el.selected = AABB(storage.rect, rect);
-            }
-            return;
-        }
-        let rect = target.square.getBoundingClientRect();
-        target.canvasSize(rect.width - delta.x, rect.height - delta.y);
-        target.tab.scrollBy(-delta.x, -delta.y);
-    },
-    tabDragEnd(target, ev) {
-        //clear selection square
-        if (ev.button == 2) {
-            if (storage.visibleItems) {
-                ev.stopPropagation(); 
-                
-                let sel = target.getGraph().selection;
-                for (let [el,rect] of storage.visibleItems) sel.toggle(el, el.selected);
-
-                storage.visibleItems = undefined;
-                target.selectionRect.style.display = "none";
-            }
-        }
-    },
-    nodeDrag: (target, ev, delta) => {
-        if (target.focused) return;
-        if (ev.ctrlKey) {
-            for (let n of target.getGraph().selection.nodeSet) {
-                n.translate(delta.x, delta.y);
-                n.transform.velocity.copy(appData.cursorVelocity);
-            }
-            return;
-        }
-        switch (ev.buttons) {
-            case 1: {
-                target.translate(delta.x, delta.y);
-                break;
-            }
-            case 2: {
-                let tab = target.parentElement;
-                if (target.new_node_protocol == false) {
-                    target.initCurve();
-                    let p = target.anchor();
-                    tab.curve.fromPosition(p);
-                    tab.curve.toPosition(p);
+class Tab extends HTMLElement {
+    static dragHandle = {
+        storage: {
+            point: new Point(),
+            rect: {},
+            visibleItems: undefined,
+            timer: 12,
+            timerMax:12,
+        },
+        tabDrag(target, ev, delta){
+            if (ev.buttons == 4) {
+                ev.preventDefault();
+                for (let n of target.getGraph().selection.nodeSet) {
+                    n.translate(delta.x, delta.y);
+                    n.transform.velocity.copy(appData.cursorVelocity);
+                    
                 }
-                tab.curve.translateTo(delta);
-            } 
-            default: return;
-        }
-        
-        target.active = true;
-    },
-    nodeDragEnd: (originalNode, ev) => {
-        if (originalNode.new_node_protocol) {
-            originalNode.initCurve();
+                return;
+            }
+            //collision detection with selection square
             
+            if (ev.buttons == 2) {
+                let { x, y } = target.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+                let p = target.selectionRect.pos.clone();
+                if (x < p.x) [this.storage.point.x, p.x] = [p.x, this.storage.point.x];
+                if (y < p.y) [this.storage.point.y, p.y] = [p.y, this.storage.point.y];
+                
+                x = Math.abs(this.storage.point.x - p.x);
+                y = Math.abs(this.storage.point.y - p.y);
+               
+                target.selectionRect.style.cssText += `
+                    left: ${p.x}px;
+                    top: ${p.y}px;
+                    width: ${x}px;
+                    height: ${y}px;
+                    display: block;
+                `
+                if (this.storage.timer < 0) this.storage.timer = this.storage.timerMax;
+                else return this.storage.timer--;
+    
+                this.storage.rect.x = p.x; this.storage.rect.y = p.y;
+                this.storage.rect.width = x; this.storage.rect.height = y
+                
+                this.storage.visibleItems ||= visibleElements(target.getGraph());
+                
+                for (let [el, rect] of this.storage.visibleItems) {
+                    el.selected = AABB(this.storage.rect, rect);
+                }
+                return;
+            }
+            let rect = target.square.getBoundingClientRect();
+            target.canvasSize(rect.width - delta.x, rect.height - delta.y);
+            target.tab.scrollBy(-delta.x, -delta.y);
+        },
+        tabDragEnd(target, ev) {
+            //clear selection square
+            if (ev.button == 2) {
+                if (this.storage.visibleItems) {
+                    ev.stopPropagation(); 
+                    
+                    let sel = target.getGraph().selection;
+                    for (let [el,rect] of this.storage.visibleItems) sel.toggle(el, el.selected);
+    
+                    this.storage.visibleItems = undefined;
+                    target.selectionRect.style.display = "none";
+                }
+            }
+        },
+        nodeDrag(target, ev, delta) {
+            if (target.focused) return;
+            if (ev.ctrlKey) {
+                for (let n of target.getGraph().selection.nodeSet) {
+                    n.translate(delta.x, delta.y);
+                    n.transform.velocity.copy(appData.cursorVelocity);
+                }
+                return;
+            }
+            switch (ev.buttons) {
+                case 1: {
+                    target.translate(delta.x, delta.y);
+                    break;
+                }
+                case 2: {
+                    let tab = target.parentElement;
+                    if (target.new_node_protocol == false) {
+                        target.initCurve();
+                        let p = target.anchor();
+                        tab.curve.fromPosition(p);
+                        tab.curve.toPosition(p);
+                    }
+                    tab.curve.translateTo(delta);
+                } 
+                default: return;
+            }
+            
+            target.active = true;
+        },
+        nodeDragEnd(originalNode, ev) {
+            originalNode.transform.velocity.copy(appData.cursorVelocity);
+            originalNode.active = false;
+
+            if (!originalNode.new_node_protocol) return;
+
+            originalNode.initCurve();
             let graph = Graph.get(originalNode.graphId)
-
             ev.stopPropagation();
-            if (ev.target.tagName == "GRAPH-NODE") graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
-            else {
-                graph.actionsStack.startGroup();
 
+            if (ev.target.tagName == "GRAPH-NODE") return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
+        
+            graph.actionsStack.startGroup();
+            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+            
+            let newNode = graph.addNode();
+            newNode.position(this.storage.point.x, this.storage.point.y);
+            
+            graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
+            graph.actionsStack.endGroup();
+            
+        },
+        edgeDrag(target, ev, delta){
+            if (ev.button) return ev.stopPropagation();
+            let tab = target.parentElement, c = tab.curve;
+            if (delta.magSq() < tab.settings.edge.min_drag_dist) return;
+    
+            if (this.storage.fromNode.new_node_protocol == false) {
+                target.classList.add("hide");
+                this.storage.fromNode.initCurve();
+                tab.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+                c.to=this.storage.point;
+            }
+            c.translateTo(delta,false);
+            c.translateP2(delta);
+        },
+        edgeDragEnd(originalEdge,ev){
+            if (this.storage.fromNode?.new_node_protocol);
+            else return;
+            this.storage.fromNode.new_node_protocol = false;
+    
+            let graph = Graph.get(originalEdge.graphId);
+            originalEdge.parentElement.curve.classList.add("hide");
+    
+            if (ev.target.tagName == "GRAPH-NODE") {
+                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: this.storage.fromNode.nodeId, to: ev.target.nodeId });
+                else {
+                    originalEdge.classList.remove("hide");
+                    return this.storage.fromNode = undefined;
+                }
+            } else {
+                graph.actionsStack.startGroup();
                 let newNode = graph.addNode();
-                storage.point.set(ev.clientX, ev.clientY);
-                
-                originalNode.parentElement.screenToWorld(storage.point);
-                
-                newNode.position(storage.point.x, storage.point.y);
-                
-                graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
-                
+                originalEdge.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+                newNode.position(this.storage.point.x, this.storage.point.y);
+                graph.addEdge({ from: this.storage.fromNode.nodeId, to: newNode.nodeId });
                 graph.actionsStack.endGroup();
             }
+            
+            graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
+            this.storage.fromNode = undefined;
+        },
+    
+    }
+    static PositionFunctons = {
+        randomScreen: (graph_tab, node, recalculateEdges) => {
+            let x_off = graph_tab.tab.scrollLeft;
+            let y_off = graph_tab.tab.scrollTop;
+            let width = random(0, parseFloat(graph_tab.css.width));
+            let height = random(0, parseFloat(graph_tab.css.height));
+    
+            node.position(x_off + width, y_off + height,recalculateEdges);
         }
-        originalNode.transform.velocity.copy(appData.cursorVelocity);
-        originalNode.active = false;
-        //if(ev.button==2)ev.stopPropagation();
-    },
-    edgeDrag: (target, ev, delta) => {
-        if (ev.button) return ev.stopPropagation();
-        let tab = target.parentElement, c = tab.curve;
-        if (delta.magSq() < tab.settings.edge.min_drag_dist) return;
+    }
 
-        if (storage.fromNode.new_node_protocol == false) {
-            target.classList.add("hide");
-            storage.fromNode.initCurve();
-            tab.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
-            c.to=storage.point;
-        }
-        c.translateTo(delta,false);
-        c.translateP2(delta);
-    },
-    edgeDragEnd: (originalEdge,ev) => {
-        if (storage.fromNode?.new_node_protocol);
-        else return;
-        storage.fromNode.new_node_protocol = false;
-
-        let graph = Graph.get(originalEdge.graphId);
-        originalEdge.parentElement.curve.classList.add("hide");
-
-        if (ev.target.tagName == "GRAPH-NODE") {
-            if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: storage.fromNode.nodeId, to: ev.target.nodeId });
-            else {
-                originalEdge.classList.remove("hide");
-                return storage.fromNode = undefined;
-            }
-        } else {
-            graph.actionsStack.startGroup();
-            let newNode = graph.addNode();
-            originalEdge.parentElement.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
-            newNode.position(storage.point.x, storage.point.y);
-            graph.addEdge({ from: storage.fromNode.nodeId, to: newNode.nodeId });
-            graph.actionsStack.endGroup();
-        }
-        
-        graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
-        storage.fromNode = undefined;
-    },
-
-}
-
-class Tab extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -265,7 +265,7 @@ class Tab extends HTMLElement {
         this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
         this.curve.setAttribute("mode", "absolute");
-        this.positionFunction = PositionFunctons.randomScreen;
+        this.positionFunction = Tab.PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
         this.zoom = 1;
 
@@ -277,12 +277,9 @@ class Tab extends HTMLElement {
             onstart: (ev) => {
                 evTarget = ev.target;
                 switch (ev.target.tagName) {
-                    case "GRAPH-EDGE": storage.fromNode = this.getNode(ev.target.from); break;
+                    case "GRAPH-EDGE": Tab.dragHandle.storage.fromNode = this.getNode(ev.target.from); break;
                     case "GRAPH-NODE": {
                         if (ev.buttons == 4) ev.preventDefault(), evTarget = this;
-                        /*this.screenToWorld(storage.point.set(ev.clientX, ev.clientY));
-                        let v = storage.point.sub(ev.target.middle(1, 1)).magSq();
-                        if (v < 250) return false;*/
                         break;
                     }
                     case "GRAPH-TAB": {
@@ -299,20 +296,19 @@ class Tab extends HTMLElement {
             },
             onmove: (ev, delta) => {
                 switch (evTarget.tagName) {
-                    case "GRAPH-TAB": dragHandle.tabDrag(this, ev, delta); break;
-                    case "GRAPH-NODE": dragHandle.nodeDrag(evTarget, ev, delta); break;
-                    case "GRAPH-EDGE": dragHandle.edgeDrag(evTarget, ev, delta); break;
+                    case "GRAPH-TAB": Tab.dragHandle.tabDrag(this, ev, delta); break;
+                    case "GRAPH-NODE": Tab.dragHandle.nodeDrag(evTarget, ev, delta); break;
+                    case "GRAPH-EDGE": Tab.dragHandle.edgeDrag(evTarget, ev, delta); break;
                 }
                 
             },
             onend: (ev) => {
                 switch (evTarget.tagName) {
-                    case "GRAPH-NODE": dragHandle.nodeDragEnd(evTarget, ev); break;
-                    case "GRAPH-EDGE": dragHandle.edgeDragEnd(evTarget, ev); break;
-                    case "GRAPH-TAB": dragHandle.tabDragEnd(evTarget, ev); break;
+                    case "GRAPH-NODE": Tab.dragHandle.nodeDragEnd(evTarget, ev); break;
+                    case "GRAPH-EDGE": Tab.dragHandle.edgeDragEnd(evTarget, ev); break;
+                    case "GRAPH-TAB": Tab.dragHandle.tabDragEnd(evTarget, ev); break;
                 }
             }
-
         })
         
         this.addEventListener("mouseup", (ev) => {
@@ -336,6 +332,8 @@ class Tab extends HTMLElement {
                 }
             }
         })
+
+        shadow.querySelectorAll("list-view").forEach(list => list.target = this.tab);
 
         
         let scale = 0.1, zoom;
