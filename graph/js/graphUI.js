@@ -42,14 +42,14 @@ let colorIndex = 1;
 function createTabUI(graph) {
     tab_template.id = "g" + graph.id;
     header_template.id = "h" + graph.id;
-    graph.tab=tabArea.querySelector(".tabs").appendChild(tab_template.cloneNode(true));
-    graph.header = headerArea.insertBefore(header_template.cloneNode(true), newGraphButton);
+    graph.tab = tab_template.cloneNode(true);
+    graph.header = header_template.cloneNode(true);
     
-    graph.settings.graph.name ||= "Graph " + graph.id;
+    /* graph.settings.graph.name ||= "Graph " + graph.id;
     graph.settings.graph.main_color ||= standardize_color(colors[colorIndex - 1]);
     graph.settings.graph.secondary_color ||= standardize_color(colors[colorIndex++]);
     graph.tab.settings = graph.settings;
-    graph.tab.zoom = graph.settings.graph.zoom;
+    graph.tab.zoom = graph.settings.graph.zoom; */
 
     if (colorIndex >= colors.length) {
         shuffleArray(colors);

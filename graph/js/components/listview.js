@@ -155,7 +155,7 @@ class listView extends HTMLElement{
         let rect=this.getBoundingClientRect();
         this.size = { x: rect.width, y: rect.height }; 
 
-        if (!this.getAttribute("direction")) this.direction = "column";
+        if (!this.getAttribute("direction")) this.setAttribute("direction", "column");
         this.tabIndex = 0;
 
         this.addEventListener("keydown", function (ev) {

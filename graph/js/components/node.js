@@ -138,7 +138,7 @@ class NodeTemplate{
     static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
 
     constructor(name,styles,data) {
-        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{` + styles + "}");
+        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{${styles}}`);
         this.name = name;
         
         this.anchor = { x: 0.5, y: 0.5 };

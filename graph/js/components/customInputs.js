@@ -114,10 +114,11 @@ class CustomInputs{
             }
             case "display": target.querySelector("span").textContent = value; break;
             case "value": target.querySelector("input")?.dispatchEvent(new Event("change", { bubbles: true })); //no break
-            case "is": break;
+            case "is": case "type": break;
+            case "class": case "name": target.setAttribute(name, value); break;
             default: {
                 if (name.startsWith("on")) target.querySelectorAll("input").forEach(i => i[name] = value);
-                else target.setAttribute(name, value);
+                else target.children[1]?.setAttribute(name, value);
             }
         }
     }

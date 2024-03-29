@@ -7,16 +7,6 @@ const defaultGraphJSON = {
             show_ruller: "false",
             zoom: 1,
         },
-       /*  node: {
-            size: "25",
-            bg: "#242424",
-            color: "#ffffff",
-            border_radius: "50",
-            border_width: "1",
-            border_style: "solid",
-            border_color: "#ffffff",
-            emission: "10",
-        }, */
         edge: {
             width: "1",
             emission: "3",
@@ -74,49 +64,6 @@ const defaultSettingsTemplate = {
         }
 
     },
-   /*  node: {
-        size: {
-            type: "range",
-            max: "60", _unit: "px",
-            _property: "--node-width"
-        },
-        bg: {
-            type: "color",
-            _property: "--node-background",
-            _display: "Background",
-        },
-        color: {
-            type: "color",
-            _property: "--node-color",
-            _display: "Font color"
-        },
-        border_color: {
-            type: "color",
-            _property: "--node-border-color"
-        },
-        border_radius: {
-            type: "range",
-            max: "50", _unit: "%",
-            _property: "--node-border-radius"
-        },
-        border_width: {
-            type: "range",
-            max: "6", step: "0.1",
-            _unit: "px",
-            _property: "--node-border-width"
-        },
-        border_style: {
-            type: "select",
-            options: ["solid", "dashed", "double"],
-            _property: "--node-border-style"
-        },
-        emission: {
-            value: "10",
-            type: "range",
-            max: "20", _unit: "px",
-            _property: "--node-emission"
-        }
-    }, */
     edge: {
         width: {
             type: "range",
@@ -137,7 +84,7 @@ const defaultSettingsTemplate = {
             type: "checkbox",
             _display: "Control point symmetry",
             _update(graph) {
-                graph.tab.forEdges((edge) => edge.setAttribute("symmetry", graph.settings.edge.cp_symmetry))
+                graph.tab?.forEdges((edge) => edge?.setAttribute("symmetry", graph.settings.edge.cp_symmetry))
             }
         },
         mode: {
@@ -492,6 +439,8 @@ const graphInspectorTemplate = {
     },
 }
 
+
+
 const graphTemplate = {
     categoryCollapse: false,
     name: {
@@ -523,8 +472,36 @@ const graphTemplate = {
 
 const nodeTemplate = {
     categoryCollapse: false,
+    description: {
+        type: "textarea",
+    },
+    isStatic: {
+        type: "checkbox",
+        display: "static",
+        title: "Physics won't be applied to static nodes"
+    },
+    mass: {
+        type: "number",
+        max: 100000,
+    },
+
 }
 
 const edgeTemplate = {
     categoryCollapse: false,
+    symmetry: {
+        type: "range",
+        min: "-1", max: "1",
+        title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
+    },
+    mode: {
+        type: "select",
+        options: ["absolute", "relative"],
+        title: "Relative mode moves both control points relative to the edge direction",
+
+    },
+    description: {
+        type: "textarea",
+    }
+    
 }

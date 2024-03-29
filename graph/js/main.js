@@ -6,7 +6,7 @@ window.onload = () => {
     let nodeTemplates = JSON.parse(sessionStorage.getItem("nodeTemplates"));
     let edgeTemplates = JSON.parse(sessionStorage.getItem("edgeTemplates"));
 
-
+    console.log(nodeTemplates,edgeTemplates)
     if (nodeTemplates?.length) {
         for (const t of nodeTemplates) new NodeTemplate(t.name, "", t);
     } else new NodeTemplate("default", nodeDefaultTemplate);
@@ -46,11 +46,11 @@ window.onbeforeunload = (ev) => {
     sessionStorage.setItem("app-data", JSON.stringify(appData));
     array = [];
     
-    for (const [_,t] of NodeTemplate.map) array.push(t);
+    for (const [name,t] of NodeTemplate.map)if(name!="default") array.push(t);
     sessionStorage.setItem("nodeTemplates", JSON.stringify(array));
     array = [];
 
-    for (const [_,t] of EdgeTemplate.map) array.push(t);
+    for (const [name, t] of EdgeTemplate.map) if (name != "default") array.push(t);
     sessionStorage.setItem("edgeTemplates", JSON.stringify(array));
     array = [];
 
@@ -77,7 +77,11 @@ function createGraph(obj = defaultGraphJSON) {
     let newGraph = Graph.parse(obj);
 
     if (!newGraph) alert("Format invalid");
-    else newGraph.focus();
+    else {
+        tabArea.appendChild(newGraph.tab);
+        headerArea.appendChild(newGraph.header);
+        newGraph.focus();
+    }
     return newGraph;
 }
 function g(id) { return Graph.get(id) }

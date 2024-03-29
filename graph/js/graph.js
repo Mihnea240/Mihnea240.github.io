@@ -394,8 +394,42 @@ class Graph {
             list: rez,
             map: fr
         }
-
-
     }
 
+}
+
+class GraphTemplate{
+    /**@type {Map<string,GraphTemplate>} */
+    static map = new Map();
+    static get(name) { return GraphTemplate.map.get(name) }
+    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
+
+    constructor(name, styles, data) {
+        this.id = GraphTemplate.styleSheet.insertRule(`graph-tab[template="${name}"]{` + styles + "}");
+        this.name = name;
+
+        this.description;
+        mergeDeep(this, data);
+
+        GraphTemplate.map.set(name, this);
+    }
+    load(graph) {
+    }
+    set style(data) {
+        this.id = GraphTemplate.styleSheet.insertRule(data);
+    }
+
+    get style() {
+        return NodeTemplate.styleSheet.cssRules[this.id];
+    }
+
+    toJSON() {
+        return {
+            name: this.name,
+            anchor: this.anchor,
+            viewMode: this.viewMode,
+            custom: this.custom,
+            css: this.style.cssText,
+        }
+    }
 }
