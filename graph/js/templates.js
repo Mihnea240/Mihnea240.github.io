@@ -1,119 +1,30 @@
 const defaultGraphJSON = {
-    settings: {
-        graph: {
-            name: "",
-            main_color: "",
-            secondary_color: "",
-            show_ruller: "false",
-            zoom: 1,
-        },
-        edge: {
-            width: "1",
-            emission: "3",
-            color: "#ffffff",
-            cp_symmetry: true,
-            mode: "absolute",
-            min_drag_dist: 5,
-            cp_offset: [0, 0],
-        }
-    },
     type: ORDERED,
+    template: "default",
+    data:{},
     nodeProps: [{nodeId: 1}],
     edgeProps: [],
 }
 
-const defaultSettingsTemplate = {
-    categoryCollapse: false,
-    graph: {
-        name: {
-            type: "text",
-            maxLength: 32,
-            _update(graph) {
-                let name = graph.settings.graph.name;
-                graph.header.value = name;
-            }
-        },
-        main_color: {
-            type: "color",
-            _property: "--graph-main-color",
-            _update(graph) {
-                let a = `linear-gradient(45deg,${graph.settings.graph.main_color},${graph.settings.graph.secondary_color})`;
-                graph.header.style.background = a
-                headerArea.style.borderImage = a + " 1";
-            }
-        },
-        secondary_color: {
-            type: "color",
-            _property: "--graph-secondary-color",
-            _update(graph) {
-                let a = `linear-gradient(45deg,${graph.settings.graph.main_color},${graph.settings.graph.secondary_color})`;
-                graph.header.style.background = a
-                headerArea.style.borderImage = a + " 1";
-            }
-        },
-        show_ruller: {
-            type: "checkbox",
-            _update(graph) {
-                graph.tab.style.setProperty("--show-ruller", graph.settings.graph.show_ruller ? "visible" : "none");
-            }
-        },
-        zoom: {
-            type: "range",
-            min: "0.1", max: "3", step: "0.1",
-            _property: "--zoom"
-        }
-
-    },
-    edge: {
-        width: {
-            type: "range",
-            max: "5", step: "0.1",
-            _unit: "px",
-            _property: "--edge-width"
-        },
-        emission: {
-            type: "range",
-            max: "10", _unit: "px",
-            _property: "--edge-emission"
-        },
-        color: {
-            type: "color",
-            _property: "--edge-color",
-        },
-        cp_symmetry: {
-            type: "checkbox",
-            _display: "Control point symmetry",
-            _update(graph) {
-                graph.tab?.forEdges((edge) => edge?.setAttribute("symmetry", graph.settings.edge.cp_symmetry))
-            }
-        },
-        mode: {
-            type: "select",
-            options: ["absolute", "relative"],
-            title: "Controls the motion of the control points when moving a node",
-            _update(graph) {
-                graph.tab.forEdges((edge) => {
-                    edge.setAttribute("mode", graph.settings.edge.mode);
-                })
-            }
-        },
-    }
+const defaultTemplateStyles = {
+    node:`
+        display: flex;
+        background-color: #242424;
+        color: #ffffff;
+        border-radius: 50%;
+        border: 1px solid #ffffff;
+        width: 25px; height: 25px;
+        z-index: 100;
+    `.trim(),
+    edge:  `
+        width: 1px;
+        background-color: #ffffff;
+        --emmision: 10px;
+    `.trim(),
+    graph: `
+        z-index: 1;
+    `
 }
-
-const nodeDefaultTemplate = `
-    background-color: #242424;
-    color: #ffffff;
-    border-radius: 100px;
-    border-width: 1px;
-    border-style: solid;
-    border-color: #ffffff;
-`.trim();
-
-const edgeDefaultTemplate = `
-    width: 1px;
-    background-color: #ffffff;
-    --emmision: 10px;
-`
 
 const actionMenuTemplate = {
     categoryCollapse: false,
@@ -214,7 +125,6 @@ const actionMenuTemplate = {
     }
 }
 
-
 const physicsTemplate = {
     categoryCollapse: false,
     isRunning: {
@@ -272,17 +182,204 @@ const physicsTemplate = {
     }
 }
 
-const nodeInspectorTemplate = {
-    "": {
-        display: "Node details",
+const InspectorTemplates = {
+    graph: {
+        categoryCollapse: false,
         id: {
-            type: "number",
-            readonly: true,
-        },
-        template: {
             type: "text",
             readonly: true,
         },
+        name: {
+            type: "text",
+            maxLength: 32,
+        },
+        type: {
+            type: "text",
+            readonly: true,
+        },
+        nodeCount: {
+            type: "text",
+            display:"Node count",
+            readonly: true,
+        },
+        edgeCount: {
+            type: "text",
+            display:"Edge count",
+            readonly: true,
+        },
+        conex: {
+            type: "text",
+            display:"Conex components",
+            readonly: true,
+        },
+    },
+    edge: {
+        from: {
+            type: "text",
+            readonly: true,
+            onclick(ev) {
+                let input = ev.target.closest("text-input");
+                let id = parseInt(input.value);
+                Graph.selected.getNodeUI(id).scrollIntoView();
+            }
+        },
+        to: {
+            type: "text",
+            readonly: true,
+            onclick(ev) {
+                let input = ev.target.closest("text-input");
+                let id = parseInt(input.value);
+                Graph.selected.getNodeUI(id).scrollIntoView();
+            }
+        },
+        symmetry: {
+            type: "range",
+            min: "-1", max: "1",
+            title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
+        },
+        mode: {
+            type: "select",
+            options: ["absolute", "relative"],
+            title: "Relative mode moves both control points relative to the edge direction",
+            
+        },
+        description: {
+            type: "textarea",
+        }
+    },
+    node: {
+        "": {
+            display: "Node details",
+            id: {
+                type: "number",
+                readonly: true,
+            },
+            template: {
+                type: "text",
+                readonly: true,
+            },
+            description: {
+                type: "textarea",
+            },
+            isStatic: {
+                type: "checkbox",
+                display: "static",
+                title: "Physics won't be applied to static nodes"
+            },
+            mass: {
+                type: "number",
+                max: 100000,
+            },
+            degree: {
+                type: "number",
+                readonly: "true",
+                title: "Number of nodes connected to this node",
+            },
+            inner: {
+                type: "number",
+                readonly: "true",
+                display: "Inner degree",
+                condition() { return Graph.selected.type == ORDERED },
+                title: "Number of nodes entering this node",
+            },
+            outer: {
+                type: "number",
+                readonly: "true",
+                display: "Outer degree",
+                condition() { return Graph.selected.type == ORDERED },
+                title: "Number of nodes exiting this node",
+            },
+        },
+        "Adjacent nodes": {
+            
+        },
+        transform: {
+            position: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+            },
+            velocity: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+                
+            },
+            acceleration: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+            },
+            size: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "0",
+                    readonly: true,
+                },
+                y: {
+                    type: "number",
+                    decimal: "0",
+                    readonly: true,
+                },
+            },
+        }
+    }
+}
+
+const TemplateMenuTemplates = {
+    graph: {
+        categoryCollapse: false,
+        name: {
+            type: "text",
+            maxLength: 32,
+        },
+        main_color: {
+            type: "color",
+        },
+        secondary_color: {
+            type: "color",
+        },
+        show_ruller: {
+            type: "checkbox",
+        },
+        zoom: {
+            type: "range",
+            min: "0.1", max: "3", step: "0.1",
+        },
+        node_template: {
+            type: "select",
+            options: ["default"],
+        },
+        edge_template: {
+            type: "select",
+            options: ["default"]
+        }
+    },
+    node: {
+        categoryCollapse: false,
         description: {
             type: "textarea",
         },
@@ -295,213 +392,23 @@ const nodeInspectorTemplate = {
             type: "number",
             max: 100000,
         },
-        degree: {
-            type: "number",
-            readonly: "true",
-            title: "Number of nodes connected to this node",
+    },
+    edge: {
+        categoryCollapse: false,
+        symmetry: {
+            type: "range",
+            min: "-1", max: "1",
+            title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
         },
-        inner: {
-            type: "number",
-            readonly: "true",
-            display: "Inner degree",
-            condition() { return Graph.selected.type == ORDERED },
-            title: "Number of nodes entering this node",
-        },
-        outer: {
-            type: "number",
-            readonly: "true",
-            display: "Outer degree",
-            condition() { return Graph.selected.type == ORDERED },
-            title: "Number of nodes exiting this node",
-        },
-    },
-    "Adjacent nodes": {
-        
-    },
-    transform: {
-        position: {
-            categoryCollapse: false,
-            tupel: true,
-            x: {
-                type: "number",
-                decimal: "2",
-            },
-            y: {
-                type: "number",
-                decimal: "2",
-            },
-        },
-        velocity: {
-            categoryCollapse: false,
-            tupel: true,
-            x: {
-                type: "number",
-                decimal: "2",
-            },
-            y: {
-                type: "number",
-                decimal: "2",
-            },
-            
-        },
-        acceleration: {
-            categoryCollapse: false,
-            tupel: true,
-            x: {
-                type: "number",
-                decimal: "2",
-            },
-            y: {
-                type: "number",
-                decimal: "2",
-            },
-        },
-        size: {
-            categoryCollapse: false,
-            tupel: true,
-            x: {
-                type: "number",
-                decimal: "0",
-                readonly: true,
-            },
-            y: {
-                type: "number",
-                decimal: "0",
-                readonly: true,
-            },
-        },
-    }
-}
-
-const edgeInspectorTemplate = {
-    from: {
-        type: "text",
-        readonly: true,
-        onclick(ev) {
-            let input = ev.target.closest("text-input");
-            let id = parseInt(input.value);
-            Graph.selected.getNodeUI(id).scrollIntoView();
-        }
-    },
-    to: {
-        type: "text",
-        readonly: true,
-        onclick(ev) {
-            let input = ev.target.closest("text-input");
-            let id = parseInt(input.value);
-            Graph.selected.getNodeUI(id).scrollIntoView();
-        }
-    },
-    symmetry: {
-        type: "range",
-        min: "-1", max: "1",
-        title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
-    },
-    mode: {
-        type: "select",
-        options: ["absolute", "relative"],
-        title: "Relative mode moves both control points relative to the edge direction",
-        
-    },
-    description: {
-        type: "textarea",
-    }
-}
-
-const graphInspectorTemplate = {
-    categoryCollapse: false,
-    id: {
-        type: "text",
-        readonly: true,
-    },
-    name: {
-        type: "text",
-        maxLength: 32,
-    },
-    type: {
-        type: "text",
-        readonly: true,
-    },
-    nodeCount: {
-        type: "text",
-        display:"Node count",
-        readonly: true,
-    },
-    edgeCount: {
-        type: "text",
-        display:"Edge count",
-        readonly: true,
-    },
-    conex: {
-        type: "text",
-        display:"Conex components",
-        readonly: true,
-    },
-}
-
-
-
-const graphTemplate = {
-    categoryCollapse: false,
-    name: {
-        type: "text",
-        maxLength: 32,
-    },
-    main_color: {
-        type: "color",
-    },
-    secondary_color: {
-        type: "color",
-    },
-    show_ruller: {
-        type: "checkbox",
-    },
-    zoom: {
-        type: "range",
-        min: "0.1", max: "3", step: "0.1",
-    },
-    node_template: {
-        type: "select",
-        options: ["default"],
-    },
-    edge_template: {
-        type: "select",
-        options: ["default"]
-    }
-}
-
-const nodeTemplate = {
-    categoryCollapse: false,
-    description: {
-        type: "textarea",
-    },
-    isStatic: {
-        type: "checkbox",
-        display: "static",
-        title: "Physics won't be applied to static nodes"
-    },
-    mass: {
-        type: "number",
-        max: 100000,
-    },
-
-}
-
-const edgeTemplate = {
-    categoryCollapse: false,
-    symmetry: {
-        type: "range",
-        min: "-1", max: "1",
-        title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
-    },
-    mode: {
-        type: "select",
-        options: ["absolute", "relative"],
-        title: "Relative mode moves both control points relative to the edge direction",
-
-    },
-    description: {
-        type: "textarea",
-    }
+        mode: {
+            type: "select",
+            options: ["absolute", "relative"],
+            title: "Relative mode moves both control points relative to the edge direction",
     
+        },
+        description: {
+            type: "textarea",
+        }
+    }
 }
+

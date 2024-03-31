@@ -5,25 +5,28 @@ window.onload = () => {
     let appSettings = JSON.parse(sessionStorage.getItem("app-data"));
     let nodeTemplates = JSON.parse(sessionStorage.getItem("nodeTemplates"));
     let edgeTemplates = JSON.parse(sessionStorage.getItem("edgeTemplates"));
+    let graphTemplates = JSON.parse(sessionStorage.getItem("graphTemplates"));
 
-    console.log(nodeTemplates,edgeTemplates)
     if (nodeTemplates?.length) {
         for (const t of nodeTemplates) new NodeTemplate(t.name, "", t);
-    } else new NodeTemplate("default", nodeDefaultTemplate);
+    } else new NodeTemplate("default", defaultTemplateStyles.node);
     
     if (edgeTemplates?.length) {
         for (const t of edgeTemplates) new EdgeTemplate(t.name, "", t);
-    } else  new EdgeTemplate("default", edgeDefaultTemplate);
+    } else new EdgeTemplate("default", defaultTemplateStyles.edge);
+    
+    if (graphTemplates?.length) {
+        for (const t of graphTemplates) new EdgeTemplate(t.name, "", t);
+    } else  new GraphTemplate("default", defaultTemplateStyles.graph);
 
-    greatMenus.init();
+    UI.init();
 
     if (appSettings) {
         mergeDeep(appData, appSettings);
         appData.physicsSettings.spring /= 100;
     }
     mergeDeep(physicsMode, appData.physicsSettings);
-    greatMenus.forceMenu.load(appData.physicsSettings);
-
+    UI.forceMenu.load(appData.physicsSettings);
 
 
     if (storedGraphs?.length) {
@@ -54,6 +57,10 @@ window.onbeforeunload = (ev) => {
     sessionStorage.setItem("edgeTemplates", JSON.stringify(array));
     array = [];
 
+    for (const [name, t] of GraphTemplate.map) if (name != "default") array.push(t);
+    sessionStorage.setItem("graphTemplates", JSON.stringify(array));
+    array = [];
+
 }
 const appData = {
     cursorPos: new Point(),
@@ -78,8 +85,9 @@ function createGraph(obj = defaultGraphJSON) {
 
     if (!newGraph) alert("Format invalid");
     else {
-        tabArea.appendChild(newGraph.tab);
-        headerArea.appendChild(newGraph.header);
+        UI.tabArea.tabs.appendChild(newGraph.tab);
+        UI.headerList.list.push([newGraph.id, newGraph.settings.name]);
+        UI.headerList.appendChild(newGraph.header);
         newGraph.focus();
     }
     return newGraph;
@@ -87,8 +95,8 @@ function createGraph(obj = defaultGraphJSON) {
 function g(id) { return Graph.get(id) }
 
 function saveProtrocol() {
-    greatMenus.fileDialog.showModal();
-    let list = greatMenus.fileDialog.querySelector("list-view");
+    UI.fileDialog.showModal();
+    let list = UI.fileDialog.querySelector("list-view");
     list.clear();
     for (let [_, g] of Graph.graphMap) list.push(g);
 }
@@ -146,7 +154,6 @@ function loadPotrocol(input) {
 const keyBindings = {
     F2: "fullscreen",
     Enter: "blur",
-    Escape: "closeModal",
     Delete: "deleteSelection",
     ArrowLeft: "selectionMove",
     ArrowRight: "selectionMove",
@@ -163,7 +170,6 @@ const keyBindings = {
 const ACTIONS = {
     fullscreen() { toggleFullScreen() },
     blur(ev) { if (!ev.target.matches("textarea")) document.activeElement.blur() },
-    closeModal(ev) { graphDialog.close() },
     deleteSelection(ev) {
         Graph.selected.selection.deleteAll();
     },
@@ -264,22 +270,22 @@ const ACTIONS = {
     },
     undo(ev) {
         if (!ev.ctrlKey) return;
-        if (greatMenus.viewMenu.open) Graph.selected.settingsStack.undo();
+        if (UI.viewMenu.open) Graph.selected.settingsStack.undo();
         else Graph.selected.actionsStack.undo();
 
     },
     redo(ev) {
         if (!ev.ctrlKey) return;
-        if (greatMenus.viewMenu.open) Graph.selected.settingsStack.redo();
+        if (UI.viewMenu.open) Graph.selected.settingsStack.redo();
         else Graph.selected.actionsStack.redo();
     },
     togglePhysicsSimulation(ev) {
         //if (ev && !ev.ctrlKey) return;
         if (physicsMode.isRunning()) {
-            menuBar.querySelector("button[for='physics']")?.classList.remove("active");
+            UI.menuBar.querySelector("[for='physics']")?.classList.remove("active");
             return physicsMode.stop();
         }
-        menuBar.querySelector("button[for='physics']").classList.add("active");
+        UI.menuBar.querySelector("[for='physics']").classList.add("runnig");
 
         /**@type {Graph}*/
         let g = Graph.selected;
@@ -316,11 +322,6 @@ const ACTIONS = {
         }
         physicsMode.start(dt);
     }
-
-}
-
-
-function openNodeCreationDialog() {
 
 }
 

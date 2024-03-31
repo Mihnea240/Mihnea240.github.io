@@ -138,7 +138,7 @@ class NodeTemplate{
     static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
 
     constructor(name,styles,data) {
-        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template="${name}"]{${styles}}`);
+        this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template=${name}]{${styles}}`);
         this.name = name;
         
         this.anchor = { x: 0.5, y: 0.5 };
@@ -151,21 +151,23 @@ class NodeTemplate{
         node.viewMode = this.viewMode;
         node.transform.size.set(25, 25);
     }
-    set style(data) {
+    set cssRule(data) {
         this.id = NodeTemplate.styleSheet.insertRule(data);
     }
 
-    get style() {
+    get cssRule() {
         return NodeTemplate.styleSheet.cssRules[this.id];
     }
-
+    get style() {
+        return this.cssRule.style.cssText;
+    }
     toJSON() {
         return {
             name: this.name,
             anchor: this.anchor,
             viewMode: this.viewMode,
             custom: this.custom,
-            css: this.style.cssText,
+            css: this.style,
         }
     }
 }

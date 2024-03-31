@@ -10,7 +10,7 @@ class Graph {
     static selected;
     static get(id) { return this.graphMap.get(id); }
 
-    constructor(type, settings = defaultGraphJSON.settings) {
+    constructor(type, template) {
         /**@type {Tab}*/
         this.tab;
         /** @type {HTMLElement}*/
@@ -19,60 +19,49 @@ class Graph {
         this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
-        this.settings = mergeDeep({}, settings);
         this.actionsStack = new CommandStack(this);
         this.edgeCount = 0;
-
-        createTabUI(this);
+        
+        UI.createTabUI(this);
+        this.settings = this.initSettings();
+        GraphTemplate.get(template).load(this);
+        
         Graph.graphMap.set(this.id, this);
 
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
-        this.loadSettings();
+        
     }
-    loadSettings() {
-
-        for (let c in this.settings) {
-            let chain = ["", c], props = this.settings[c];
-            for (let i in props) {
-                chain[0] = i;
-                this.setSettings(chain, props[i]);
+    initSettings() {
+        return new Proxy({}, {
+            set: (object, prop, newValue) => {
+                object[prop] = newValue;
+                switch (prop) {
+                    case "name": this.header.setAttribute("value", newValue); break;
+                    case "main_color": case "secondary_color": {
+                        let bg = `linear-gradient(45deg,${this.settings.main_color},${this.settings.secondary_color})`;
+                        this.header.style.background = bg;
+                        UI.headerList.style.borderImage = bg + " 1"; break;
+                    }
+                    case "zoom": this.tab.zoom = newValue; break;
+                    case "template": this.tab.template = newValue; break;
+                    case "show_ruler": this.tab.toggleRuler?.(newValue); break;
+                }
+                return true;
             }
-        }
+        })
     }
 
-    setSettings(chain, value) {
-        if (this === Graph.selected) greatMenus.viewMenu.set(chain, value);
-        CustomInputs.getFromChain(this.settings, chain, 1)[chain[0]] = value;
-
-        let template = CustomInputs.getFromChain(defaultSettingsTemplate, chain);
-
-        if (template) {
-            template._update?.(this);
-            if (template._property) this.tab.style.setProperty(template._property, value + (template._unit || ""));
-        }
-        return value;
-    }
-
-    unfocus() {
-        this.header?.classList.remove("selected");
-        this.tab?.classList.add("hide");
-        if (physicsMode.isRunning()) physicsMode.stop();
-    }
     focus() {
         if (Graph.selected === this) return;
-        Graph.selected?.unfocus();
         Graph.selected = this;
         inspector.observe(this);
 
-        this.header.classList.add("selected");
-        defaultSettingsTemplate.graph.main_color._update(this);
-        this.tab.classList.remove("hide");
         this.tab.focus();
         inspector.observe(this.tab);
 
-        greatMenus.viewMenu.querySelector(".category").load(this.settings);
+        //UI.viewMenu.load(this.settings);
     }
     nextAvailableID() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
@@ -214,7 +203,8 @@ class Graph {
 
     toJSON() {
         let obj = {
-            settings: this.settings,
+            template: this.template,
+            data: this.settings,
             type: this.type,
             nodeProps: [],
             edgeProps: []
@@ -228,7 +218,7 @@ class Graph {
     }
 
     static parse(obj = defaultGraphJSON) {
-        let newG = new Graph(obj.type, obj.settings);
+        let newG = new Graph(obj.type, obj.template);
 
         newG.actionsStack.startGroup();
         for (let node of obj.nodeProps) newG.addNode(node);
@@ -402,34 +392,46 @@ class GraphTemplate{
     /**@type {Map<string,GraphTemplate>} */
     static map = new Map();
     static get(name) { return GraphTemplate.map.get(name) }
-    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
+    static styleSheet = new CSSStyleSheet().replaceSync();
 
     constructor(name, styles, data) {
-        this.id = GraphTemplate.styleSheet.insertRule(`graph-tab[template="${name}"]{` + styles + "}");
+        this.id = GraphTemplate.styleSheet.insertRule(`graph-tab[template=${name}]{${styles}}`);
         this.name = name;
-
-        this.description;
-        mergeDeep(this, data);
+        this.data = {
+            name: "",
+            main_color: "",
+            secondary_color: "",
+            show_ruler: "true",
+            zoom: 1,
+            nodeTemplate: "default",
+            edgeTemplate: "default",
+            background: ""
+        }
+        
+        mergeDeep(this.data, data);
 
         GraphTemplate.map.set(name, this);
     }
     load(graph) {
+        graph.template = this.name;
+        if (this.name = "default") {
+            this.data.name = "Graph " + graph.id;
+            this.data.main_color = UI.colors[UI.colorIndex++];
+            this.data.secondary_color = UI.colors[UI.colorIndex];
+            if (UI.colorIndex >= UI.colors.length) UI.colorIndex = 1;
+        }
+        mergeDeep(graph.settings, this.data);
+        graph.settings.template = this.name;
     }
-    set style(data) {
+    set cssRule(data) {
         this.id = GraphTemplate.styleSheet.insertRule(data);
     }
 
-    get style() {
+    get cssRule() {
         return NodeTemplate.styleSheet.cssRules[this.id];
     }
 
     toJSON() {
-        return {
-            name: this.name,
-            anchor: this.anchor,
-            viewMode: this.viewMode,
-            custom: this.custom,
-            css: this.style.cssText,
-        }
+        return {...this.data,css: this.cssRule.cssText};
     }
 }

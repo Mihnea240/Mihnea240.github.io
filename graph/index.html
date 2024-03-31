@@ -19,23 +19,26 @@
     <script defer src="js/collision.js"></script>
     <script defer src="js/graph.js"></script>
     <script defer src="js/templates.js"></script>
-    <script defer src="js/components/graphAdditionMenu.js"></script>
     <script defer src="js/selection.js"></script>
-    <script defer src="js/graphUI.js"></script>
+    <script defer src="js/UI.js"></script>
     <script defer src="js/inspector.js"></script>
     <script defer src="js/main.js"></script>
     <title>Graph Maker</title>
 </head>
 
 <body>
-    <div class="menu-bar"> 
+    <div id="menu-bar"> 
         <button for="file">File</button>
+        <button for="templates">Templates</button>
+        <button for="view">View</button>
+        <button for="physics">Force Model</button>
+        <a href="" style="margin-left: auto; margin-right: 1%;">Docs</a>
+    
         <dialog name="file" is="pop-dialog">
             <label>Load from file<input type="file" accept=".html" onchange="loadPotrocol(this)"></label>
             <button onclick="saveProtrocol()">Save</button>
         </dialog>
         
-        <button for="templates">Templates</button>
         <dialog name="templates" is="pop-dialog">
             <tab-area id="template">
                 <div class="header">
@@ -60,7 +63,6 @@
             </tab-area> 
         </dialog>
 
-        <button for="view">View</button>
         <dialog id="file-dialog" is="pop-dialog">
             <div class="h">
                 <div>Select graphs</div>
@@ -71,16 +73,12 @@
             <a class="hide" download="My Graphs.html"></a>
             
         </dialog>
-
-        <button for="physics">Force Model</button>
-
-        <a href="" style="margin-left: auto; margin-right: 1%;">Docs</a>
     </div>
 
     <tab-area id="main">
-        <div class="header">
+        <list-view direction="row" class="header">
             <button class="new-graph" style="font-size: 1.3em;">+</button>
-        </div>
+        </list-view>
 
         <div class="tabs" draggable="false"></div>
 
@@ -104,38 +102,36 @@
     
     
     <dialog id="graph-addition-dialog">
-        <div class="container">
-            <div class="header">
-                <span>Add new graph : </span>
-                <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
-                <button name="submit">Submit</button>
-            </div>
-            <div class="inputs">
-                <label>
-                    Type :
-                    <select name="type input">
-                        <option value="0">Unordered</option>
-                        <option value="1">Ordered</option>
-                    </select>
-                </label>
-                <label>
-                    Input :
-                    <select name="input mode">
-                        <option>Matrix</option>
-                        <option>Edge list</option>
-                        <option>Adjacency list</option>
-                        <option>Parent array</option>
-                    </select>
-                </label>
-                <label>
-                    Nodes :
-                    <input type="text" name="node number" value="1" maxLength="4" size="4" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-                </label>
-            </div>
+        <div class="header">
+            <span>Add new graph : </span>
+            <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
+            <button name="submit">Submit</button>
+        </div>
+        <div class="inputs">
+            <label>
+                Type :
+                <select name="type input">
+                    <option value="0">Unordered</option>
+                    <option value="1">Ordered</option>
+                </select>
+            </label>
+            <label>
+                Input :
+                <select name="input mode">
+                    <option>Matrix</option>
+                    <option>Edge list</option>
+                    <option>Adjacency list</option>
+                    <option>Parent array</option>
+                </select>
+            </label>
+            <label>
+                Nodes :
+                <text-input name="node number" inputmode="numeric" max="1000"></text-input>
+            </label>
+        </div>
 
-            <div class ="tabs">
-                <textarea>0</textarea>
-            </div>
+        <div class ="tabs">
+            <textarea>0</textarea>
         </div>
         
     </dialog>

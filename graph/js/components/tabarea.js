@@ -1,16 +1,8 @@
-const _tabArea_template = /*html*/`
-    <style>
-        
-    </style>
-    <slot></slot>
-`
-
 class TabArea extends HTMLElement{
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: "open" });
-        shadow.innerHTML = _tabArea_template;
         this.scrollBehavior = { behavior: 'smooth', block: 'nearest', inline: 'center' };
+        this.openEvent = new CustomEvent("open", { bubbles: true, detail: {} });
     }
 
     connectedCallback() {
@@ -35,15 +27,20 @@ class TabArea extends HTMLElement{
     getHeader(name) {
         return this.querySelector(`.header > [for="${name}"]`);
     }
+    show(newTab) {
+        this.activeTab?.classList.add("hide");
+        this.activeTab = newTab;
+        this.activeTab.classList.remove("hide"); 
+    }
 
     selectTab(name) {
         let newSelected = this.getTab(name);
         let newHeader = this.getHeader(name);
         if (!newSelected || newSelected===this.activeTab) return;
 
-        this.activeTab?.classList.add("hide");
-        this.activeTab = newSelected;
-        this.activeTab.classList.remove("hide");
+        this.openEvent.detail.lastOpened = this.activeTab?.getAttribute("name");
+        this.show(newSelected, this.activeTab);
+        this.dispatchEvent(this.openEvent);
         
         if (newHeader) {
             this.activeHeader?.classList.remove("active");

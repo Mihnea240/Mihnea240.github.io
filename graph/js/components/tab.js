@@ -314,6 +314,7 @@ class Tab extends HTMLElement {
         this.addEventListener("mouseup", (ev) => {
             if (ev.target.matches("graph-tab")) {
                 if (ev.button !== 2) Graph.get(this.graphId).selection.clear();
+                else openActionMenu(ev);
 
                 if (this.curvesArray.size) {
                     for (let c of this.curvesArray) c.active = false
@@ -383,6 +384,13 @@ class Tab extends HTMLElement {
         })
     }
 
+    set template(string) {this.setAttribute("template", string);}
+    get template() { return this.getAttribute("template"); }
+
+    toggleRuler(value) {
+        this.shadowRoot.querySelectorAll("list-view").forEach(list => list.classList.toggle("hide", !value));
+    }
+
     focus(pos) {
         if (pos === undefined) {
             let selectedNodes = this.getGraph().selection.nodeSet;
@@ -407,7 +415,7 @@ class Tab extends HTMLElement {
 
     recalculateEdges(nodeId, point) {
         let g = this.getGraph();
-        if (greatMenus.inspector.observed?.nodeId == nodeId) greatMenus.inspector.observe();
+        if (UI.inspector.observed?.nodeId == nodeId) UI.inspector.observe();
         this.forEdges((edge) => {
             if (point === undefined) return;
             
@@ -515,7 +523,7 @@ class Tab extends HTMLElement {
     /**@param {Point} point*/
     screenToWorld(point) {
         return point.translate(-this.rect.left, -this.rect.top)
-            .multiplyScalar(1 / this.settings.graph.zoom)
+            .multiplyScalar(1 / this.zoom)
             .translate(this.tab.scrollLeft, this.tab.scrollTop)
            
     }
@@ -546,8 +554,8 @@ class Tab extends HTMLElement {
         return {
             x: this.tab.scrollLeft,
             y: this.tab.scrollTop,
-            width: this.rect.width / this.settings.graph.zoom,
-            height: this.rect.height /this.settings.graph.zoom
+            width: this.rect.width / this.zoom,
+            height: this.rect.height /this.zoom
         }
     }
 

@@ -32,17 +32,17 @@ class Inspector extends TabArea{
             if (chain[0] == "x" || chain[0] == "y") this.observed.update();
         }
 
-        this.nodeDetails = this.viewTabs.node.appendChild(CustomInputs.category("Viewing", nodeInspectorTemplate));
+        this.nodeDetails = this.viewTabs.node.appendChild(CustomInputs.category("Viewing", InspectorTemplates.node));
         this.nodeSpan = this.nodeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
         this.nodeSpan.addEventListener("click", scrollIntoView);
         this.nodeDetails.addEventListener("change", onchange);
 
-        this.edgeDetails = this.viewTabs.edge.appendChild(CustomInputs.category("Viewing", edgeInspectorTemplate));
+        this.edgeDetails = this.viewTabs.edge.appendChild(CustomInputs.category("Viewing", InspectorTemplates.edge));
         this.edgeSpan = this.edgeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
         this.edgeSpan.addEventListener("click", scrollIntoView);
         this.edgeDetails.addEventListener("change", onchange);
         
-        this.graphDetails=this.viewTabs.graph.appendChild(CustomInputs.category("Viewing", graphInspectorTemplate));
+        this.graphDetails = this.viewTabs.graph.appendChild(CustomInputs.category("Viewing", InspectorTemplates.graph));
         this.graphDetails.addEventListener("change", onchange);
     }
 
@@ -110,7 +110,7 @@ class Inspector extends TabArea{
     }
     extractGraphData(graph) {
         this.graphStorage = {
-            name: graph.settings.graph.name,
+            name: graph.settings.name,
             id: graph.id,
             type: (graph.type ? "Unordere" : "Ordered") + (graph.isTree() ? " tree" : ""),
             edgeCount: graph.edgeCount,

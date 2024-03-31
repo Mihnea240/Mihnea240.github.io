@@ -27,7 +27,6 @@ class TextInput extends HTMLElement{
             this.parseAsNumber();
             this.dispatchEvent(new Event("change",{bubbles: true}));
         })
-        customElements.upgrade(this);
     }
 
     set value(text) {
@@ -246,13 +245,13 @@ class PopDialog extends HTMLDialogElement{
     }
     show(x,y) {
         if (x === undefined && y === undefined) return super.show();
-        this.style.cssText += `left: ${x}px; top: ${y}px`;
         super.show();
+        this.style.cssText += `left: ${x}px; top: ${y}px`;
     }
     showModal(x,y) {
         if (x === undefined && y === undefined) return super.showModal();
-        this.style.cssText += `left: ${x}px; top: ${y}px`;
         super.showModal();
+        this.style.cssText += `left: ${x}px; top: ${y}px`;
     }
     toggleModal(x,y) {
         if (this.open) this.close();

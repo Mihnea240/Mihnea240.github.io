@@ -350,11 +350,11 @@ class EdgeTemplate{
         edge.setAttribute("mode", this.mode);
         edge.symmetry = this.symmetry;
     }
-    set style(data) {
+    set cssRule(data) {
         this.id = EdgeTemplate.styleSheet.insertRule(data);
     }
 
-    get style() {
+    get cssRule() {
         return EdgeTemplate.styleSheet.cssRules[this.id];
     }
 
@@ -362,7 +362,7 @@ class EdgeTemplate{
         return {
             name: this.name,
             custom: this.custom,
-            css: this.style.cssText,
+            css: this.cssRule.cssText,
         }
     }
 }
