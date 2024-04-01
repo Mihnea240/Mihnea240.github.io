@@ -5,7 +5,7 @@ const _node_template = /* html */`
 `.trim();
 
 class NodeUI extends HTMLElement{
-    static observedAttributes = ["view","template"];
+    static observedAttributes = ["display","template"];
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
@@ -27,11 +27,17 @@ class NodeUI extends HTMLElement{
         this.template = "default";
 
         this.point = new Point();
+
+        this.addEventListener("keydown", (ev) => {
+            if (this.focused) {
+                ev.stopPropagation();
+            }
+        },true)
     }
 
     init(props) {
         mergeDeep(this, props);
-        this.getTemplate().load(this);
+        NodeTemplate.get(this.template).load(this);
 
         this.update(false);
     }
@@ -40,13 +46,45 @@ class NodeUI extends HTMLElement{
     get selected() { return this._selected }
     
     set description(text) {
-        this.shadowRoot.querySelector(".description").textContent = this._description = text;
+        this.shadowRoot.querySelector(".description").textContent = text;
     }
-    get description() { return this._description }
+    get description() { return this.shadowRoot.querySelector(".description").textContent }
 
-    set template(string) {this.setAttribute("template", string);}
-    get template() { return this.getAttribute("template"); }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return;
+        switch (name) {
+            case "display": {
+                switch (oldValue) {
+                    case "description": {
+                        let desc = this.shadowRoot.querySelector(".description");
+                        desc.removeEventListener("mouseup", this.mouseUpEvent);
+                        desc.removeEventListener("blur", this.blurEvent);
+                        break;
+                    }
+                }
+                switch (newValue) {
+                    case "description": {
+                        let desc = this.shadowRoot.querySelector(".description");
+                        desc.addEventListener("mouseup", this.mouseUpEvent);
+                        desc.addEventListener("blur", this.blurEvent);
+                        break;
+                    }
+                }
+            }
+        }
+    }
     
+    mouseUpEvent(ev) {
+        if (ev.detail == 2) {
+            
+            this.setAttribute("contenteditable", this.getRootNode().host.focused = true);
+            this.focus()
+        } 
+    }
+    blurEvent(ev) {
+       this.setAttribute("contenteditable",this.getRootNode().host.focused = false);
+    }
+
     initCurve() {
         if (this.new_node_protocol) {
             this.parentElement.curve.classList.add("hide");
@@ -65,7 +103,7 @@ class NodeUI extends HTMLElement{
     }
 
     anchor(point = new Point()) {
-        let { x, y } = this.getTemplate().anchor;
+        let { x, y } = NodeTemplate.get(this.template).anchor;
         return this.relativePosition(x, y, point);
     }
 
@@ -78,7 +116,6 @@ class NodeUI extends HTMLElement{
         this.update(update);
     }
     update(updateEdges=true) {
-        //this.style.cssText += `left: ${this.transform.position.x}px; top: ${this.transform.position.y}px`;
         this.style.cssText += `transform: translate(${this.transform.position.x}px, ${this.transform.position.y}px);`;
         if (updateEdges) {
             this.parentElement.recalculateEdges(this.nodeId, this.anchor(this.point));
@@ -92,21 +129,6 @@ class NodeUI extends HTMLElement{
 
     getGraph() {
         return Graph.get(this.graphId);
-    }
-    getTemplate() {
-        return NodeTemplate.get(this.template);
-    }
-
-
-    editText() {
-        let des = this.shadowRoot.querySelector(".description");
-        des.setAttribute("contenteditable", true);
-        this.focused = true;
-        des.addEventListener("blur", (ev) => {
-            des.setAttribute("contenteditable", false);
-            this._description = des.textContent;
-            this.focused = false;
-        },{once: true})
     }
     toJSON() {
         return {
@@ -137,13 +159,14 @@ class NodeTemplate{
         this.name = name;
         
         this.anchor = { x: 0.5, y: 0.5 };
-        this.viewMode = "description";
+        this.display = "description";
         mergeDeep(this, data);
 
         NodeTemplate.map.set(name, this);
     }
     load(node) {
-        node.viewMode = this.viewMode;
+        node.setAttribute("display", this.display);
+        node.setAttribute("template", this.name);
         node.transform.size.set(25, 25);
     }
     set cssRule(data) {

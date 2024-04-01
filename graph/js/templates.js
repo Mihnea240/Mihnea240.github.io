@@ -7,23 +7,27 @@ const defaultGraphJSON = {
 }
 
 const defaultTemplateStyls = {
-    node:`
+    node:/*css */`
         :host{
-            display: flex;
-            background-color: pink;
+            position: absolute;
+            background-color: inherit;
             color: #ffffff;
-            border-radius: 50%;
+            border-radius: 10px;
             border: 1px solid #ffffff;
-            width: 25px; height: 25px;
+            min-width: 25px; min-height: 25px;
             z-index: 100;
         }
-
+        :host([template="default"]){
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            --node-emmision: 10px;
+        }
         .description{
-            user-select: none;
-            margin: .1rem .2rem;
-            &:focus{
-                outline: none;
-            }
+            margin: .2rem .4rem;
+        }
+        .description:focus{
+            outline: none;
         }
         :host(.selected){
             box-shadow:
@@ -31,13 +35,31 @@ const defaultTemplateStyls = {
                 0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
         }
     `.trim(),
-    edge:  `
-        
-    `.trim(),
-    graph: `
+    edge:  /*css */`
         :host{
             position: absolute;
+            pointer-events: stroke;
+        }
+
+        :host(.selected) {
+            filter:
+                drop-shadow(0 0 var(--edge-emission) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color));
+        }
+
+        :host(::part(arrow)) {
+            position: absolute;
+            fill: white;
+            translate: -50% -50%;
+            width: calc(15 * var(--edge-width));
+            aspect-ratio: 1;
+        }
+    `.trim(),
+    graph: /*css */`
+        :host{
+            position: relative;
             width: 100%;  height:100%;
+            background: transparant;
+            z-index: -1;
         }
         #square{
             position: absolute;
@@ -45,7 +67,6 @@ const defaultTemplateStyls = {
             background-color: transparent;
             pointer-events:none;
             user-select: none;
-
         }
         .tab{
             position: absolute;
@@ -73,7 +94,7 @@ const defaultTemplateStyls = {
             & >*{
                 font-size: .5rem;
                 opacity: 0.8;
-                text-shadow: rgba(255, 255, 255, 0.932) 0px 0px 10px;
+                text-shadow: rgba(255, 255, 255, 0.932) 0px 0px 2px;
             }
         }
 

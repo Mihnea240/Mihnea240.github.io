@@ -150,80 +150,6 @@ option:focus {
     display: none !important;
 }
 
-/*graph styles*/
-/* graph-tab {
-    --node-color: #ffffff;
-    --node-border-width: 1px;
-    --node-border-style: solid;
-    --node-border-color: white;
-    --node-border-radius: 100%;
-    --node-width: 25px;
-    --node-height: var(--node-width);
-    --node-background: #242424;
-    --node-emission: 10px;
-    --edge-width: 100px;
-    --edge-color: white;
-    --edge-emission: 10px;
-    --zoom: 1;
-    z-index: 10;
-} */
-
-/* graph-node {
-    position: absolute;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    min-width: var(--node-width);
-    min-height: var(--node-height);
-    border-radius: calc(max(var(--node-width), var(--node-height)) * 0.6);
-    border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
-    background: var(--node-background);
-    font-size: calc(0.5* var(--node-width));
-    user-select: text;
-    text-wrap: wrap;
-
-    &.selected {
-        box-shadow:
-            0 0 var(--node-emission) var(--graph-main-color),
-            0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
-    }
-
-    & text-input {
-        background-color: transparent;
-        box-shadow: none;
-
-        &:focus {
-            background-color: var(--ui-select2);
-        }
-    }
-} */
-
-graph-edge {
-
-    position: absolute;
-    pointer-events: stroke;
-
-    &.selected {
-        filter:
-            drop-shadow(0 0 var(--edge-emission) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color));
-    }
-
-    &::part(arrow) {
-        position: absolute;
-        fill: white;
-        translate: -50% -50%;
-        width: calc(15 * var(--edge-width));
-        aspect-ratio: 1;
-    }
-
-}
-
-.active {
-    background-color: var(--ui-select2);
-}
-
 tab-area,
 graph-inspector {
     & > .header {
@@ -237,6 +163,9 @@ graph-inspector {
             padding: .2rem .4rem;
             border-radius: 2px 2px 0 0;
         }
+        & .active {
+            background-color: var(--ui-select2);
+        }
     }
     
     & > .tabs {
@@ -245,6 +174,12 @@ graph-inspector {
         & >* {
             width: 100%;
             height: 100%;
+        }
+        & >:not(.active){
+           display: none;
+        }
+        & .active{
+            background-color: transparent;
         }
     }
 }
@@ -313,6 +248,10 @@ graph-inspector {
             &:hover {
                 text-decoration: underline;
             }
+            
+            &.active{
+                height: 100%;
+            }
         }
 
         & .new-graph {
@@ -331,16 +270,9 @@ graph-inspector {
 
     .tabs {
         position: relative;
-        background-color: transparent;
+        background-color: var(--tab-background);
         z-index: 1;
         overflow: hidden;
-
-        &>* {
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--tab-background);
-        }
     }
 }
 
@@ -501,7 +433,7 @@ dialog[open] {
     grid-area: snj; 
     position: relative;
 
-    background-color: rgb(from var(--background) r g b /0.9);
+    background-color: var(--background);
     box-shadow: 0 0 10px 1px black;
     padding: .2rem;
     font-size: 80%;
@@ -517,10 +449,14 @@ dialog[open] {
             text-decoration: underline;
         }
     }
-    & .category, .tabs>*{
-        width: 100%;
+    & .tabs{
         background-color: transparent;
+
+        & .category{
+            width: 100%;
+        }
     }
+    
 
     & text-input {
         max-width: 100%;

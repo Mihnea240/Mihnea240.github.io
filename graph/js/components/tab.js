@@ -133,7 +133,7 @@ class Tab extends HTMLElement {
         edgeDrag(target, ev, delta){
             if (ev.button) return ev.stopPropagation();
             let tab = target.parentElement, c = tab.curve;
-            if (delta.magSq() < tab.settings.edge.min_drag_dist) return;
+            if (delta.magSq() < 1) return;
     
             if (this.storage.fromNode.new_node_protocol == false) {
                 target.classList.add("hide");
@@ -250,12 +250,9 @@ class Tab extends HTMLElement {
                     this.curvesArray.clear();
                 }
             } else { 
-                ev.preventDefault();
+                //ev.preventDefault();
                 if (ev.detail == 2) return inspector.observe(ev.target);
-                if (ev.target.matches("graph-node")) {
-                    if (ev.detail == 3) ev.target.editText();
-                    else if (ev.button == 2) this.getGraph().selection.toggle(ev.target);
-                }
+                if (ev.button == 2 && ev.target.matches("graph-node")  ) this.getGraph().selection.toggle(ev.target);
                 else if (ev.target.matches("graph-edge")) {
                     if (ev.button == 2) this.getGraph().selection.toggle(ev.target);
                     else if (!ev.composedPath()[0].matches(".point")) ev.target.active = !ev.target.active;

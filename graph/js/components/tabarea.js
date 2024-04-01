@@ -10,7 +10,6 @@ class TabArea extends HTMLElement{
         this.tabs = this.querySelector(".tabs");
         this.activeHeader = this.header.querySelector(".active") || this.header.querySelector("[for]");
 
-        for (let t of this.tabs.children) t.classList.add("hide");
         let name = this.activeHeader?.getAttribute("for") || this.querySelector(".tabs >[name]");
         if (name) this.selectTab(name);
 
@@ -28,9 +27,9 @@ class TabArea extends HTMLElement{
         return this.querySelector(`.header > [for="${name}"]`);
     }
     show(newTab) {
-        this.activeTab?.classList.add("hide");
+        this.activeTab?.classList.remove("active");
         this.activeTab = newTab;
-        this.activeTab.classList.remove("hide"); 
+        this.activeTab.classList.add("active"); 
     }
 
     selectTab(name) {
