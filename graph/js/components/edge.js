@@ -1,43 +1,4 @@
 const _curve_template =/* html */`
-     <style>
-        .svg, path{
-            position: absolute;
-            pointer-events: stroke;
-            stroke: var(--edge-color);
-        }
-        #curve{
-            position: absolute;
-            stroke: var(--edge-color);
-            fill: transparent;
-        }
-        #visible{
-            stroke-width: var(--edge-width);
-            z-index: 1;
-        }
-        #hit-area{
-            stroke-width: calc(5*var(--edge-width));
-            stroke-opacity: 0;
-            z-index: 2;
-        }
-        #hit-area:hover{
-            stroke-opacity: 0.4;
-            cursor: pointer;
-        }
-        .point{
-            position: absolute;
-            width: var(--point-width, 10px);
-            aspect-ratio: 1;
-            background-color: var(--edge-color);
-            border-radius: 100%;
-            translate: -50% -50%;
-            user-select:none;
-
-            outline: 2px solid gray;
-            outline-offset: calc(var(--point-width,10px)/-3);
-            z-index: 101;
-        }
-    </style>
-
     <svg id="curve" overflow="visible">
         <path id="visible"></path>
         <path id="hit-area"></path>
@@ -50,8 +11,9 @@ class BezierCurve extends HTMLElement {
     constructor() {
         super();
         const shadow = this.attachShadow({ mode: "open" });
-        
-        this.shadowRoot.innerHTML = _curve_template;
+        shadow.innerHTML = _curve_template;
+        shadow.adoptedStyleSheets = [EdgeTemplate.styleSheet];
+
         this.fromCoords = new Point();
         this.toCoords = new Point();
         this.P1 = new Point();
@@ -330,7 +292,11 @@ class EdgeTemplate{
     /**@type {Map<string,NodeTemplate>} */
     static map = new Map();
     static get(name) { return EdgeTemplate.map.get(name) }
-    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
+    static styleSheet = (() => {
+        let a = new CSSStyleSheet();
+        a.replaceSync(defaultTemplateStyls.edge);
+        return a;
+    })();
 
     constructor(name,styles,data) {
         this.id = EdgeTemplate.styleSheet.insertRule(`graph-edge[template="${name}"]{` + styles + "}");

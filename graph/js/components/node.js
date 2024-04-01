@@ -1,15 +1,5 @@
 
 const _node_template = /* html */`
-    <style>
-        .description{
-            user-select: none;
-            margin: .1rem .2rem;
-            &:focus{
-                outline: none;
-            }
-
-        }
-    </style>
     <div class="description"></div>
     <slot></slot>
 `.trim();
@@ -20,6 +10,7 @@ class NodeUI extends HTMLElement{
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _node_template;
+        shadow.adoptedStyleSheets = [NodeTemplate.styleSheet];
 
         this.oncontextmenu = (ev) => ev.preventDefault();
         this.onmove = _ => true;
@@ -135,7 +126,11 @@ class NodeTemplate{
     /**@type {Map<string,NodeTemplate>} */
     static map = new Map();
     static get(name) { return NodeTemplate.map.get(name) }
-    static styleSheet = document.head.appendChild(document.createElement("style")).sheet;
+    static styleSheet = (() => {
+        let a = new CSSStyleSheet();
+        a.replaceSync(defaultTemplateStyls.node);
+        return a;
+    })();
 
     constructor(name,styles,data) {
         this.id = NodeTemplate.styleSheet.insertRule(`graph-node[template=${name}]{${styles}}`);

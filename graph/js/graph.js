@@ -392,7 +392,11 @@ class GraphTemplate{
     /**@type {Map<string,GraphTemplate>} */
     static map = new Map();
     static get(name) { return GraphTemplate.map.get(name) }
-    static styleSheet = new CSSStyleSheet().replaceSync();
+    static styleSheet = (() => {
+        let a = new CSSStyleSheet();
+        a.replaceSync(defaultTemplateStyls.graph);
+        return a;
+    })();
 
     constructor(name, styles, data) {
         this.id = GraphTemplate.styleSheet.insertRule(`graph-tab[template=${name}]{${styles}}`);
@@ -420,8 +424,8 @@ class GraphTemplate{
             this.data.secondary_color = UI.colors[UI.colorIndex];
             if (UI.colorIndex >= UI.colors.length) UI.colorIndex = 1;
         }
+        graph.tab.template = this.name;
         mergeDeep(graph.settings, this.data);
-        graph.settings.template = this.name;
     }
     set cssRule(data) {
         this.id = GraphTemplate.styleSheet.insertRule(data);

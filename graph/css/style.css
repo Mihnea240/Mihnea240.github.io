@@ -168,7 +168,7 @@ option:focus {
     z-index: 10;
 } */
 
-graph-node {
+/* graph-node {
     position: absolute;
     z-index: 100;
     display: flex;
@@ -181,11 +181,8 @@ graph-node {
     border: var(--node-border-width) var(--node-border-style) var(--node-border-color);
     background: var(--node-background);
     font-size: calc(0.5* var(--node-width));
-    /*  padding: 0 3px; */
     user-select: text;
     text-wrap: wrap;
-    /* overflow: hidden;
-    resize:both; */
 
     &.selected {
         box-shadow:
@@ -201,7 +198,7 @@ graph-node {
             background-color: var(--ui-select2);
         }
     }
-}
+} */
 
 graph-edge {
 

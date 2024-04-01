@@ -9,15 +9,15 @@ window.onload = () => {
 
     if (nodeTemplates?.length) {
         for (const t of nodeTemplates) new NodeTemplate(t.name, "", t);
-    } else new NodeTemplate("default", defaultTemplateStyles.node);
+    } else new NodeTemplate("default", defaultTemplateStyls.node);
     
     if (edgeTemplates?.length) {
         for (const t of edgeTemplates) new EdgeTemplate(t.name, "", t);
-    } else new EdgeTemplate("default", defaultTemplateStyles.edge);
+    } else new EdgeTemplate("default", defaultTemplateStyls.edge);
     
     if (graphTemplates?.length) {
         for (const t of graphTemplates) new EdgeTemplate(t.name, "", t);
-    } else  new GraphTemplate("default", defaultTemplateStyles.graph);
+    } else  new GraphTemplate("default", defaultTemplateStyls.graph);
 
     UI.init();
 

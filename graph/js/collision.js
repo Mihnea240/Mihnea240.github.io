@@ -93,7 +93,7 @@ function visibleElements(graph,includeNodes=true,includEdges=true) {
     let viewRect = graph.tab.viewRect, rez = [];
     let p = new Point();
     let { top, left } = graph.tab.rect;
-    let zoom = graph.settings.graph.zoom;
+    let zoom = graph.settings.zoom;
     let { scrollLeft, scrollTop } = graph.tab.tab;
     for (let el of graph.tab.children) {
         let rect = {};

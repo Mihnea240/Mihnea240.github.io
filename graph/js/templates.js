@@ -1,28 +1,106 @@
 const defaultGraphJSON = {
-    type: ORDERED,
+    type: 0,
     template: "default",
     data:{},
     nodeProps: [{nodeId: 1}],
     edgeProps: [],
 }
 
-const defaultTemplateStyles = {
+const defaultTemplateStyls = {
     node:`
-        display: flex;
-        background-color: #242424;
-        color: #ffffff;
-        border-radius: 50%;
-        border: 1px solid #ffffff;
-        width: 25px; height: 25px;
-        z-index: 100;
+        :host{
+            display: flex;
+            background-color: pink;
+            color: #ffffff;
+            border-radius: 50%;
+            border: 1px solid #ffffff;
+            width: 25px; height: 25px;
+            z-index: 100;
+        }
+
+        .description{
+            user-select: none;
+            margin: .1rem .2rem;
+            &:focus{
+                outline: none;
+            }
+        }
+        :host(.selected){
+            box-shadow:
+                0 0 var(--node-emission) var(--graph-main-color),
+                0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
+        }
     `.trim(),
     edge:  `
-        width: 1px;
-        background-color: #ffffff;
-        --emmision: 10px;
+        
     `.trim(),
     graph: `
-        z-index: 1;
+        :host{
+            position: absolute;
+            width: 100%;  height:100%;
+        }
+        #square{
+            position: absolute;
+            width: 100%;  height:100%;
+            background-color: transparent;
+            pointer-events:none;
+            user-select: none;
+
+        }
+        .tab{
+            position: absolute;
+            overflow: scroll;
+            width: 100%;  height:100%;
+            background: inherit;
+            z-index: -2;
+        }
+        ::-webkit-scrollbar{
+            background-color: inherit;
+            width: 8px;    height: 8px;
+            z-index: 5;
+        }
+        ::-webkit-scrollbar-corner{
+
+        }
+        ::-webkit-scrollbar-thumb{
+            background-color: rgba(0, 0, 0, 0.47);
+            border-radius: .2em;
+        }
+        .hide{display: none}
+        list-view{
+            position: absolute;
+            z-index: 10;
+            & >*{
+                font-size: .5rem;
+                opacity: 0.8;
+                text-shadow: rgba(255, 255, 255, 0.932) 0px 0px 10px;
+            }
+        }
+
+        list-view[direction="row"]{
+            width: 100%;
+            bottom: 0; left: 0;
+            & >*{
+                min-width: 100px;
+                text-align: left;
+                border-bottom: 1px solid white;
+            }
+        }
+        list-view[direction="column"]{
+            height: 100%;
+            right: 0; top: 0;
+            & >*{
+                border-right: 1px solid white;
+                min-height: 100px;
+            }
+        }
+        #selectionRect{
+            position: absolute;
+            display: none;
+            background-color: var(--ui-select);
+            opacity: 0.6;
+            z-index: 304;
+        }
     `
 }
 

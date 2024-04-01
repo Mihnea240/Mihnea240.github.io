@@ -1,77 +1,5 @@
 
 const _tab_template =/*html*/`
-    <style>
-        :host{
-            position: absolute;
-            width: 100%;  height:100%;
-            zoom: var(--zoom);
-        }
-        #square{
-            position: absolute;
-            width: 100%;  height:100%;
-            background-color: transparent;
-            pointer-events:none;
-            user-select: none;
-
-        }
-        .tab{
-            position: absolute;
-            overflow: scroll;
-            width: 100%;  height:100%;
-            background: inherit;
-            z-index: -2;
-        }
-        ::-webkit-scrollbar{
-            background-color: inherit;
-            width: 8px;    height: 8px;
-            z-index: 5;
-        }
-        ::-webkit-scrollbar-corner{
-
-        }
-        ::-webkit-scrollbar-thumb{
-            background-color: rgba(0, 0, 0, 0.47);
-            border-radius: .2em;
-        }
-        .hide{display: none}
-        list-view{
-            position: absolute;
-            z-index: 10;
-            & >*{
-                font-size: .5rem;
-                opacity: 0.8;
-                text-shadow: rgba(255, 255, 255, 0.932) 0px 0px 10px;
-            }
-        }
-
-        list-view[direction="row"]{
-            width: 100%;
-            bottom: 0; left: 0;
-            & >*{
-                min-width: 100px;
-                text-align: left;
-                border-bottom: 1px solid white;
-            }
-        }
-        list-view[direction="column"]{
-            height: 100%;
-            right: 0; top: 0;
-            & >*{
-                border-right: 1px solid white;
-                min-height: 100px;
-            }
-        }
-        #selectionRect{
-            position: absolute;
-            display: none;
-            background-color: var(--ui-select);
-            opacity: 0.6;
-            z-index: 304;
-        }
-    </style>
-
-
-
     <div class="tab" name="tab">
         <div id="square" draggable="false"></div>
         <div id="selectionRect"></div>
@@ -259,6 +187,7 @@ class Tab extends HTMLElement {
         super();
         const shadow = this.attachShadow({ mode: "open" });
         shadow.innerHTML = _tab_template;
+        shadow.adoptedStyleSheets = [GraphTemplate.styleSheet];
 
         this.square = shadow.getElementById("square");
         this.css = getComputedStyle(this);
