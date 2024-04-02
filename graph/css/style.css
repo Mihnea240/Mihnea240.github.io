@@ -178,9 +178,6 @@ graph-inspector {
         & >:not(.active){
            display: none;
         }
-        & .active{
-            background-color: transparent;
-        }
     }
 }
 

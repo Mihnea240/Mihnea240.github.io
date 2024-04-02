@@ -423,6 +423,8 @@ class GraphTemplate{
             this.data.main_color = UI.colors[UI.colorIndex++];
             this.data.secondary_color = UI.colors[UI.colorIndex];
             if (UI.colorIndex >= UI.colors.length) UI.colorIndex = 1;
+
+            graph.tab.style.cssText += `--main-color: ${this.data.main_color}; --secondary-color: ${this.data.secondary_color}`;
         }
         graph.tab.template = this.name;
         mergeDeep(graph.settings, this.data);

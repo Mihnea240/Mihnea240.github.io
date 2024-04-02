@@ -218,7 +218,7 @@ class EdgeUI extends BezierCurve {
 
     init({ p1, p2, ...props }, v1, v2,update=true) {
         mergeDeep(this, props);
-        EdgeTemplate.get(this.template ||= "default").load(this);
+        EdgeTemplate.get(this.template).load(this);
 
         this.fromCoords.copy(v1);
         this.toCoords.copy(v2);
@@ -263,8 +263,8 @@ class EdgeUI extends BezierCurve {
         return this.shadowRoot.querySelector("path").getBoundingClientRect();
     }
 
-    getTemplate() {
-        return EdgeTemplate.get(this.template);
+    getGraph() {
+        return Graph.get(this.graphId);
     }
 
     set selected(flag) {

@@ -231,14 +231,7 @@ const ACTIONS = {
         if (ev.repeat || document.activeElement != document.body || !ev.ctrlKey) return;
         let g = Graph.selected;
 
-        if (g.selection.empty()) {
-            navigator.clipboard.writeText(JSON.stringify(g)).then(
-                (resolve) => {
-                    alert(`Moved copy of "${g.settings.graph.name}" to clipboard \n`);
-                },
-                (error) => console.log(error)
-            )
-        } else {
+        if (!g.selection.empty()) {
             navigator.clipboard.writeText(JSON.stringify(g.selection)).then(
                 (resolve) => {
                     alert(`Copied selection\n`);
@@ -322,7 +315,6 @@ const ACTIONS = {
         }
         physicsMode.start(dt);
     }
-
 }
 
 
@@ -340,5 +332,5 @@ document.addEventListener("mousemove", (ev) => {
     appData.dt = Date.now() - appData.lastTime;
     appData.lastTime = Date.now();
     appData.cursorVelocity.set(ev.clientX, ev.clientY).sub(appData.cursorPos).multiplyScalar(1 / appData.dt);
-    appData.cursorPos.set(ev.clientX, ev.clientY);
+    appData.cursorPos.set(ev.offsetX, ev.offsetY);
 })

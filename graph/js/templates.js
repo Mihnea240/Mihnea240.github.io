@@ -15,13 +15,13 @@ const defaultTemplateStyls = {
             border-radius: 10px;
             border: 1px solid #ffffff;
             min-width: 25px; min-height: 25px;
-            z-index: 100;
+            z-index: -1;
         }
         :host([template="default"]){
             display: flex;
             justify-content: center;
             align-items: center;
-            --node-emmision: 10px;
+            --node-emission: 10px;
         }
         .description{
             margin: .2rem .4rem;
@@ -31,8 +31,8 @@ const defaultTemplateStyls = {
         }
         :host(.selected){
             box-shadow:
-                0 0 var(--node-emission) var(--graph-main-color),
-                0 0 calc(var(--node-emission) *0.9) var(--graph-main-color) inset;
+                0 0 var(--node-emission) var(--main-color),
+                0 0 calc(var(--node-emission) *0.9) var(--main-color) inset;
         }
     `.trim(),
     edge:  /*css */`
@@ -40,10 +40,26 @@ const defaultTemplateStyls = {
             position: absolute;
             pointer-events: stroke;
         }
+        :host([template="default"]){
+            --edge-width: 1px;
+            --edge-emission: 10px;
+        }
+
+        #hit-area,#visible,svg{
+            position: absolute;
+            stroke: white;
+        }
+        #hit-area{
+            stroke-width: calc(var(--edge-width)*4);
+            opacity: 0;
+            &:hover{
+                opacity: 0.7;
+            }
+        }
 
         :host(.selected) {
             filter:
-                drop-shadow(0 0 var(--edge-emission) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--graph-main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--graph-main-color));
+                drop-shadow(0 0 var(--edge-emission) var(--main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--main-color));
         }
 
         :host(::part(arrow)) {
@@ -58,7 +74,7 @@ const defaultTemplateStyls = {
         :host{
             position: relative;
             width: 100%;  height:100%;
-            background: transparant;
+            background-color: inherit;
             z-index: -1;
         }
         #square{
@@ -88,6 +104,9 @@ const defaultTemplateStyls = {
             border-radius: .2em;
         }
         .hide{display: none}
+        slot[name="nodes"]{
+            background-color: inherit;
+        }
         list-view{
             position: absolute;
             z-index: 10;

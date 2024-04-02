@@ -4,8 +4,8 @@ const _tab_template =/*html*/`
         <div id="square" draggable="false"></div>
         <div id="selectionRect"></div>
         <curved-path class="hide" style="position: absolute"></curved-path>
-        <slot name="nodes"></slot>
         <slot name="edges"></slot>
+        <slot name="nodes"></slot>
 
     </div>
     <list-view autofit="true" autoflow="true" direction="row"></list-view>
@@ -20,6 +20,18 @@ class Tab extends HTMLElement {
             timer: 12,
             timerMax:12,
         },
+        nodeDragStart(target,ev) {
+            
+        },
+        edgeDragStart(target) {
+            console.log(target)
+            Tab.dragHandle.storage.fromNode = target.getGraph().getNodeUI(target.from);
+        },
+        tabDragStart(target,ev) {
+            if (ev.buttons != 2) return;
+            target.screenToWorld(target.selectionRect.pos.set(ev.offsetX, ev.offsetY));
+            ev.stopPropagation();
+        },
         tabDrag(target, ev, delta){
             if (ev.buttons == 4) {
                 ev.preventDefault();
@@ -33,7 +45,7 @@ class Tab extends HTMLElement {
             //collision detection with selection square
             
             if (ev.buttons == 2) {
-                let { x, y } = target.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+                let { x, y } = target.screenToWorld(this.storage.point.set(ev.offsetX, ev.offsetY));
                 let p = target.selectionRect.pos.clone();
                 if (x < p.x) [this.storage.point.x, p.x] = [p.x, this.storage.point.x];
                 if (y < p.y) [this.storage.point.y, p.y] = [p.y, this.storage.point.y];
@@ -121,7 +133,7 @@ class Tab extends HTMLElement {
             if (ev.target.tagName == "GRAPH-NODE") return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
         
             graph.actionsStack.startGroup();
-            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.offsetX, ev.offsetY));
             
             let newNode = graph.addNode();
             newNode.position(this.storage.point.x, this.storage.point.y);
@@ -133,7 +145,7 @@ class Tab extends HTMLElement {
         edgeDrag(target, ev, delta){
             if (ev.button) return ev.stopPropagation();
             let tab = target.parentElement, c = tab.curve;
-            if (delta.magSq() < 1) return;
+            if (delta.magSq() < 10) return;
     
             if (this.storage.fromNode.new_node_protocol == false) {
                 target.classList.add("hide");
@@ -206,20 +218,9 @@ class Tab extends HTMLElement {
             onstart: (ev) => {
                 evTarget = ev.target;
                 switch (ev.target.tagName) {
-                    case "GRAPH-EDGE": Tab.dragHandle.storage.fromNode = this.getNode(ev.target.from); break;
-                    case "GRAPH-NODE": {
-                        if (ev.buttons == 4) ev.preventDefault(), evTarget = this;
-                        break;
-                    }
-                    case "GRAPH-TAB": {
-                        if (ev.buttons == 2) {
-                            this.screenToWorld(this.selectionRect.pos.set(ev.clientX, ev.clientY));
-                            ev.stopPropagation();
-                            return true;
-                        }
-                        break; 
-                    }     
-                    default: return true;
+                    case "GRAPH-EDGE": Tab.dragHandle.edgeDragStart(evTarget,ev); break;
+                    case "GRAPH-NODE": Tab.dragHandle.nodeDragStart(evTarget, ev); break;
+                    case "GRAPH-TAB": Tab.dragHandle.tabDragStart(evTarget,ev); break;    
                 }
                 return true;
             },
@@ -383,13 +384,13 @@ class Tab extends HTMLElement {
         let n1 = this.getNode(props.from);
         let n2 = this.getNode(props.to);
         let edge = this.appendChild(elementFromHtml(`<graph-edge id="g${props.graphId} ${props.from} ${props.to}" slot="edges"></graph-edge>`));
-        let template = edge.getTemplate();
+        let template = EdgeTemplate.get(edge.template);
         
         edge.init(props, n1.anchor(), n2.anchor(), false);
         
         if (type == ORDERED) {
             edge.addArrow();
-
+            return;
             if (overlapping) {
                 let e2 = this.getEdge(props.to, props.from, true);
                 let p = new Point(), bufferDistance = 100;
@@ -448,9 +449,7 @@ class Tab extends HTMLElement {
 
     /**@param {Point} point*/
     screenToWorld(point) {
-        return point.translate(-this.rect.left, -this.rect.top)
-            .multiplyScalar(1 / this.zoom)
-            .translate(this.tab.scrollLeft, this.tab.scrollTop)
+        return point.multiplyScalar(1 / this.zoom).translate(this.tab.scrollLeft, this.tab.scrollTop)
            
     }
     center(items=this.getNodeArray()) {
