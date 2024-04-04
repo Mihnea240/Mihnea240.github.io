@@ -1,5 +1,5 @@
 const defaultGraphJSON = {
-    type: 0,
+    type: 1,
     template: "default",
     data:{},
     nodeProps: [{nodeId: 1}],
@@ -15,13 +15,13 @@ const defaultTemplateStyls = {
             border-radius: 10px;
             border: 1px solid #ffffff;
             min-width: 25px; min-height: 25px;
-            z-index: -1;
+            z-index: 50;
         }
         :host([template="default"]){
             display: flex;
             justify-content: center;
             align-items: center;
-            --node-emission: 10px;
+            --node-emission: 5px;
         }
         .description{
             margin: .2rem .4rem;
@@ -34,6 +34,11 @@ const defaultTemplateStyls = {
                 0 0 var(--node-emission) var(--main-color),
                 0 0 calc(var(--node-emission) *0.9) var(--main-color) inset;
         }
+        :host(:focus){
+            box-shadow:
+                0 0 var(--node-emission) var(--secondary-color),
+                0 0 calc(var(--node-emission) *0.9) var(--secondary-color) inset;
+        }
     `.trim(),
     edge:  /*css */`
         :host{
@@ -42,32 +47,12 @@ const defaultTemplateStyls = {
         }
         :host([template="default"]){
             --edge-width: 1px;
-            --edge-emission: 10px;
-        }
-
-        #hit-area,#visible,svg{
-            position: absolute;
-            stroke: white;
-        }
-        #hit-area{
-            stroke-width: calc(var(--edge-width)*4);
-            opacity: 0;
-            &:hover{
-                opacity: 0.7;
-            }
+            --edge-emission: 2px;
         }
 
         :host(.selected) {
             filter:
                 drop-shadow(0 0 var(--edge-emission) var(--main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .2) var(--main-color)) drop-shadow(0 0 calc(var(--edge-emission)* .1) var(--main-color));
-        }
-
-        :host(::part(arrow)) {
-            position: absolute;
-            fill: white;
-            translate: -50% -50%;
-            width: calc(15 * var(--edge-width));
-            aspect-ratio: 1;
         }
     `.trim(),
     graph: /*css */`
@@ -90,6 +75,7 @@ const defaultTemplateStyls = {
             width: 100%;  height:100%;
             background: inherit;
             z-index: -2;
+            zoom: var(--zoom);
         }
         ::-webkit-scrollbar{
             background-color: inherit;
@@ -208,7 +194,7 @@ const actionMenuTemplate = {
                 g.actionsStack.startGroup();
                 for (let i of array) {
                     for (let j of array) {
-                        if (g.type == ORDERED) {
+                        if (g.type == Graph.ORDERED) {
                             if (ev.ctrlKey) {
                                 if (i<j) continue;
                                 if (Math.random() < 0.5) g.addEdge({from: j, to: i});
@@ -297,173 +283,6 @@ const physicsTemplate = {
         display: "Frame rate",
         type: "number",
         max: "60",
-    }
-}
-
-const InspectorTemplates = {
-    graph: {
-        categoryCollapse: false,
-        id: {
-            type: "text",
-            readonly: true,
-        },
-        name: {
-            type: "text",
-            maxLength: 32,
-        },
-        type: {
-            type: "text",
-            readonly: true,
-        },
-        nodeCount: {
-            type: "text",
-            display:"Node count",
-            readonly: true,
-        },
-        edgeCount: {
-            type: "text",
-            display:"Edge count",
-            readonly: true,
-        },
-        conex: {
-            type: "text",
-            display:"Conex components",
-            readonly: true,
-        },
-    },
-    edge: {
-        from: {
-            type: "text",
-            readonly: true,
-            onclick(ev) {
-                let input = ev.target.closest("text-input");
-                let id = parseInt(input.value);
-                Graph.selected.getNodeUI(id).scrollIntoView();
-            }
-        },
-        to: {
-            type: "text",
-            readonly: true,
-            onclick(ev) {
-                let input = ev.target.closest("text-input");
-                let id = parseInt(input.value);
-                Graph.selected.getNodeUI(id).scrollIntoView();
-            }
-        },
-        symmetry: {
-            type: "range",
-            min: "-1", max: "1",
-            title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate"
-        },
-        mode: {
-            type: "select",
-            options: ["absolute", "relative"],
-            title: "Relative mode moves both control points relative to the edge direction",
-            
-        },
-        description: {
-            type: "textarea",
-        }
-    },
-    node: {
-        "": {
-            display: "Node details",
-            id: {
-                type: "number",
-                readonly: true,
-            },
-            template: {
-                type: "text",
-                readonly: true,
-            },
-            description: {
-                type: "textarea",
-            },
-            isStatic: {
-                type: "checkbox",
-                display: "static",
-                title: "Physics won't be applied to static nodes"
-            },
-            mass: {
-                type: "number",
-                max: 100000,
-            },
-            degree: {
-                type: "number",
-                readonly: "true",
-                title: "Number of nodes connected to this node",
-            },
-            inner: {
-                type: "number",
-                readonly: "true",
-                display: "Inner degree",
-                condition() { return Graph.selected.type == ORDERED },
-                title: "Number of nodes entering this node",
-            },
-            outer: {
-                type: "number",
-                readonly: "true",
-                display: "Outer degree",
-                condition() { return Graph.selected.type == ORDERED },
-                title: "Number of nodes exiting this node",
-            },
-        },
-        "Adjacent nodes": {
-            
-        },
-        transform: {
-            position: {
-                categoryCollapse: false,
-                tupel: true,
-                x: {
-                    type: "number",
-                    decimal: "2",
-                },
-                y: {
-                    type: "number",
-                    decimal: "2",
-                },
-            },
-            velocity: {
-                categoryCollapse: false,
-                tupel: true,
-                x: {
-                    type: "number",
-                    decimal: "2",
-                },
-                y: {
-                    type: "number",
-                    decimal: "2",
-                },
-                
-            },
-            acceleration: {
-                categoryCollapse: false,
-                tupel: true,
-                x: {
-                    type: "number",
-                    decimal: "2",
-                },
-                y: {
-                    type: "number",
-                    decimal: "2",
-                },
-            },
-            size: {
-                categoryCollapse: false,
-                tupel: true,
-                x: {
-                    type: "number",
-                    decimal: "0",
-                    readonly: true,
-                },
-                y: {
-                    type: "number",
-                    decimal: "0",
-                    readonly: true,
-                },
-            },
-        }
     }
 }
 

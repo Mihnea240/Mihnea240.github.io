@@ -15,7 +15,7 @@ class TabArea extends HTMLElement{
     constructor() {
         super();
         this.scrollBehavior = { behavior: 'smooth', block: 'nearest', inline: 'center' };
-        this.openEvent = new CustomEvent("open", { bubbles: true, detail: {} });
+        this.openEvent = new CustomEvent("opened", { bubbles: true, detail: {} });
     }
 
     connectedCallback() {
@@ -32,11 +32,12 @@ class TabArea extends HTMLElement{
         let name = this.activeHeader?.getAttribute("for") || this.querySelector(".tabs >[name]");
         if (name) this.selectTab(name);
 
-        this.header?.addEventListener("click", (ev) => {
+        this.onselect = (ev) => {
             let name = ev.target.getAttribute("for");
-            if (!name) return;
-            this.selectTab(name);
-        })
+            if (name) this.selectTab(name);
+        }
+        this.header?.addEventListener("focusin", this.onselect);
+        this.header?.addEventListener("click", this.onselect);
     }
 
     getTab(name) {
@@ -56,7 +57,9 @@ class TabArea extends HTMLElement{
         let newHeader = this.getHeader(name);
         if (!newSelected || newSelected===this.activeTab) return;
 
-        this.openEvent.detail.lastOpened = this.activeTab?.getAttribute("name");
+        this.openEvent.detail.last = this.activeTab?.getAttribute("name");
+        this.openEvent.detail.new = name;
+        
         this.show(newSelected, this.activeTab);
         this.dispatchEvent(this.openEvent);
         

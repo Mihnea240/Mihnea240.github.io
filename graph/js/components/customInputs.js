@@ -108,15 +108,15 @@ class CustomInputs{
             case "condition": target.condition = value; break;
             case "tupel": target.classList.add("tupel"); break;
             case "categoryCollapse": {
-                if(value)target.appendChild(elementFromHtml(`<input type="checkbox" checked>`));
+                if(value)target.querySelector("span").appendChild(elementFromHtml(`<input type="checkbox" checked>`));
                 break;
             }
             case "display": target.querySelector("span").textContent = value; break;
             case "value": target.querySelector("input")?.dispatchEvent(new Event("change", { bubbles: true })); //no break
             case "is": case "type": break;
-            case "class": case "name": target.setAttribute(name, value); break;
+            case "class": case "name": case "title" : target.setAttribute(name, value); break;
             default: {
-                if (name.startsWith("on")) target.querySelectorAll("input").forEach(i => i[name] = value);
+                if (name.startsWith("on")) target[name] = value;
                 else target.children[1]?.setAttribute(name, value);
             }
         }
@@ -204,7 +204,6 @@ class CustomInputs{
                 if(!el.validate(param))n--;
             }
             if (n == 0 || !value) {
-                console.log(this.classList)
                 if(!this.classList.contains("hide"))this.classList.add("hide");
                 return false;
             } else {
@@ -218,7 +217,7 @@ class CustomInputs{
     static getChainFromEvent(root,ev) {
         let value = [], name;
         for (let t of ev.composedPath()) {
-            if (t.matches?.(".category ,[type]") && ( name = t.getAttribute?.("name"))) value.push(name);
+            if (t.matches?.(".category ,[type],[name]") && (name = t.getAttribute?.("name"))) value.push(name);
             if (t == root) return value;
         }
     }

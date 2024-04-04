@@ -123,11 +123,14 @@ const UI = {
                 UI.inspector.style.cssText += `width: ${UI.inspector.size.x}px; min-width: none;`;
             }
         });
+        this.mutationObserver = new MutationObserver((mutations) => {
+            
+        })
     },
     initHeaderArea() {
         this.headerList = document.querySelector("#main .header");
         this.headerList.template = ([name,id]) => {
-            let el = elementFromHtml(`<text-input for="${id}" spellcheck="false" class="graph-header" maxLength="32">${name}</text-input>`);
+            let el = elementFromHtml(`<text-input for="${id}" spellcheck="false" class="graph-header text-hover" maxLength="32">${name}</text-input>`);
             el.getGraph = function () { return Graph.get(parseInt(this.getAttribute("for"))) }
             return el;
         }
@@ -135,6 +138,7 @@ const UI = {
             if (ev.target.matches(".new-graph")) return UI.newGraphMenu.showModal();
             if (ev.target.matches(".header")) return;
             if (ev.detail != 2 && !ev.target.matches(":focus")) ev.preventDefault();
+            if (ev.button == 2) return openActionMenu(ev);
             let g = ev.target.getGraph();
             if (g) {
                 g.focus();
@@ -243,6 +247,7 @@ const UI = {
             this.querySelector(`[name=${target.getAttribute("for")}]`)?.toggleModal(rect.left, rect.bottom);
             ev.stopPropagation();
         })
+
         shuffleArray(this.colors);
 
         this.initHeaderArea();
@@ -253,6 +258,48 @@ const UI = {
         this.initTemplateMenu();
         this.initInspector();
         this.initNewGraphMenu();
+    },
+    createNodeList(id) {
+        let list = elementFromHtml(`<list-view autofit="true"  class="node-list" for='${id}' direction='row'></list-view>`);
+        list.template = (el) => {
+            let text = el.matches?.("graph-node") ? el.textContent : el;
+            let child = elementFromHtml(`<div class="text-hover">${text}</div>`);
+            return child;
+        }
+        list.addEventListener("click", function (ev) {
+            if (ev === this) return;
+            let graph = Graph.get(parseInt(this.getAttribute("for")));
+            let node = graph.getNodeUI(parseInt(ev.target.textContent));
+            node.scrollIntoView();
+            graph.selection.toggle(node);
+        })
+        list.list = [0];
+        return list;
+    },
+    createEdgeList(id) {
+        let list = elementFromHtml(`<list-view autofit="true" class="edge-list" for='${id}' direction='row'></list-view>`);
+        list.template = (el) => {
+            let gtype = Graph.get(parseInt(list.getAttribute("for"))).type;
+            let from = el.matches?.("graph-edge") ? el.from : el[0];
+            let to = el.matches?.("graph-edge") ? el.to : el[1];
+            let child = elementFromHtml(`<div class="text-hover">${from} ${gtype ? "&#8594" : "&#175"} ${to}</div>`);
+            console.log(child)
+            return child;
+        }
+        list.addEventListener("click", function (ev) {
+            if (ev === this) return;
+            let graph = Graph.get(parseInt(this.getAttribute("for")));
+            let [from, _, to] = ev.target.textContent.split(" ");
+            let edge = graph.getNodeUI(parseInt(from), parseInt(to));
+            edge.scrollIntoView();
+            graph.selection.toggle(edge);
+        })
+        return list;
+    },
+    highlight() {
+        let element = inspector.observed
+        Graph.selected.selection.toggle(element);
+        element.scrollIntoView();
     }
 }
 

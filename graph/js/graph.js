@@ -1,14 +1,12 @@
-const ORDERED = 1;
-const UNORDERED = 0;
-
 class Graph {
-
     static id = 0;
     /**@type {Map<number,Graph>} */
     static graphMap = new Map();
     /**@type {Graph} */
     static selected;
     static get(id) { return this.graphMap.get(id); }
+    static ORDERED = 1;
+    static UNORDERED = 0;
 
     constructor(type, template) {
         /**@type {Tab}*/
@@ -30,8 +28,7 @@ class Graph {
 
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
-        this.a_nodeId = 1;
-        
+        this.a_nodeId = 1;        
     }
     initSettings() {
         return new Proxy({}, {
@@ -56,9 +53,8 @@ class Graph {
     focus() {
         if (Graph.selected === this) return;
         Graph.selected = this;
-        inspector.observe(this);
-
         this.tab.focus();
+        UI.tabArea.selectTab(this.id);
         inspector.observe(this.tab);
 
         //UI.viewMenu.load(this.settings);
@@ -91,7 +87,7 @@ class Graph {
             }
             else {
                 this.removeEdge(id, n1, addToStack);
-                if (this.type == ORDERED && this.isEdge(n1, id)) {
+                if (this.type == Graph.ORDERED && this.isEdge(n1, id)) {
                     this.removeEdge(n1, id, addToStack);
                 }
             }
@@ -124,21 +120,21 @@ class Graph {
         let ySet = this.adjacentNodes(y);
 
         switch (this.type) {
-            case ORDERED: {
+            case Graph.ORDERED: {
                 if (xSet.has(-y)) {
                     xSet.delete(-y);
                     reverse = true;
                 } else ySet.add(-x);
                 xSet.add(y);
                 break;
-            } case UNORDERED: {
+            } case Graph.UNORDERED: {
                 xSet.add(y);
                 ySet.add(x)
                 if (x > y) [props.from, props.to] = [props.to, props.from];
                 break;
             }
         }
-        let newEdge = this.tab.addEdge(props, this.type,reverse);
+        let newEdge = this.tab.addEdge(props, this.type ,reverse);
 
         if (addToStack) this.actionsStack.push(new AddEdgesCommand(newEdge.toJSON()));
         this.edgeCount++;
@@ -157,7 +153,7 @@ class Graph {
             if (e.selected) this.selection.toggle(e);
             this.tab.removeChild(e);
 
-            if (this.type == UNORDERED) ySet.delete(x);
+            if (this.type == Graph.UNORDERED) ySet.delete(x);
             else {
                 //1-2
                 //2-1
@@ -236,7 +232,7 @@ class Graph {
     get nodeCount() { return this.nodes.size }
 
     getDegree(id,inOut) {
-        if (this.type == UNORDERED) return this.adjacentNodes(id).size;
+        if (this.type == Graph.UNORDERED) return this.adjacentNodes(id).size;
         let array = Array.from(this.adjacentNodes(id)), inner = 0, outer = 0;
 
         for (let n of array) n < 0 ? inner++ : outer++;
@@ -261,7 +257,7 @@ class Graph {
 
     toAdjacencyList(toString = false) {
         let map = new Map();
-        if (this.type == ORDERED) {
+        if (this.type == Graph.ORDERED) {
             let Filter = (el) => el > 0;
             for (let [k, v] of this.nodes) map.set(k, Array.from(v).filter(Filter));
         } else {
@@ -280,7 +276,7 @@ class Graph {
         let matrix = this.toMatrix(), n = matrix.length - 1;
         let array = [];
 
-        if (this.type == ORDERED) {
+        if (this.type == Graph.ORDERED) {
             for (let i = 1; i <= n; i++)
                 for (let j = 1; j <= n; j++)if (matrix[i][j]) array.push([i, j]);
         } else {
@@ -326,7 +322,7 @@ class Graph {
 
     conexParts() {
         let fr = new Array(this.maxId + 1).fill(0), cnt = 0, rez = [];
-        if (this.type == UNORDERED) {
+        if (this.type == Graph.UNORDERED) {
             let call = (from, to, sol, frec) => fr[to] = cnt;
             let condition = (from, to, sol, frec) => fr[to] != 0;
 

@@ -27,12 +27,6 @@ class NodeUI extends HTMLElement{
         this.template = "default";
 
         this.point = new Point();
-
-        this.addEventListener("keydown", (ev) => {
-            if (this.focused) {
-                ev.stopPropagation();
-            }
-        },true)
     }
 
     init(props) {

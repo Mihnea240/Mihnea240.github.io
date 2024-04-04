@@ -28,10 +28,10 @@
 
 <body>
     <div id="menu-bar"> 
-        <button for="file">File</button>
-        <button for="templates">Templates</button>
-        <button for="view">View</button>
-        <button for="physics">Force Model</button>
+        <button class="text-hover" for="file">File</button>
+        <button class="text-hover" for="templates">Templates</button>
+        <button class="text-hover" for="view">View</button>
+        <button class="text-hover" for="physics">Force Model</button>
         <a href="" style="margin-left: auto; margin-right: 1%;">Docs</a>
     
         <dialog name="file" is="pop-dialog">
@@ -84,9 +84,9 @@
 
         <graph-inspector id="inspector">
             <div class="header">
-                <div for="graph">Graph</div>
-                <div for="node">Node</div>
-                <div for="edge">Edge</div>
+                <div tabindex="0" for="graph" class="text-hover">Graph</div>
+                <div tabindex="0" for="node" class="text-hover">Node</div>
+                <div tabindex="0" for="edge" class="text-hover">Edge</div>
                 <div>Conex components</div>
             </div>
             <div class="tabs">

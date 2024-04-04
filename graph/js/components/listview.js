@@ -1,4 +1,4 @@
-class listView extends HTMLElement{
+class ListView extends HTMLElement{
     static sizeObserver=new ResizeObserver((entries) => {
         for (let entry of entries) {
             let list = entry.target;
@@ -30,7 +30,7 @@ class listView extends HTMLElement{
         this.size = { x: 0, y: 0 };
         this.unit = { x: 0, y: 0 };
         this.scrollOffset = { x: 1, y: 1 };
-        listView.sizeObserver.observe(this);
+        ListView.sizeObserver.observe(this);
         const shadow = this.attachShadow({mode: "open"});
         shadow.innerHTML =/*html */`
             <style>
@@ -42,6 +42,10 @@ class listView extends HTMLElement{
                 }
                 :host([direction="column"]){
                     flex-direction: column;
+                }
+                :host([autofit=true]){
+                    flex-grow: 0;
+                    
                 }
                 :host( >*){
                     overflow: visible;
@@ -56,7 +60,7 @@ class listView extends HTMLElement{
             case "length": this.length = parseInt(newValue) || 0; break;
             case "autofit": this.autofit = newValue; this.render(); break;
             case "break": this.break = parseInt(newValue) || 0; break;
-            case "autoflow": this.autoflow = newValue; break;
+            case "autoflow": this.autoflow = newValue; this.render(); break;
             case "direction": this.direction = newValue; break;
             case "target": this.scrollTarget = this.closest(newValue); break; 
         }
@@ -73,7 +77,13 @@ class listView extends HTMLElement{
         let n = this.autofit ? this.childElementCount : this.viewLength;
         if (val == n) return;
         
-        for (let i = n; i < val; i++)this.appendChild(this.template(this.data(i+this.firstIndex)));
+        for (let i = n, data, child; i < val; i++) {
+            data = this.data(i + this.firstIndex);
+            if (data!==undefined) {
+                child = this.template(data);
+                if (child) this.appendChild(child);
+            }
+        }
         for (let i = n; i > val; i--)this.pop();
         
         if(!this.autofit)this.viewLength = val;
@@ -88,13 +98,17 @@ class listView extends HTMLElement{
     get target() { return this.scrollTarget }
     
     data(index) {
-        return (index >= 0 && index < this.list.length) ? this.list[index] : this.countingFunction(index);
+        return (index >= 0 && index < this.list.length) ? this.list[index] : this.autoflow ? this.countingFunction(index) : undefined;
     }
 
     getUnit() {
-        if (!this.children.length) this.length = 1;
         if (this.unit.x + this.unit.y == 0) {
-            let rect = this.children[0].getBoundingClientRect();
+            let rect;
+            if (!this.children.length) {
+                let node = this.appendChild(document.createElement("div"));
+                rect = node.getBoundingClientRect();
+                node.remove();
+            }else rect = this.children[0].getBoundingClientRect();
             this.unit.x = rect.width;
             this.unit.y = rect.height;
         } else return this.unit[this.flow ? "x" : "y"] || 1;
@@ -140,8 +154,16 @@ class listView extends HTMLElement{
     move(value) {
         if (this.autofit) {
             this.flow ? this.scrollOffset.x += value : this.scrollOffset.y += value;
+            if (this.scrollOffset.x < 0) this.scrollOffset.x = 0;
+            if (this.scrollOffset.y < 0) this.scrollOffset.y = 0;
+            if (this.scrollOffset.x > this.size.x) this.scrollOffset.x = this.size.x;
+            if (this.scrollOffset.y > this.size.y) this.scrollOffset.y = this.size.y;
         }
         this.firstIndex = Math.floor(this.getScroll() / this.getUnit());
+        if (!this.autoflow) {
+            if (this.firstIndex < 0) this.firstIndex = 0;
+            else if (this.firstIndex >= this.list.length) this.firstIndex = this.list.length - 1;
+        }
         this.update();
         let v = this.getScroll() / this.getUnit();
         let to = (Math.floor(v) - v) * this.getUnit();
@@ -173,8 +195,9 @@ class listView extends HTMLElement{
 
         this.target?.addEventListener("scroll", (ev) => { if (this.autofit) this.render(); })
 
-        this.render();
+        setTimeout(_ => this.render(), 0);
+        
     }
 }
 
-customElements.define("list-view",listView);
+customElements.define("list-view",ListView);

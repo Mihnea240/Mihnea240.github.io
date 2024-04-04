@@ -1,5 +1,203 @@
+const InspectorTemplates = {
+    graph: {
+        categoryCollapse: true,
+        id: {
+            type: "text",
+            readonly: true,
+        },
+        name: {
+            type: "text",
+            maxLength: 32,
+        },
+        type: {
+            type: "text",
+            readonly: true,
+        },
+        nodeCount: {
+            type: "text",
+            display:"Node count",
+            readonly: true,
+        },
+        edgeCount: {
+            type: "text",
+            display:"Edge count",
+            readonly: true,
+        },
+        conex: {
+            type: "text",
+            display:"Conex components",
+            readonly: true,
+        },
+    },
+    edge: {
+        from: {
+            type: "text",
+            readonly: true,
+            class: "text-hover",
+            onclick: UI.highlight,
+        },
+        to: {
+            type: "text",
+            readonly: true,
+            class: "text-hover",
+            onclick: UI.highlight,
+        },
+        symmetry: {
+            type: "range",
+            min: "-1", max: "1",
+            title: "Regarding control points:\n -1: They move complementary to oneanother\n 0: They move independently\n 1: They move at the same rate",
+            oninput(ev) { UI.inspector.observed.symmetry = ev.target.value }
+        },
+        mode: {
+            type: "select",
+            options: ["absolute", "relative"],
+            title: "Relative mode moves both control points relative to the edge direction",
+            onchange(ev) { UI.inspector.observed.setAttribute("mode", ev.target.value) }
+            
+        },
+        description: {
+            type: "textarea",
+        }
+    },
+    node: {
+        "": {
+            display: "Node details",
+            id: {
+                type: "number",
+                readonly: true,
+                class: "text-hover",
+                onclick: UI.highlight,
+            },
+            template: {
+                type: "text",
+                readonly: true,
+            },
+            description: {
+                type: "textarea",
+            },
+            isStatic: {
+                type: "checkbox",
+                display: "static",
+                title: "Physics won't be applied to static nodes"
+            },
+            mass: {
+                type: "number",
+                max: 100000,
+            },
+            degree: {
+                type: "number",
+                readonly: "true",
+                title: "Number of nodes connected to this node",
+            },
+            inner: {
+                type: "number",
+                readonly: "true",
+                display: "Inner degree",
+                condition() { return Graph.selected.type == Graph.ORDERED },
+                title: "Number of nodes entering this node",
+            },
+            outer: {
+                type: "number",
+                readonly: "true",
+                display: "Outer degree",
+                condition() { return Graph.selected.type == Graph.ORDERED },
+                title: "Number of nodes exiting this node",
+            },
+        },
+        "Adjacent nodes": {
+            
+        },
+        transform: {
+            position: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+            },
+            velocity: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+                
+            },
+            acceleration: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "2",
+                },
+                y: {
+                    type: "number",
+                    decimal: "2",
+                },
+            },
+            size: {
+                categoryCollapse: false,
+                tupel: true,
+                x: {
+                    type: "number",
+                    decimal: "0",
+                    readonly: true,
+                },
+                y: {
+                    type: "number",
+                    decimal: "0",
+                    readonly: true,
+                },
+            },
+        }
+    }
+}
+
 
 class Inspector extends TabArea{
+    /**@param {MutationRecord[]} mutations */
+    static tabObserver = new MutationObserver((mutations) => {
+        let updateGraph = 0, updateNode = 0, updateEdge = 0;
+        for (let mutation of mutations) {
+            let tab = mutation.target;
+            let nd = UI.inspector.details.node;
+            let ed = UI.inspector.details.edge;
+
+            if (UI.inspector.activeTab.matches("[name='graph']")) { updateGraph++; break; }
+
+            mutation.removedNodes.forEach(removed => {
+                if (nd.observed === removed) {
+                    nd.classList.remove("valid");
+                    nd.observed = undefined;
+                } else if (ed.observed === removed) {
+                    ed.classList.remove("valid");
+                    ed.observed = undefined;
+                }
+            })
+            for (const added of mutation.addedNodes) {
+                
+                if (added.matches("GRAPH-EDGE") && UI.inspector.activeTab.matches("[name='node']")
+                    && tab.getEdge(nd.observed.nodeId, added.to)) { updateNode++; console.log("jbdwjheb"); break; }
+                //if (!updateEdge && added.matches("GRAPH-NODE") && tab.getGraph().isEdge(nd.observe?.nodeId, added.nodeId))return updateNode++;
+            }
+        }
+        if (updateGraph || updateNode || updateEdge) UI.inspector.observe();
+    })
+    static elementToTab = {
+        "GRAPH-NODE": "node", 
+        "GRAPH-EDGE": "edge", 
+        "GRAPH-TAB": "graph", 
+    }
     constructor() {
         super();
         this.observed = null;
@@ -8,78 +206,73 @@ class Inspector extends TabArea{
         this.nodeStorage = {};
         this.graphStorage = {};
         this.edgeStorage = {};
+        this.timer = undefined;
+        this.deltaTime = 100;
+
+        this.addEventListener("keydown", (ev) => ev.stopPropagation());
+        this.addEventListener("change", (ev) => {
+
+            let chain = CustomInputs.getChainFromEvent(this, ev);
+            let value = ev.target.parentElement.get();
+            let last = chain.pop();
+            CustomInputs.setFromChain(this.observed, chain, value);
+            if (chain[0] == "x" || chain[0] == "y") this.observed.update();
+        })
     }
 
     connectedCallback() {
         super.connectedCallback();
-        this.viewTabs = {
-            graph: this.getTab("graph"),
-            node: this.getTab("node"),
-            edge: this.getTab("edge"),
-        }
         this.sizeObserver.observe(this);
 
-        let scrollIntoView = () => {
-            this.observed.scrollIntoView();
-            Graph.selected.selection.toggle(this.observed);
+        this.details = {
+            node: this.getTab("node").appendChild(CustomInputs.category("", InspectorTemplates.node)),
+            edge: this.getTab("edge").appendChild(CustomInputs.category("", InspectorTemplates.edge)),
+            graph: this.getTab("graph").appendChild(CustomInputs.category("", InspectorTemplates.graph)),
         }
-        let onchange = (ev) => {
-            let chain = CustomInputs.getChainFromEvent(this, ev);
-            chain.pop();
-            let value = ev.target.parentElement.get();
-            console.log(chain, value);
-            CustomInputs.setFromChain(this.observed, chain, value);
-            if (chain[0] == "x" || chain[0] == "y") this.observed.update();
-        }
+        this.details.node.querySelector("[name='Adjacent nodes']").appendChild(UI.createNodeList());
 
-        this.nodeDetails = this.viewTabs.node.appendChild(CustomInputs.category("Viewing", InspectorTemplates.node));
-        this.nodeSpan = this.nodeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
-        this.nodeSpan.addEventListener("click", scrollIntoView);
-        this.nodeDetails.addEventListener("change", onchange);
-
-        this.edgeDetails = this.viewTabs.edge.appendChild(CustomInputs.category("Viewing", InspectorTemplates.edge));
-        this.edgeSpan = this.edgeDetails.firstElementChild.appendChild(elementFromHtml(`<span style="margin-left: 2rem;"></span>`));
-        this.edgeSpan.addEventListener("click", scrollIntoView);
-        this.edgeDetails.addEventListener("change", onchange);
-        
-        this.graphDetails = this.viewTabs.graph.appendChild(CustomInputs.category("Viewing", InspectorTemplates.graph));
-        this.graphDetails.addEventListener("change", onchange);
+        this.addEventListener("opened", (ev) => {
+            this.updateFrom(this.details[ev.detail.new].observed);
+        })
     }
 
 
 
 
     observe(element = this.observed) {
-        switch (element.tagName) {
-            case "GRAPH-NODE": {
-                
-                this.nodeDetails.validate();
-                this.nodeDetails.load(this.extractNodeData(element));
-                this.nodeSpan.textContent = "#" + element.nodeId;
+        if (!this.timer) {
+            this.timer = true;
+            setTimeout(_ => this.timer = null, this.deltaTime);
+        } else return;
 
-                this.getHeader("node").click();
+        this.updateFrom(element);
+        this.observed = element;
+        this.selectTab(Inspector.elementToTab[element.tagName]);
+    }
+    updateFrom(element) {
+        if (!element) return;
+        let details = this.details[Inspector.elementToTab[element.tagName]];  
+        details.observed = element;
+        details.validate();
+        details.classList.add("valid");
+        switch (element.tagName) {
+            case "GRAPH-NODE": {  
+                details.load(this.extractNodeData(element));
                 break;
             }
             case "GRAPH-TAB": {
-                element = element.getGraph();
-                this.graphDetails.validate();
-                this.graphDetails.load(this.extractGraphData(element));
-
-                this.getHeader("graph").click();
+                Inspector.tabObserver.disconnect();
+                Inspector.tabObserver.observe(element,{childList: true,subtree: true})
+                details.load(this.extractGraphData(element.getGraph()));
                 break;
             }
-            case "GRAPH-EDGE": {
-                this.edgeDetails.validate();
-                this.edgeDetails.load(this.extractEdgeData(element));
-                this.edgeSpan.textContent = `#${element.from} ${element.to}`;
-
-                this.getHeader("edge").click();
+            case "GRAPH-EDGE": {;
+                details.load(this.extractEdgeData(element));
                 break;
             }
-            default: return;
         }
-        this.observed = element;
     }
+
     /**@param {NodeUI} node*/
     extractNodeData(node) {
         this.nodeStorage={
@@ -91,12 +284,19 @@ class Inspector extends TabArea{
         }
         let g = node.getGraph();
         let degree = g.getDegree(this.nodeStorage.id);
-        if (g.type == UNORDERED) this.nodeStorage.degree = degree;
+        if (g.type == Graph.UNORDERED) this.nodeStorage.degree = degree;
         else {
             this.nodeStorage.degree = degree.inner + degree.outer;
             this.nodeStorage.inner = degree.inner;
             this.nodeStorage.outer = degree.outer;
         }
+
+        let list = this.details.node.querySelector("[name='Adjacent nodes'] list-view");
+        list.setAttribute("for", g.id);
+        list.clear();
+        list.list = Array.from(g.adjacentNodes(node.nodeId)).filter(el => el > 0).sort();
+        list.render();
+
         return this.nodeStorage;
     }
     extractEdgeData(edge) {
@@ -112,7 +312,7 @@ class Inspector extends TabArea{
         this.graphStorage = {
             name: graph.settings.name,
             id: graph.id,
-            type: (graph.type ? "Unordere" : "Ordered") + (graph.isTree() ? " tree" : ""),
+            type: (graph.type ?"Ordered" : "Unordere") + (graph.isTree() ? " tree" : ""),
             edgeCount: graph.edgeCount,
             nodeCount: graph.nodeCount,
         }

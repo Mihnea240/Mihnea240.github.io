@@ -3,7 +3,7 @@ const _tab_template =/*html*/`
     <div class="tab" name="tab">
         <div id="square" draggable="false"></div>
         <div id="selectionRect"></div>
-        <curved-path class="hide" style="position: absolute"></curved-path>
+        <curved-path mode="absolute" class="hide" style="position: absolute"></curved-path>
         <slot name="edges"></slot>
         <slot name="nodes"></slot>
 
@@ -24,12 +24,11 @@ class Tab extends HTMLElement {
             
         },
         edgeDragStart(target) {
-            console.log(target)
             Tab.dragHandle.storage.fromNode = target.getGraph().getNodeUI(target.from);
         },
         tabDragStart(target,ev) {
             if (ev.buttons != 2) return;
-            target.screenToWorld(target.selectionRect.pos.set(ev.offsetX, ev.offsetY));
+            target.screenToWorld(target.selectionRect.pos.set(ev.clientX, ev.xlientY));
             ev.stopPropagation();
         },
         tabDrag(target, ev, delta){
@@ -45,7 +44,7 @@ class Tab extends HTMLElement {
             //collision detection with selection square
             
             if (ev.buttons == 2) {
-                let { x, y } = target.screenToWorld(this.storage.point.set(ev.offsetX, ev.offsetY));
+                let { x, y } = target.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
                 let p = target.selectionRect.pos.clone();
                 if (x < p.x) [this.storage.point.x, p.x] = [p.x, this.storage.point.x];
                 if (y < p.y) [this.storage.point.y, p.y] = [p.y, this.storage.point.y];
@@ -133,7 +132,7 @@ class Tab extends HTMLElement {
             if (ev.target.tagName == "GRAPH-NODE") return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
         
             graph.actionsStack.startGroup();
-            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.offsetX, ev.offsetY));
+            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
             
             let newNode = graph.addNode();
             newNode.position(this.storage.point.x, this.storage.point.y);
@@ -205,7 +204,6 @@ class Tab extends HTMLElement {
         this.css = getComputedStyle(this);
         this.tab = this.shadowRoot.querySelector("div");
         this.curve = shadow.querySelector("curved-path");
-        this.curve.setAttribute("mode", "absolute");
         this.positionFunction = Tab.PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
         this.zoom = 1;
@@ -262,6 +260,9 @@ class Tab extends HTMLElement {
         })
 
         shadow.querySelectorAll("list-view").forEach(list => list.target = this.tab);
+        this.addEventListener("keydown", (ev) => {
+            if (ev.target.matches("graph-node,graph-edge")) ev.stopPropagation(), ev.stopImmediatePropagation();
+        },true)
 
         
         let scale = 0.1, zoom;
@@ -280,15 +281,12 @@ class Tab extends HTMLElement {
                 }
                 return;
             }
-            this.zoom = this.settings.graph.zoom;
             this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
 
-            zoom = this.settings.graph.zoom;
-            zoom += ev.deltaY < 0 ? -scale : scale;
-            if (zoom < 0.1) zoom = scale;
+            this.zoom += ev.deltaY < 0 ? -scale : scale;
+            if (zoom < 0.1) this.zoom = scale;
             
-            //this.settings.graph.zoom = zoom;
-            this.getGraph().setSettings(["zoom","graph"], zoom);
+            this.getGraph().settings.zoom = zoom;
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
             this.classList.add("hide");
@@ -325,10 +323,12 @@ class Tab extends HTMLElement {
             else pos = this.center();
         }
 
-
-        let rect = this.square.getBoundingClientRect();
-        let newPos=pos.clone().translate(this.rect.width / 2, this.rect.height / 2);
-        if (rect.width < newPos.x || rect.height < newPos.y) this.canvasSize(newPos.x, newPos.y);
+        let newPos = new Point();
+        if (this.rect) {
+            let rect = this.square.getBoundingClientRect();
+            newPos=newPos.copy(pos).translate(this.rect.width / 2, this.rect.height / 2);
+            if (rect.width < newPos.x || rect.height < newPos.y) this.canvasSize(newPos.x, newPos.y);
+        }
         
         this.tab.scrollTo({
             left: newPos.x,
@@ -388,9 +388,9 @@ class Tab extends HTMLElement {
         
         edge.init(props, n1.anchor(), n2.anchor(), false);
         
-        if (type == ORDERED) {
+        if (type == Graph.ORDERED) {
+            console.log(type)
             edge.addArrow();
-            return;
             if (overlapping) {
                 let e2 = this.getEdge(props.to, props.from, true);
                 let p = new Point(), bufferDistance = 100;
@@ -432,7 +432,7 @@ class Tab extends HTMLElement {
     }
     /**@returns {EdgeUI} */
     getEdge(x, y, type=this.getGraph().type) {
-        if (type === UNORDERED && x > y) [x, y] = [y, x]; 
+        if (type === Graph.UNORDERED && x > y) [x, y] = [y, x]; 
         return document.getElementById(`g${this.graphId} ${x} ${y}`);
     }
 
@@ -449,7 +449,7 @@ class Tab extends HTMLElement {
 
     /**@param {Point} point*/
     screenToWorld(point) {
-        return point.multiplyScalar(1 / this.zoom).translate(this.tab.scrollLeft, this.tab.scrollTop)
+        return point.translate(-this.rect.left,-this.rect.top).multiplyScalar(1 / this.zoom).translate(this.tab.scrollLeft, this.tab.scrollTop)
            
     }
     center(items=this.getNodeArray()) {
@@ -473,7 +473,7 @@ class Tab extends HTMLElement {
     }
 
     connectedCallback() {
-        this.rect = this.getBoundingClientRect();
+        setTimeout(() => { this.rect = this.getBoundingClientRect(); }, 100);
     }
     get viewRect() {
         return {

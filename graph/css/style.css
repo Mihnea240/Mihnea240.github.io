@@ -144,10 +144,14 @@ option:focus {
     background-color: var(--input-background);
 }
 
-
-
 .hide {
     display: none !important;
+}
+
+.text-hover:hover{
+    text-decoration: underline;
+    text-shadow: 0 0 6px white;
+    transform: translate(0, -1px);
 }
 
 tab-area,
@@ -164,7 +168,7 @@ graph-inspector {
             border-radius: 2px 2px 0 0;
         }
         & .active {
-            background-color: var(--ui-select2);
+            background-color: var(--ui-select2) !important;
         }
     }
     
@@ -190,17 +194,8 @@ graph-inspector {
     margin-left: 2vw;
     flex-basis: 5%;
 
-    & >button {
-        background-color: inherit;
-        color: inherit;
-
-        &:hover {
-            border-bottom: 1px double white;
-            transform: translate(0, -1px);
-        }
-        &.running{
-            color: rgba(0, 255, 0, 0.751);
-        }
+    & .running{
+        color: rgba(0, 255, 0, 0.751);
     }
 }
 
@@ -452,6 +447,9 @@ dialog[open] {
         & .category{
             width: 100%;
         }
+        & list-view{
+            width: 100%;
+        }
     }
     
 
@@ -466,6 +464,23 @@ dialog[open] {
         height: 100%;
         width: 10px;
         cursor: e-resize;
+    }
+}
+#inspector .tabs> :not(:has(.category.valid)){
+    display: none;
+}
+
+.node-list{
+    flex-grow: 0;
+    max-width: 100px;
+    overflow: hidden;
+    & >*{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.5rem; height: 1.5rem;
+        background-color: var(--menu-background);
+        margin: 0 .1rem 0 0;
     }
 }
 

@@ -1,4 +1,39 @@
 const _curve_template =/* html */`
+    <style>
+        #hit-area,#visible,svg{
+            position: absolute;
+            stroke: white;
+            fill: none;
+            z-index: 10;
+        }
+        svg{
+            width: 2px;
+            height: 2px;
+        }
+        #hit-area{
+            stroke-width: calc(var(--edge-width)*4);
+            opacity: 0;
+            &:hover{
+                opacity: 0.7;
+            }
+        }
+        .point{
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            border: 1px solid white;
+            background-color: white;
+            translate: -50% -50%;
+            z-index: 100;
+        }
+        [part='arrow'] {
+            position: absolute;
+            fill: white;
+            translate: -50% -50%;
+            width: calc(15 * var(--edge-width));
+            height: calc(15 * var(--edge-width));
+        }
+    </style>
     <svg id="curve" overflow="visible">
         <path id="visible"></path>
         <path id="hit-area"></path>

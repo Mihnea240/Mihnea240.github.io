@@ -8,7 +8,7 @@ function shuffleArray(array) {
 function elementFromHtml(html) {
     const template = document.createElement("template");
     template.innerHTML = html.trim();
-    return template.content.firstElementChild;
+    return document.importNode(template.content.firstElementChild, true);
 }
 
 /**@param {HTMLElement} target */

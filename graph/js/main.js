@@ -278,7 +278,7 @@ const ACTIONS = {
             UI.menuBar.querySelector("[for='physics']")?.classList.remove("active");
             return physicsMode.stop();
         }
-        UI.menuBar.querySelector("[for='physics']").classList.add("runnig");
+        UI.menuBar.querySelector("[for='physics']").classList.add("running");
 
         /**@type {Graph}*/
         let g = Graph.selected;
@@ -332,5 +332,5 @@ document.addEventListener("mousemove", (ev) => {
     appData.dt = Date.now() - appData.lastTime;
     appData.lastTime = Date.now();
     appData.cursorVelocity.set(ev.clientX, ev.clientY).sub(appData.cursorPos).multiplyScalar(1 / appData.dt);
-    appData.cursorPos.set(ev.offsetX, ev.offsetY);
+    appData.cursorPos.set(ev.clientX, ev.clientY);
 })
