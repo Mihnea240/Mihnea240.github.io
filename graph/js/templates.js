@@ -21,7 +21,7 @@ const defaultTemplateStyls = {
             display: flex;
             justify-content: center;
             align-items: center;
-            --node-emission: 5px;
+            --node-emission: 10px;
         }
         .description{
             margin: .2rem .4rem;
@@ -47,7 +47,7 @@ const defaultTemplateStyls = {
         }
         :host([template="default"]){
             --edge-width: 1px;
-            --edge-emission: 2px;
+            --edge-emission: 3px;
         }
 
         :host(.selected) {
@@ -125,7 +125,7 @@ const defaultTemplateStyls = {
             display: none;
             background-color: var(--ui-select);
             opacity: 0.6;
-            z-index: 304;
+            z-index: 100;
         }
     `
 }
@@ -140,16 +140,16 @@ const actionMenuTemplate = {
             title: "Double click header",
             onclick(ev) {
                 Graph.selected?.header.focus();
-                greatMenus.actionMenu.close();
+                UI.actionMenu.close();
             }
         },
         delete: {
             type: "button",
-            onclick(ev) { Graph.selected?.delete(); greatMenus.actionMenu.close(); }
+            onclick(ev) { Graph.selected?.delete(); UI.actionMenu.close(); }
         },
         copy: {
             type: "button",
-            onclick(ev) { createGraph(Graph.selected.toJSON()); greatMenus.actionMenu.close(); }
+            onclick(ev) { createGraph(Graph.selected.toJSON()); UI.actionMenu.close(); }
         }
     },
     "Selection actions": {
@@ -157,13 +157,13 @@ const actionMenuTemplate = {
         condition(ev){return ev.target.matches("graph-tab")},
         "Delete Nodes": {
             type: "button",
-            onclick(ev) { Graph.selected.selection.deleteNodes(); greatMenus.actionMenu.close(); },
+            onclick(ev) { Graph.selected.selection.deleteNodes(); UI.actionMenu.close(); },
             condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
         "Add Node": {
             type: "button",
-            onclick() { Graph.selected.addNode(); greatMenus.actionMenu.close(); },
+            onclick() { Graph.selected.addNode(); UI.actionMenu.close(); },
             title: "Ads a new node. Press + to add a node to cursor position"
         },
         Disconnect: {
@@ -181,7 +181,7 @@ const actionMenuTemplate = {
                     }
                 }
                 g.actionsStack.endGroup();
-                greatMenus.actionMenu.close();
+                UI.actionMenu.close();
             },
             condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all edges connected to the selected nodes /n Hold Ctrl to only delete "
@@ -207,7 +207,7 @@ const actionMenuTemplate = {
                     }
                 }
                 g.actionsStack.endGroup();
-                greatMenus.actionMenu.close();
+                UI.actionMenu.close();
                 
             },
             condition() { return Graph.selected.selection.nodeSet.size > 1; },
@@ -216,14 +216,14 @@ const actionMenuTemplate = {
 
         delete: {
             type: "button",
-            onclick() { Graph.selected.selection.deleteEdges(); greatMenus.actionMenu.close(); },
+            onclick() { Graph.selected.selection.deleteEdges(); UI.actionMenu.close(); },
             condition() { return Graph.selected.selection.edgeSet.size > 0; },
             title: "Delets all selected edges"
         },
         add: {
             type: "button",
             onclick(ev) {
-                greatMenus.actionMenu.close(); 
+                UI.actionMenu.close(); 
             }
         }
     }

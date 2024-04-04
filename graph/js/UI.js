@@ -127,6 +127,7 @@ const UI = {
             
         })
     },
+
     initHeaderArea() {
         this.headerList = document.querySelector("#main .header");
         this.headerList.template = ([name,id]) => {
@@ -149,12 +150,14 @@ const UI = {
         });
         this.headerList.addEventListener("change", (ev) =>ev.target.getGraph ? ev.target.getGraph().settings.name=ev.target.value: 0);
     },
+
     createTabUI(graph) {
         graph.tab = this.tabArea.tabs.appendChild(elementFromHtml(`<graph-tab name=${graph.id}></graph-tab>`));
         graph.tab.graphId = graph.id;
         graph.tab.template = graph.template;
         graph.header = this.headerList.push([graph.name, graph.id]);
     },
+
     initNewGraphMenu() {
         this.newGraphMenu = document.getElementById("graph-addition-dialog");
         this.newGraphMenu.querySelector("[name=submit]").onclick = (ev) => {
@@ -162,6 +165,7 @@ const UI = {
             createGraph(this.formatNewGraphData());
         }
     },
+
     formatNewGraphData() {
         let type = +this.newGraphMenu.querySelector("[name='type input']").value;
         let inputMode = this.newGraphMenu.querySelector("[name='input mode']").value;
@@ -237,16 +241,18 @@ const UI = {
             }
         }
     },
+
     init() {
         this.tabArea = document.getElementById("main");
         this.menuBar = document.getElementById("menu-bar");
-        this.menuBar.addEventListener("click", function(ev){
+        this.menuBar.addEventListener("click", function (ev) {
             let target = ev.target;
+            if (!target.parentElement.matches("#menu-bar")) return;
             if (!target.matches("[for]")) return;
             let rect = target.getBoundingClientRect();
             this.querySelector(`[name=${target.getAttribute("for")}]`)?.toggleModal(rect.left, rect.bottom);
             ev.stopPropagation();
-        })
+        });
 
         shuffleArray(this.colors);
 
@@ -259,6 +265,7 @@ const UI = {
         this.initInspector();
         this.initNewGraphMenu();
     },
+
     createNodeList(id) {
         let list = elementFromHtml(`<list-view autofit="true"  class="node-list" for='${id}' direction='row'></list-view>`);
         list.template = (el) => {
@@ -276,6 +283,7 @@ const UI = {
         list.list = [0];
         return list;
     },
+
     createEdgeList(id) {
         let list = elementFromHtml(`<list-view autofit="true" class="edge-list" for='${id}' direction='row'></list-view>`);
         list.template = (el) => {
@@ -296,6 +304,7 @@ const UI = {
         })
         return list;
     },
+
     highlight() {
         let element = inspector.observed
         Graph.selected.selection.toggle(element);

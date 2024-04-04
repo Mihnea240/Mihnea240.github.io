@@ -18,7 +18,7 @@ class Tab extends HTMLElement {
             rect: {},
             visibleItems: undefined,
             timer: 12,
-            timerMax:12,
+            timerMax: 12,
         },
         nodeDragStart(target,ev) {
             
@@ -28,7 +28,7 @@ class Tab extends HTMLElement {
         },
         tabDragStart(target,ev) {
             if (ev.buttons != 2) return;
-            target.screenToWorld(target.selectionRect.pos.set(ev.clientX, ev.xlientY));
+            target.screenToWorld(target.selectionRect.pos.set(ev.clientX, ev.clientY));
             ev.stopPropagation();
         },
         tabDrag(target, ev, delta){
@@ -42,7 +42,6 @@ class Tab extends HTMLElement {
                 return;
             }
             //collision detection with selection square
-            
             if (ev.buttons == 2) {
                 let { x, y } = target.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
                 let p = target.selectionRect.pos.clone();

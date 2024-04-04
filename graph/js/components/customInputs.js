@@ -237,17 +237,29 @@ class CustomInputs{
 class PopDialog extends HTMLDialogElement{
     constructor() {
         super();
+        this.delay=false;
+        this.closeOpenDelay = 300;
         document.addEventListener("click", (ev)=>{
             let rect = this.getBoundingClientRect();
             if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) this.close();
         })
     }
-    show(x,y) {
-        if (x === undefined && y === undefined) return super.show();
+    onshow() {
+        this.delay = true;
+        setTimeout(_ => this.delay = false, this.closeOpenDelay);
+    }
+    close(returnValue) {
+        if (this.delay) return;
+        super.close(returnValue);
+    }
+    show(x, y) {
+        this.onshow();
+        if (x === undefined && y === undefined)return super.show();
         super.show();
         this.style.cssText += `left: ${x}px; top: ${y}px`;
     }
     showModal(x,y) {
+        this.onshow();
         if (x === undefined && y === undefined) return super.showModal();
         super.showModal();
         this.style.cssText += `left: ${x}px; top: ${y}px`;

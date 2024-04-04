@@ -193,6 +193,7 @@ graph-inspector {
     gap: 1.5vw;
     margin-left: 2vw;
     flex-basis: 5%;
+    border: none;
 
     & .running{
         color: rgba(0, 255, 0, 0.751);
@@ -373,11 +374,13 @@ dialog[open] {
 
 
 #graph-addition-dialog[open] {
+    position: absolute;
     display: flex;
     flex-direction: column;
     width: 75%; height: 75%;
     border: none;
     border-radius: 5px;
+    margin: auto;
 
     background-color: var(--menu-background);
     padding: .5rem;

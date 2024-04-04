@@ -33,6 +33,7 @@ class TabArea extends HTMLElement{
         if (name) this.selectTab(name);
 
         this.onselect = (ev) => {
+            if (ev.target.parentElement != this.header) return;
             let name = ev.target.getAttribute("for");
             if (name) this.selectTab(name);
         }

@@ -291,27 +291,6 @@ class Graph {
         return this.edgeCount == this.nodeCount - 1;
     }
 
-    dfs(origin, callback = (from, to, sol, fr) => true, condition = (from, to, sol, fr) => true) {
-        let fr = new Array(this.maxId + 1).fill(0);
-        let sol = [origin];
-
-        callback(0, origin, sol, fr);
-        let f = (origin) => {
-            if (fr[origin]) return;
-            fr[origin]++;
-
-            for (let n of this.adjacentNodes(origin)) {
-                if (!condition()) continue;
-                if (n < 0 || fr[n]) continue;
-                sol.push(n);
-                callback(origin, n, sol, fr);
-                f(n);
-            }
-        }
-        f(origin);
-        return sol;
-    }
-
     parentArray(anchor) {
         if (!this.isTree()) return;
         let array = new Array(this.maxId + 1).fill(-1);
@@ -321,65 +300,66 @@ class Graph {
     }
 
     conexParts() {
-        let fr = new Array(this.maxId + 1).fill(0), cnt = 0, rez = [];
-        if (this.type == Graph.UNORDERED) {
-            let call = (from, to, sol, frec) => fr[to] = cnt;
-            let condition = (from, to, sol, frec) => fr[to] != 0;
+        let frMap = new Map(), visitedStack = [];
+        let rez = {
+            array: [],
+            map: new Map()
+        } 
 
-            for (let [k, _] of this.nodes) {
-                if (fr[k]) continue;
-                cnt++;
-                rez.push(this.dfs(k, call, condition).sort());
-            }
-            return {
-                list: rez,
-                map: fr,
-            };
-        }
-
-        let stack = [], current = [];
-        let dfs1 = (node) => {
-            fr[node]++;
-            for (let i of this.adjacentNodes(node))
-                if (i > 0 && !fr[i]) dfs1(i);
-            stack.push(node);
-        }
-
-        let dfs2 = (node) => {
-            fr[node] = cnt;
-            for (let i of this.adjacentNodes(node)) {
-                let n;
-                if (i < 0) n = -i;
-                else if (this.isEdge(i, node)) n = i;
-                else continue;
-
-                if (!fr[n]) {
-                    dfs2(n);
-                    current.push(n);
+        if (this.type === Graph.UNORDERED) {
+            let dfs1 = (node,index) => {
+                for (let n of this.adjacentNodes(node)) {
+                    if (n<0 || frMap.has(n)) continue;
+                    frMap.set(n, 1);
+                    componentMap.set(n, index);
+                    rez.array[index].push(n);
+                    dfs1(n);
+                    frMap.set(n, undefined);
                 }
             }
+            let cnt = 1;
+            for (let [k, _] of this.nodes) {
+                if (!frMap.has(k)) continue;
+                rez.array.push([]);
+                dfs1(k, cnt++);
+            }
+            return rez;
+        }
 
+        let dfs1 = (node) => {
+            for (let n of this.adjacentNodes(node)) {
+                if (n<0 || frMap.has(n)) continue;
+                frMap.set(n, 1);
+                dfs1(n);
+                frMap.set(n, undefined);
+                visitedStack.push(n);
+            }
+        }
+        let dfs2 = (node,index) => {
+            for (let n of this.adjacentNodes(node)) {
+                if (n > 0) continue;
+                if (frMap.has(n = -n)) continue;
+                frMap.set(n, 1);
+                rez.array[index].push(n);
+                rez.map.set(n, index);
+                dfs2(n, componentId);
+                frMap.set(n, undefined);
+            }
+        }
 
+        let firstNode,dummy;
+        for ([firstNode, dummy] of this.nodes) break;
+        firstNode = parseInt(firstNode);
+
+        dfs1(firstNode);
+        frMap.clear();
+
+        for (let i = visitedStack.length - 1, cnt=1; i >= 0; i--){
+            if (frMap.has(visitedStack[i])) continue;
+            rez.array.push([]);
+            dfs2(visitedStack[i], cnt++);
         }
-        for (let [k, v] of this.nodes) {
-            if (fr[k]) continue;
-            fr[k]++;
-            dfs1(k);
-        }
-        console.log(stack);
-        fr.fill(0);
-        for (let i = stack.length - 1; i >= 0; i--) {
-            if (fr[stack[i]]) continue;
-            current = [stack[i]];
-            cnt++;
-            fr[stack[i]] = cnt;
-            dfs2(stack[i]);
-            rez.push([...current]);
-        }
-        return {
-            list: rez,
-            map: fr
-        }
+        return rez;
     }
 
 }
