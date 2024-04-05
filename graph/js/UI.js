@@ -305,6 +305,18 @@ const UI = {
         return list;
     },
 
+    createComponentList(id) {
+        let list = elementFromHtml(`<list-view></list-view>`);
+        list.template = (array) => {
+            let item = UI.createNodeList(id);
+            /* let rez = elementFromHtml(`<div style=" display: flex; flex-direction: row;">${array.length} </div>`);
+            rez.appendChild(item);
+ */            item.list = array;
+            return item;
+        }
+        return list;
+    },
+
     highlight() {
         let element = inspector.observed
         Graph.selected.selection.toggle(element);

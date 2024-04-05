@@ -181,7 +181,7 @@ class Graph {
         return this.tab.getEdge(n1, n2, this.type);
     }
     adjacentNodes(id) {
-        return this.nodes.get(id);
+        return this.nodes.get(id) || [];
     }
 
     delete() {
@@ -302,7 +302,7 @@ class Graph {
     conexParts() {
         let frMap = new Map(), visitedStack = [];
         let rez = {
-            array: [],
+            array: [[]],
             map: new Map()
         } 
 
@@ -311,16 +311,17 @@ class Graph {
                 for (let n of this.adjacentNodes(node)) {
                     if (n<0 || frMap.has(n)) continue;
                     frMap.set(n, 1);
-                    componentMap.set(n, index);
+                    rez.map.set(n, index);
                     rez.array[index].push(n);
-                    dfs1(n);
+                    dfs1(n,index);
                     frMap.set(n, undefined);
                 }
             }
             let cnt = 1;
             for (let [k, _] of this.nodes) {
-                if (!frMap.has(k)) continue;
-                rez.array.push([]);
+                if (frMap.has(k)) continue;
+                frMap.set(k, 1);
+                rez.array.push([k]);
                 dfs1(k, cnt++);
             }
             return rez;
@@ -342,7 +343,7 @@ class Graph {
                 frMap.set(n, 1);
                 rez.array[index].push(n);
                 rez.map.set(n, index);
-                dfs2(n, componentId);
+                dfs2(n, index);
                 frMap.set(n, undefined);
             }
         }
@@ -356,7 +357,8 @@ class Graph {
 
         for (let i = visitedStack.length - 1, cnt=1; i >= 0; i--){
             if (frMap.has(visitedStack[i])) continue;
-            rez.array.push([]);
+            frMap.set(visitedStack[i],1)
+            rez.array.push([visitedStack[i]]);
             dfs2(visitedStack[i], cnt++);
         }
         return rez;

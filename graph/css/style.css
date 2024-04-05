@@ -475,7 +475,7 @@ dialog[open] {
 
 .node-list{
     flex-grow: 0;
-    max-width: 100px;
+    max-width: 100%;
     overflow: hidden;
     & >*{
         display: flex;

@@ -23,11 +23,7 @@ const InspectorTemplates = {
             display:"Edge count",
             readonly: true,
         },
-        conex: {
-            type: "text",
-            display:"Conex components",
-            readonly: true,
-        },
+        "Conex parts": {},
     },
     edge: {
         from: {
@@ -104,9 +100,7 @@ const InspectorTemplates = {
                 title: "Number of nodes exiting this node",
             },
         },
-        "Adjacent nodes": {
-            
-        },
+        "Adjacent nodes": {},
         transform: {
             position: {
                 categoryCollapse: false,
@@ -230,6 +224,7 @@ class Inspector extends TabArea{
             graph: this.getTab("graph").appendChild(CustomInputs.category("", InspectorTemplates.graph)),
         }
         this.details.node.querySelector("[name='Adjacent nodes']").appendChild(UI.createNodeList());
+        this.details.graph.querySelector("[name='Conex parts']").appendChild(UI.createComponentList());
 
         this.addEventListener("opened", (ev) => {
             this.updateFrom(this.details[ev.detail.new].observed);
@@ -316,6 +311,13 @@ class Inspector extends TabArea{
             edgeCount: graph.edgeCount,
             nodeCount: graph.nodeCount,
         }
+        let list = this.details.graph.querySelector("[name='Conex parts'] list-view");
+        let components = graph.conexParts();
+        components.array.shift();
+        list.clear();
+        list.list = components.array;
+        list.render();
+        list.querySelectorAll("list-view").forEach(el => el.render());
 
         return this.graphStorage;
     }

@@ -263,8 +263,9 @@ const ACTIONS = {
     },
     undo(ev) {
         if (!ev.ctrlKey) return;
-        if (UI.viewMenu.open) Graph.selected.settingsStack.undo();
-        else Graph.selected.actionsStack.undo();
+        ////if (UI.viewMenu.open) Graph.selected.settingsStack.undo();
+        //else
+            Graph.selected.actionsStack.undo();
 
     },
     redo(ev) {
