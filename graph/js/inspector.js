@@ -257,8 +257,10 @@ class Inspector extends TabArea{
             }
             case "GRAPH-TAB": {
                 Inspector.tabObserver.disconnect();
-                Inspector.tabObserver.observe(element,{childList: true,subtree: true})
-                details.load(this.extractGraphData(element.getGraph()));
+                Inspector.tabObserver.observe(element, { childList: true, subtree: true })
+                let g = element.getGraph();
+                this.details.graph.setAttribute("for", g.id);
+                details.load(this.extractGraphData(g));
                 break;
             }
             case "GRAPH-EDGE": {;
@@ -313,12 +315,9 @@ class Inspector extends TabArea{
         }
         let list = this.details.graph.querySelector("[name='Conex parts'] list-view");
         let components = graph.conexParts();
-        components.array.shift();
-        list.clear();
         list.list = components.array;
-        list.render();
-        list.querySelectorAll("list-view").forEach(el => el.render());
-
+        this.details.graph.querySelector(".category[name='Conex parts'] span").textContent = `Conex parts -  ${components.array.length} `;
+        
         return this.graphStorage;
     }
 }

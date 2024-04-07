@@ -130,10 +130,14 @@ const UI = {
 
     initHeaderArea() {
         this.headerList = document.querySelector("#main .header");
-        this.headerList.template = ([name,id]) => {
-            let el = elementFromHtml(`<text-input for="${id}" spellcheck="false" class="graph-header text-hover" maxLength="32">${name}</text-input>`);
+        this.headerList.template = () => {
+            let el = elementFromHtml(`<text-input spellcheck="false" class="graph-header text-hover" maxLength="32"></text-input>`);
             el.getGraph = function () { return Graph.get(parseInt(this.getAttribute("for"))) }
             return el;
+        }
+        this.headerList.load = (child,[name,id]) => {
+            child.value = name;
+            child.setAttribute("for", id);
         }
         this.headerList.addEventListener("mousedown", function (ev) {
             if (ev.target.matches(".new-graph")) return UI.newGraphMenu.showModal();
@@ -267,53 +271,50 @@ const UI = {
     },
 
     createNodeList(id) {
-        let list = elementFromHtml(`<list-view autofit="true"  class="node-list" for='${id}' direction='row'></list-view>`);
-        list.template = (el) => {
-            let text = el.matches?.("graph-node") ? el.textContent : el;
-            let child = elementFromHtml(`<div class="text-hover">${text}</div>`);
-            return child;
-        }
+        let list = elementFromHtml(`<list-view autofit="true"  class="node-list" direction='row'></list-view>`);
+        list.template = () => elementFromHtml(`<div class="text-hover"></div>`);
+        list.load = (child, val) => child.textContent = val.matches?.("graph-node") ? val.textContent : val;
+
+        if (id) list.setAttribute("for", id);
+
         list.addEventListener("click", function (ev) {
-            if (ev === this) return;
-            let graph = Graph.get(parseInt(this.getAttribute("for")));
+            if (ev.target === this) return;
+            let graph = Graph.get(parseInt(this.closest("[for]").getAttribute("for")));
             let node = graph.getNodeUI(parseInt(ev.target.textContent));
+
             node.scrollIntoView();
             graph.selection.toggle(node);
         })
-        list.list = [0];
         return list;
     },
 
     createEdgeList(id) {
-        let list = elementFromHtml(`<list-view autofit="true" class="edge-list" for='${id}' direction='row'></list-view>`);
-        list.template = (el) => {
-            let gtype = Graph.get(parseInt(list.getAttribute("for"))).type;
-            let from = el.matches?.("graph-edge") ? el.from : el[0];
-            let to = el.matches?.("graph-edge") ? el.to : el[1];
-            let child = elementFromHtml(`<div class="text-hover">${from} ${gtype ? "&#8594" : "&#175"} ${to}</div>`);
-            console.log(child)
-            return child;
-        }
-        list.addEventListener("click", function (ev) {
-            if (ev === this) return;
-            let graph = Graph.get(parseInt(this.getAttribute("for")));
-            let [from, _, to] = ev.target.textContent.split(" ");
-            let edge = graph.getNodeUI(parseInt(from), parseInt(to));
-            edge.scrollIntoView();
-            graph.selection.toggle(edge);
-        })
-        return list;
     },
 
     createComponentList(id) {
         let list = elementFromHtml(`<list-view></list-view>`);
-        list.template = (array) => {
-            let item = UI.createNodeList(id);
-            /* let rez = elementFromHtml(`<div style=" display: flex; flex-direction: row;">${array.length} </div>`);
+        list.template =function(){
+            let rez = elementFromHtml(`<div class="header"> <span class="text-hover"></span> : Size <span></span> </div>`);
+            let item = UI.createNodeList();
             rez.appendChild(item);
- */            item.list = array;
-            return item;
+            return rez;
         }
+        if (id) this.setAttribute("for", id);
+        list.length = 8;
+        list.load = function (child, value, index) {
+            let [s1, s2] = child.querySelectorAll("span");
+            s1.textContent = index + this.firstIndex+1;
+            s2.textContent = value.length;
+            child.querySelector("list-view").list = value;
+        }
+        list.addEventListener("click", function (ev) {
+            if (ev.target.matches("span.text-hover")) {
+                let g = Graph.get(parseInt(this.closest("[for]").getAttribute("for")));
+                if (!g) return console.log(this);
+
+                for (let n of ev.target.parentElement.querySelector("list-view").list) g.selection.toggle(g.getNodeUI(n));
+            }
+        })
         return list;
     },
 

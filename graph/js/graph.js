@@ -300,28 +300,30 @@ class Graph {
     }
 
     conexParts() {
-        let frMap = new Map(), visitedStack = [];
+        let frMap = new Map(), visitedStack = [], cnt = 0;;
         let rez = {
-            array: [[]],
+            array: [],
             map: new Map()
         } 
+        let pushSol = (node, index) => {
+            if (!rez.array[index]) rez.array.push([]);
+            rez.array[index].push(node);
+            rez.map.set(node, index);
+        }
 
         if (this.type === Graph.UNORDERED) {
             let dfs1 = (node,index) => {
                 for (let n of this.adjacentNodes(node)) {
                     if (n<0 || frMap.has(n)) continue;
                     frMap.set(n, 1);
-                    rez.map.set(n, index);
-                    rez.array[index].push(n);
+                    pushSol(n, index);
                     dfs1(n,index);
                     frMap.set(n, undefined);
                 }
             }
-            let cnt = 1;
             for (let [k, _] of this.nodes) {
                 if (frMap.has(k)) continue;
-                frMap.set(k, 1);
-                rez.array.push([k]);
+                pushSol(k, cnt);
                 dfs1(k, cnt++);
             }
             return rez;
@@ -333,32 +335,30 @@ class Graph {
                 frMap.set(n, 1);
                 dfs1(n);
                 frMap.set(n, undefined);
-                visitedStack.push(n);
             }
+            visitedStack.push(node);
         }
         let dfs2 = (node,index) => {
             for (let n of this.adjacentNodes(node)) {
-                if (n > 0) continue;
-                if (frMap.has(n = -n)) continue;
+                if (n > 0 || frMap.has(n = -n)) continue;
                 frMap.set(n, 1);
-                rez.array[index].push(n);
-                rez.map.set(n, index);
+                pushSol(n, index);
                 dfs2(n, index);
                 frMap.set(n, undefined);
             }
         }
-
-        let firstNode,dummy;
-        for ([firstNode, dummy] of this.nodes) break;
-        firstNode = parseInt(firstNode);
-
-        dfs1(firstNode);
+        
+        for (let [k, _] of this.nodes)
+            if (!frMap.has(k)) {
+                frMap.set(k, 1);
+                dfs1(k);
+            }
         frMap.clear();
 
-        for (let i = visitedStack.length - 1, cnt=1; i >= 0; i--){
+        for (let i = visitedStack.length - 1; i >= 0; i--){
             if (frMap.has(visitedStack[i])) continue;
-            frMap.set(visitedStack[i],1)
-            rez.array.push([visitedStack[i]]);
+            frMap.set(visitedStack[i], 1);
+            pushSol(visitedStack[i], cnt);
             dfs2(visitedStack[i], cnt++);
         }
         return rez;
