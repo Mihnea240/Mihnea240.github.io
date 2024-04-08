@@ -1,7 +1,7 @@
 const defaultGraphJSON = {
     type: 1,
     template: "default",
-    data:{},
+    data: undefined,
     nodeProps: [{nodeId: 1}],
     edgeProps: [],
 }
@@ -128,6 +128,28 @@ const defaultTemplateStyls = {
             z-index: 100;
         }
     `
+}
+
+const viewMenuTemplate = {
+    categoryCollapse: false,
+    main_color: {
+        type: "color",
+    },
+    secondary_color: {
+        type: "color",
+    },
+    show_ruler: {
+        type: "checkbox",
+    },
+    zoom: {
+        type: "range",
+        min: "0.1", max: "3", step: "0.1",
+    },
+    background: {
+        type: "text",
+
+    }
+        
 }
 
 const actionMenuTemplate = {
@@ -299,7 +321,7 @@ const TemplateMenuTemplates = {
         secondary_color: {
             type: "color",
         },
-        show_ruller: {
+        show_ruler: {
             type: "checkbox",
         },
         zoom: {

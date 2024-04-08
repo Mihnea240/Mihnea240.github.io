@@ -8,7 +8,7 @@ class Graph {
     static ORDERED = 1;
     static UNORDERED = 0;
 
-    constructor(type, template) {
+    constructor(type, template="default", data) {
         /**@type {Tab}*/
         this.tab;
         /** @type {HTMLElement}*/
@@ -22,13 +22,14 @@ class Graph {
         
         UI.createTabUI(this);
         this.settings = this.initSettings();
-        GraphTemplate.get(template).load(this);
+        GraphTemplate.get(template).load(this, data);
         
         Graph.graphMap.set(this.id, this);
 
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
-        this.a_nodeId = 1;        
+        this.a_nodeId = 1;
+        console.log(data);
     }
     initSettings() {
         return new Proxy({}, {
@@ -37,11 +38,16 @@ class Graph {
                 switch (prop) {
                     case "name": this.header.setAttribute("value", newValue); break;
                     case "main_color": case "secondary_color": {
+                        object[prop] = standardize_color(newValue);
                         let bg = `linear-gradient(45deg,${this.settings.main_color},${this.settings.secondary_color})`;
                         this.header.style.background = bg;
                         UI.headerList.style.borderImage = bg + " 1"; break;
                     }
-                    case "zoom": this.tab.zoom = newValue; break;
+                    case "zoom": {
+                        this.tab.tab.style.setProperty("zoom", newValue);
+                        this.tab.zoom = newValue;
+                        break;
+                    }
                     case "template": this.tab.template = newValue; break;
                     case "show_ruler": this.tab.toggleRuler?.(newValue); break;
                 }
@@ -57,7 +63,7 @@ class Graph {
         UI.tabArea.selectTab(this.id);
         inspector.observe(this.tab);
 
-        //UI.viewMenu.load(this.settings);
+        UI.viewMenu.load(this.settings);
     }
     nextAvailableID() {
         while (this.nodes.has(this.a_nodeId)) this.a_nodeId++;
@@ -181,12 +187,13 @@ class Graph {
         return this.tab.getEdge(n1, n2, this.type);
     }
     adjacentNodes(id) {
-        return this.nodes.get(id) || [];
+        return this.nodes.get(id);
     }
 
     delete() {
-        let adjacentHeader = this.header.previousElementSibling || this.header.nextElementSibling;
-        if (adjacentHeader.matches("button span")) graphs.get(parseInt(adjacentHeader.id.slice(1))).focus();
+        let newg = UI.headerList.items[0].getGraph();
+        if (newg != this) newg.focus();
+
         if (physicsMode?.isRunning()) physicsMode.stop();
 
         this.tab.delete();
@@ -214,7 +221,7 @@ class Graph {
     }
 
     static parse(obj = defaultGraphJSON) {
-        let newG = new Graph(obj.type, obj.template);
+        let newG = new Graph(obj.type, obj.template, obj.data);
 
         newG.actionsStack.startGroup();
         for (let node of obj.nodeProps) newG.addNode(node);
@@ -291,16 +298,16 @@ class Graph {
         return this.edgeCount == this.nodeCount - 1;
     }
 
+    //To do
     parentArray(anchor) {
         if (!this.isTree()) return;
         let array = new Array(this.maxId + 1).fill(-1);
 
-        this.dfs(anchor, (from, to) => array[to] = from);
         return array;
     }
 
     conexParts() {
-        let frMap = new Map(), visitedStack = [], cnt = 0;;
+        let visitedStack = [], cnt = 0;
         let rez = {
             array: [],
             map: new Map()
@@ -312,53 +319,36 @@ class Graph {
         }
 
         if (this.type === Graph.UNORDERED) {
-            let dfs1 = (node,index) => {
-                for (let n of this.adjacentNodes(node)) {
-                    if (n<0 || frMap.has(n)) continue;
-                    frMap.set(n, 1);
-                    pushSol(n, index);
-                    dfs1(n,index);
-                    frMap.set(n, undefined);
-                }
+            let dfs1 = (node, index) => {
+                pushSol(node, index);
+                for (let n of this.adjacentNodes(node)) if (n > 0 && !rez.map.has(n)) dfs1(n, index);
             }
-            for (let [k, _] of this.nodes) {
-                if (frMap.has(k)) continue;
-                pushSol(k, cnt);
-                dfs1(k, cnt++);
-            }
+            for (let [k, _] of this.nodes) if (!rez.map.has(k)) dfs1(k, cnt++);
             return rez;
         }
 
         let dfs1 = (node) => {
-            for (let n of this.adjacentNodes(node)) {
-                if (n<0 || frMap.has(n)) continue;
-                frMap.set(n, 1);
-                dfs1(n);
-                frMap.set(n, undefined);
-            }
+            rez.map.set(node, 1);
+            for (let n of this.adjacentNodes(node)) if (n > 0 && !rez.map.has(n)) dfs1(n);
             visitedStack.push(node);
         }
         let dfs2 = (node,index) => {
+            pushSol(node, index);
             for (let n of this.adjacentNodes(node)) {
-                if (n > 0 || frMap.has(n = -n)) continue;
-                frMap.set(n, 1);
-                pushSol(n, index);
+                if (n < 0) {
+                    if (rez.map.has(-n)) continue;
+                    n = -n;
+                } else if (rez.map.has(n) || !this.isEdge(n, node)) continue;
                 dfs2(n, index);
-                frMap.set(n, undefined);
             }
         }
         
-        for (let [k, _] of this.nodes)
-            if (!frMap.has(k)) {
-                frMap.set(k, 1);
-                dfs1(k);
-            }
-        frMap.clear();
+        for (let [k, _] of this.nodes) if (!rez.map.has(k)) dfs1(k);
+        rez.map.clear();
 
         for (let i = visitedStack.length - 1; i >= 0; i--){
-            if (frMap.has(visitedStack[i])) continue;
-            frMap.set(visitedStack[i], 1);
-            pushSol(visitedStack[i], cnt);
+            if (rez.map.has(visitedStack[i])) continue;
+            //pushSol(visitedStack[i], cnt);
             dfs2(visitedStack[i], cnt++);
         }
         return rez;
@@ -394,9 +384,10 @@ class GraphTemplate{
 
         GraphTemplate.map.set(name, this);
     }
-    load(graph) {
+    load(graph, data) {
         graph.template = this.name;
-        if (this.name = "default") {
+        console.log(data);
+        if (!data && this.name == "default") {
             this.data.name = "Graph " + graph.id;
             this.data.main_color = UI.colors[UI.colorIndex++];
             this.data.secondary_color = UI.colors[UI.colorIndex];
@@ -405,7 +396,7 @@ class GraphTemplate{
             graph.tab.style.cssText += `--main-color: ${this.data.main_color}; --secondary-color: ${this.data.secondary_color}`;
         }
         graph.tab.template = this.name;
-        mergeDeep(graph.settings, this.data);
+        mergeDeep(graph.settings, { ...this.data, ...data });
     }
     set cssRule(data) {
         this.id = GraphTemplate.styleSheet.insertRule(data);

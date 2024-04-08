@@ -13,18 +13,17 @@ const _tab_template =/*html*/`
 `
 class Tab extends HTMLElement {
     static dragHandle = {
-        storage: {
-            point: new Point(),
-            rect: {},
-            visibleItems: undefined,
-            timer: 12,
-            timerMax: 12,
-        },
+        point: new Point(),
+        rect: {},
+        visibleItems: undefined,
+        timer: 12,
+        timerMax: 12,
+        tab: undefined,
         nodeDragStart(target,ev) {
-            
+            if (ev.button == 2) this.fromNode = target;
         },
         edgeDragStart(target) {
-            Tab.dragHandle.storage.fromNode = target.getGraph().getNodeUI(target.from);
+            this.fromNode = target.getGraph().getNodeUI(target.from);
         },
         tabDragStart(target,ev) {
             if (ev.buttons != 2) return;
@@ -43,13 +42,13 @@ class Tab extends HTMLElement {
             }
             //collision detection with selection square
             if (ev.buttons == 2) {
-                let { x, y } = target.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+                let { x, y } = target.screenToWorld(this.point.set(ev.clientX, ev.clientY));
                 let p = target.selectionRect.pos.clone();
-                if (x < p.x) [this.storage.point.x, p.x] = [p.x, this.storage.point.x];
-                if (y < p.y) [this.storage.point.y, p.y] = [p.y, this.storage.point.y];
+                if (x < p.x) [this.point.x, p.x] = [p.x, this.point.x];
+                if (y < p.y) [this.point.y, p.y] = [p.y, this.point.y];
                 
-                x = Math.abs(this.storage.point.x - p.x);
-                y = Math.abs(this.storage.point.y - p.y);
+                x = Math.abs(this.point.x - p.x);
+                y = Math.abs(this.point.y - p.y);
                
                 target.selectionRect.style.cssText += `
                     left: ${p.x}px;
@@ -58,16 +57,16 @@ class Tab extends HTMLElement {
                     height: ${y}px;
                     display: block;
                 `
-                if (this.storage.timer < 0) this.storage.timer = this.storage.timerMax;
-                else return this.storage.timer--;
+                if (this.timer < 0) this.timer = this.timerMax;
+                else return this.timer--;
     
-                this.storage.rect.x = p.x; this.storage.rect.y = p.y;
-                this.storage.rect.width = x; this.storage.rect.height = y
+                this.rect.x = p.x; this.rect.y = p.y;
+                this.rect.width = x; this.rect.height = y
                 
-                this.storage.visibleItems ||= visibleElements(target.getGraph());
+                this.visibleItems ||= visibleElements(target.getGraph());
                 
-                for (let [el, rect] of this.storage.visibleItems) {
-                    el.selected = AABB(this.storage.rect, rect);
+                for (let [el, rect] of this.visibleItems) {
+                    el.selected = AABB(this.rect, rect);
                 }
                 return;
             }
@@ -78,19 +77,20 @@ class Tab extends HTMLElement {
         tabDragEnd(target, ev) {
             //clear selection square
             if (ev.button == 2) {
-                if (this.storage.visibleItems) {
+                if (this.visibleItems) {
                     ev.stopPropagation(); 
                     
                     let sel = target.getGraph().selection;
-                    for (let [el,rect] of this.storage.visibleItems) sel.toggle(el, el.selected);
+                    for (let [el,rect] of this.visibleItems) sel.toggle(el, el.selected);
     
-                    this.storage.visibleItems = undefined;
+                    this.visibleItems = undefined;
                     target.selectionRect.style.display = "none";
                 }
             }
         },
         nodeDrag(target, ev, delta) {
             if (target.focused) return;
+            delta.multiplyScalar(1 / target.parentElement.zoom);
             if (ev.ctrlKey) {
                 for (let n of target.getGraph().selection.nodeSet) {
                     n.translate(delta.x, delta.y);
@@ -104,14 +104,13 @@ class Tab extends HTMLElement {
                     break;
                 }
                 case 2: {
-                    let tab = target.parentElement;
                     if (target.new_node_protocol == false) {
                         target.initCurve();
                         let p = target.anchor();
-                        tab.curve.fromPosition(p);
-                        tab.curve.toPosition(p);
+                        this.tab.curve.fromPosition(p);
+                        this.tab.curve.toPosition(p);
                     }
-                    tab.curve.translateTo(delta);
+                    this.tab.curve.translateTo(delta);
                 } 
                 default: return;
             }
@@ -122,19 +121,20 @@ class Tab extends HTMLElement {
             originalNode.transform.velocity.copy(appData.cursorVelocity);
             originalNode.active = false;
 
-            if (!originalNode.new_node_protocol) return;
+            if (!this.fromNode) return;
+            this.fromNode = undefined;
+            this.tab.curve.classList.add("hide");
 
-            originalNode.initCurve();
             let graph = Graph.get(originalNode.graphId)
             ev.stopPropagation();
 
-            if (ev.target.tagName == "GRAPH-NODE") return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
+            if (ev.target.matches("graph-node")) return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
         
             graph.actionsStack.startGroup();
-            originalNode.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
+            this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
             
             let newNode = graph.addNode();
-            newNode.position(this.storage.point.x, this.storage.point.y);
+            newNode.position(this.point.x, this.point.y);
             
             graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
             graph.actionsStack.endGroup();
@@ -142,43 +142,34 @@ class Tab extends HTMLElement {
         },
         edgeDrag(target, ev, delta){
             if (ev.button) return ev.stopPropagation();
-            let tab = target.parentElement, c = tab.curve;
             if (delta.magSq() < 10) return;
-    
-            if (this.storage.fromNode.new_node_protocol == false) {
-                target.classList.add("hide");
-                this.storage.fromNode.initCurve();
-                tab.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
-                c.to=this.storage.point;
-            }
-            c.translateTo(delta,false);
-            c.translateP2(delta);
+
+            delta.multiplyScalar(1 / this.tab.zoom);
+            this.tab.curve.translateTo(delta,false);
         },
         edgeDragEnd(originalEdge,ev){
-            if (this.storage.fromNode?.new_node_protocol);
-            else return;
-            this.storage.fromNode.new_node_protocol = false;
+            if (!this.fromNode) return;
     
             let graph = Graph.get(originalEdge.graphId);
-            originalEdge.parentElement.curve.classList.add("hide");
+            this.tab.curve.classList.add("hide");
     
-            if (ev.target.tagName == "GRAPH-NODE") {
-                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: this.storage.fromNode.nodeId, to: ev.target.nodeId });
+            if (ev.target.matches("graph-node")) {
+                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: this.fromNode.nodeId, to: ev.target.nodeId });
                 else {
                     originalEdge.classList.remove("hide");
-                    return this.storage.fromNode = undefined;
+                    return this.fromNode = undefined;
                 }
             } else {
                 graph.actionsStack.startGroup();
                 let newNode = graph.addNode();
-                originalEdge.parentElement.screenToWorld(this.storage.point.set(ev.clientX, ev.clientY));
-                newNode.position(this.storage.point.x, this.storage.point.y);
-                graph.addEdge({ from: this.storage.fromNode.nodeId, to: newNode.nodeId });
+                this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
+                newNode.position(this.point.x, this.point.y);
+                graph.addEdge({ from: this.fromNode.nodeId, to: newNode.nodeId });
                 graph.actionsStack.endGroup();
             }
             
             graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
-            this.storage.fromNode = undefined;
+            this.fromNode = undefined;
         },
     
     }
@@ -213,6 +204,7 @@ class Tab extends HTMLElement {
         let evTarget;
         addCustomDrag(this, {
             onstart: (ev) => {
+                Tab.dragHandle.tab = this;
                 evTarget = ev.target;
                 switch (ev.target.tagName) {
                     case "GRAPH-EDGE": Tab.dragHandle.edgeDragStart(evTarget,ev); break;
@@ -285,7 +277,7 @@ class Tab extends HTMLElement {
             this.zoom += ev.deltaY < 0 ? -scale : scale;
             if (zoom < 0.1) this.zoom = scale;
             
-            this.getGraph().settings.zoom = zoom;
+            this.getGraph().settings.zoom = this.zoom;
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
             this.classList.add("hide");

@@ -29,6 +29,7 @@ class ListView extends HTMLElement{
                 overflow: visible;
             }
         </style>
+        <slot name='item'></slot>
         <slot></slot>
     `.trim();
     static observedAttributes = ["length", "autofit", "break", "autoflow", "direction","target"];
@@ -102,7 +103,8 @@ class ListView extends HTMLElement{
         this.update();
     }
     get list() { return this.observedList; }
-
+    get itemSlot() { return this.shadowRoot.querySelector("slot"); }
+    get items() { return this.itemSlot.assignedNodes(); }
 
     render() {
         let n;
@@ -117,9 +119,10 @@ class ListView extends HTMLElement{
         this.itemsDisplayed(n);
     }
     update(index) {
+        let n = this.items.length;
         if (index === undefined)
-            for (let i = 0; i < this.childElementCount; i++)    this.load(this.children[i], this.data(i + this.firstIndex), i);
-        else if (index >= 0 && index < this.childElementCount) this.load(this.children[index], this.data(index + this.firstIndex), index);
+            for (let i = 0; i < n; i++)    this.load(this.children[i], this.data(i + this.firstIndex), i);
+        else if (index >= 0 && index < n) this.load(this.children[index], this.data(index + this.firstIndex), index);
     }
     data(index) {
         return (index >= 0 && index < this.list.length) ? this.list[index] : this.autoflow ? this.countingFunction(index) : undefined;
@@ -150,7 +153,7 @@ class ListView extends HTMLElement{
     }
     clear() {
         this.list = [];
-        this.innerHTML = "";
+        this.itemSlot.innerHTML = "";
     }
     pop() {
         let n = this.children.length;
@@ -160,13 +163,14 @@ class ListView extends HTMLElement{
     }
 
     itemsDisplayed(val) {
-        let n = this.childElementCount;
+        let n = this.items.length;
         if (n == val) return;
         
         for (let i = n, data, child; i < val; i++) {
             data = this.data(i + this.firstIndex);
             if (data!==undefined) {
                 child = this.template();
+                child.slot = "item";
                 if (this.load(child, data, i)!==false) this.appendChild(child);
             }
         }

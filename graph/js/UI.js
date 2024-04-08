@@ -2,25 +2,13 @@ const UI = {
     colors: ["blueviolet", "brown", "lightsalmon", "indigo", "aquamarine", "lightseagreen", "darkmagenta", "cornflowerblue", "crimson", "chocolate", "slateblue", "pink", "mediumseagreen"],
     colorIndex: 1,
     initViewMenu() {
-        this.viewMenu = menuBar.appendChild(CustomInputs.category("", {...defaultSettingsTemplate, is: "pop-dialog", name: "view"}, "dialog"));
+        this.viewMenu = this.menuBar.appendChild(CustomInputs.category("", {...viewMenuTemplate, is: "pop-dialog", name: "view"}, "dialog"));
     
         this.viewMenu.addEventListener("input", function (ev) {
             let g = Graph.selected;
-            let top = g.actionsStack.top();
             let chain = CustomInputs.getChainFromEvent(this, ev);
-    
-            let value = g.setSettings(chain, ev.target.parentElement.get());
-    
-            if (top?.acumulate) top.newValue = ev.target.parentElement.get();
-            else {
-                let c = Graph.selected.actionsStack.push(new SettingsChangedCommand(chain, value));
-                c.acumulate = true;
-            }
-        })
-    
-        this.viewMenu.addEventListener("change", function (ev) {
-            let top = Graph.selected.actionsStack.top();
-            if(top)top.acumulate = false;
+            let value = ev.target.parentElement.get();
+            Graph.selected.settings[chain[0]] = value;
         })
     },
     
@@ -130,9 +118,10 @@ const UI = {
 
     initHeaderArea() {
         this.headerList = document.querySelector("#main .header");
+        let getGraph = function () { return Graph.get(parseInt(this.getAttribute("for"))) };
         this.headerList.template = () => {
             let el = elementFromHtml(`<text-input spellcheck="false" class="graph-header text-hover" maxLength="32"></text-input>`);
-            el.getGraph = function () { return Graph.get(parseInt(this.getAttribute("for"))) }
+            el.getGraph = getGraph;
             return el;
         }
         this.headerList.load = (child,[name,id]) => {
@@ -261,7 +250,7 @@ const UI = {
         shuffleArray(this.colors);
 
         this.initHeaderArea();
-        //this.initViewMenu();
+        this.initViewMenu();
         this.initFileDialog();
         this.initForceMenu();
         this.initActionMenu();

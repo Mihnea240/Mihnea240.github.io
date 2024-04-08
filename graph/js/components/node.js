@@ -20,7 +20,6 @@ class NodeUI extends HTMLElement{
         this._selected = false;
         this.active = false;
         this.focused = false;
-        this.new_node_protocol=false;
         this.mass = 1;
         this.isStatic = false;
         this.transform = new Transform();
@@ -79,16 +78,6 @@ class NodeUI extends HTMLElement{
        this.setAttribute("contenteditable",this.getRootNode().host.focused = false);
     }
 
-    initCurve() {
-        if (this.new_node_protocol) {
-            this.parentElement.curve.classList.add("hide");
-            this.new_node_protocol = false;
-            return false;
-        }
-        this.parentElement.curve.classList.remove("hide");
-        this.new_node_protocol = true;
-        return true;
-    }
     relativePosition(x = 0, y = 0, point = new Point()) {
         return point.set(
             this.transform.position.x + this.transform.size.x * x,

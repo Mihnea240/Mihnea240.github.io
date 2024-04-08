@@ -86,8 +86,6 @@ function createGraph(obj = defaultGraphJSON) {
     if (!newGraph) alert("Format invalid");
     else {
         UI.tabArea.tabs.appendChild(newGraph.tab);
-        UI.headerList.list.push([newGraph.id, newGraph.settings.name]);
-        UI.headerList.appendChild(newGraph.header);
         newGraph.focus();
     }
     return newGraph;
