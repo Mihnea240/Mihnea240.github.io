@@ -274,7 +274,7 @@ const ACTIONS = {
     togglePhysicsSimulation(ev) {
         //if (ev && !ev.ctrlKey) return;
         if (physicsMode.isRunning()) {
-            UI.menuBar.querySelector("[for='physics']")?.classList.remove("active");
+            UI.menuBar.querySelector("[for='physics']")?.classList.remove("running");
             return physicsMode.stop();
         }
         UI.menuBar.querySelector("[for='physics']").classList.add("running");

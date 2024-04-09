@@ -19,11 +19,10 @@ class Tab extends HTMLElement {
         timer: 12,
         timerMax: 12,
         tab: undefined,
-        nodeDragStart(target,ev) {
-            if (ev.button == 2) this.fromNode = target;
+        minDraddistanceSquared: 7, 
+        nodeDragStart(target, ev) {
         },
-        edgeDragStart(target) {
-            this.fromNode = target.getGraph().getNodeUI(target.from);
+        edgeDragStart(target,ev) {
         },
         tabDragStart(target,ev) {
             if (ev.buttons != 2) return;
@@ -99,18 +98,11 @@ class Tab extends HTMLElement {
                 return;
             }
             switch (ev.buttons) {
-                case 1: {
-                    target.translate(delta.x, delta.y);
-                    break;
-                }
+                case 1: target.translate(delta.x, delta.y); break;
                 case 2: {
-                    if (target.new_node_protocol == false) {
-                        target.initCurve();
-                        let p = target.anchor();
-                        this.tab.curve.fromPosition(p);
-                        this.tab.curve.toPosition(p);
-                    }
+                    if (!this.fromNode) this.initCurve(target)
                     this.tab.curve.translateTo(delta);
+                    break;
                 } 
                 default: return;
             }
@@ -122,55 +114,65 @@ class Tab extends HTMLElement {
             originalNode.active = false;
 
             if (!this.fromNode) return;
-            this.fromNode = undefined;
-            this.tab.curve.classList.add("hide");
-
-            let graph = Graph.get(originalNode.graphId)
-            ev.stopPropagation();
-
-            if (ev.target.matches("graph-node")) return graph.addEdge({from: originalNode.nodeId,to: ev.target.nodeId});
-        
-            graph.actionsStack.startGroup();
+            if (ev.target.matches("graph-node")) {
+                ev.stopImmediatePropagation();
+                this.initCurve()
+                return Graph.get(originalNode.graphId).addEdge({ from: originalNode.nodeId, to: ev.target.nodeId });
+            }
+            
             this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
-            
-            let newNode = graph.addNode();
-            newNode.position(this.point.x, this.point.y);
-            
-            graph.addEdge({from: originalNode.nodeId,to: newNode.nodeId});
-            graph.actionsStack.endGroup();
-            
+            this.addNewConnection(this.fromNode.nodeId, this.point);
+            ev.stopPropagation();
+            this.initCurve();
         },
         edgeDrag(target, ev, delta){
             if (ev.button) return ev.stopPropagation();
-            if (delta.magSq() < 10) return;
-
+            if (!this.fromNode && delta.magSq() > this.minDraddistanceSquared) {
+                this.initCurve(this.tab.getGraph().getNodeUI(target.from));
+                this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
+                this.tab.curve.toPosition(this.point, false);
+                target.classList.add("hide");
+            }
             delta.multiplyScalar(1 / this.tab.zoom);
-            this.tab.curve.translateTo(delta,false);
+            this.tab.curve.translateTo(delta);
         },
         edgeDragEnd(originalEdge,ev){
             if (!this.fromNode) return;
     
             let graph = Graph.get(originalEdge.graphId);
-            this.tab.curve.classList.add("hide");
     
             if (ev.target.matches("graph-node")) {
                 if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: this.fromNode.nodeId, to: ev.target.nodeId });
-                else {
-                    originalEdge.classList.remove("hide");
-                    return this.fromNode = undefined;
-                }
+                else originalEdge.classList.remove("hide");
             } else {
-                graph.actionsStack.startGroup();
-                let newNode = graph.addNode();
                 this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
-                newNode.position(this.point.x, this.point.y);
-                graph.addEdge({ from: this.fromNode.nodeId, to: newNode.nodeId });
-                graph.actionsStack.endGroup();
+                this.addNewConnection(this.fromNode.nodeId, this.point);
+                graph.removeEdge(originalEdge.from, originalEdge.to);
             }
-            
-            graph.removeEdge(originalEdge.fromNode, originalEdge.toNode);
-            this.fromNode = undefined;
+            this.initCurve();
         },
+        addNewConnection(from,{x,y}) {
+            let g = this.tab.getGraph();
+            g.actionsStack.startGroup();
+
+            let newNode = g.addNode();
+            newNode.position(x, y);
+            g.addEdge({ from, to: newNode.nodeId });
+
+            g.actionsStack.endGroup();
+        },
+        initCurve(node) {
+            if (!node) {
+                this.tab.curve.classList.add("hide");
+                this.fromNode = undefined;
+                return;
+            }
+            this.fromNode = node;
+            this.tab.curve.classList.remove("hide");
+            let p = node.anchor();
+            this.tab.curve.fromPosition(p);
+            this.tab.curve.toPosition(p);
+        }
     
     }
     static PositionFunctons = {
@@ -240,7 +242,6 @@ class Tab extends HTMLElement {
                     this.curvesArray.clear();
                 }
             } else { 
-                //ev.preventDefault();
                 if (ev.detail == 2) return inspector.observe(ev.target);
                 if (ev.button == 2 && ev.target.matches("graph-node")  ) this.getGraph().selection.toggle(ev.target);
                 else if (ev.target.matches("graph-edge")) {
@@ -380,7 +381,6 @@ class Tab extends HTMLElement {
         edge.init(props, n1.anchor(), n2.anchor(), false);
         
         if (type == Graph.ORDERED) {
-            console.log(type)
             edge.addArrow();
             if (overlapping) {
                 let e2 = this.getEdge(props.to, props.from, true);

@@ -29,7 +29,9 @@ class Graph {
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
         this.a_nodeId = 1;
-        console.log(data);
+    }
+    setStyleAttribute(attribute,value) {
+        return this.tab.tab.style.setProperty(attribute, value);
     }
     initSettings() {
         return new Proxy({}, {
@@ -39,12 +41,15 @@ class Graph {
                     case "name": this.header.setAttribute("value", newValue); break;
                     case "main_color": case "secondary_color": {
                         object[prop] = standardize_color(newValue);
+                        if (prop == "main_color") this.setStyleAttribute("--main-color", newValue);
+                        if (prop == "secondary_color") this.setStyleAttribute("--secondary-color", newValue);
+
                         let bg = `linear-gradient(45deg,${this.settings.main_color},${this.settings.secondary_color})`;
                         this.header.style.background = bg;
                         UI.headerList.style.borderImage = bg + " 1"; break;
                     }
                     case "zoom": {
-                        this.tab.tab.style.setProperty("zoom", newValue);
+                        this.setStyleAttribute("zoom", newValue);
                         this.tab.zoom = newValue;
                         break;
                     }
@@ -386,7 +391,6 @@ class GraphTemplate{
     }
     load(graph, data) {
         graph.template = this.name;
-        console.log(data);
         if (!data && this.name == "default") {
             this.data.name = "Graph " + graph.id;
             this.data.main_color = UI.colors[UI.colorIndex++];
