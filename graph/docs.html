@@ -11,20 +11,149 @@
 <body>
     <tab-area>
         <div class="header">
-            <div for="1">Motivaţia alegerii temei</div>
-            <div for="2">Structura aplicaţiei</div>
-            <div for="3">Detalii tehnice de implementare</div>
-            <div for="4">Resurse hard si soft necesare</div>
-            <div for="5">Modalităţi de utilizare</div>
-            <div for="6">Posibilităţi de dezvoltare</div>
+            <div for="1" tabindex="0">Motivaţia alegerii temei</div>
+            <div for="2" tabindex="0">Structura aplicaţiei</div>
+            <div for="3" tabindex="0">Detalii tehnice de implementare</div>
+            <div for="4" tabindex="0">Resurse hard si soft necesare</div>
+            <div for="5" tabindex="0">Modalităţi de utilizare</div>
+            <div for="6" tabindex="0">Posibilităţi de dezvoltare</div>
         </div>
         <div class="tabs">
-            <div name="1">Money</div>
-            <div name="2"></div>
-            <div name="3"></div>
+            <div name="1">
+                <section>
+                    Ideea de a crea o aplicatie pentru a modifica usor structura unui graf a aparut in clasa a XI-a la orele de teoria grafurilor.
+                    Lucrand de doi ani cu grafurile atat in contextul bacului, cat si cel al admiterii la facultate nu mi-am schimbat impresia: 
+                    <b>Sa desenezi grafuri pe hartie este oribil</b>. <br>
+                    Sunt multe probleme care necesita desenul pentru a fi rezolvate. Problema vine din faptul ca atunci cand desenezi un graf, 
+                    definit spre exemplu prin lista de muchii, nu sti unde sa pui urmatorul nod fara a suprapune muchii si fara a face un dezastru din schita ta, 
+                    mai ales atunci cand graful este mai complex. <br>
+                </section>
+            </div>
+            <div name="2">
+                <h1>
+                    In ceea ce priveste interfata se disting 3 componenete principale.
+                </h1>
+                <br>
+                <section>
+                    <h1>I. Bara de meniuri</h1>
+                
+                    <ul>
+                        <li>
+                           <b> Meniul <em>"File"</em> :</b> 
+                           <div>Permite salvarea si incarcarea grafurilor dintr-un fisier generat de aplicatie.</div>
+                           <div>Intitulat <em>My_graphs.html</em>, fisierul pastreaza atat structura cat si setarile alese de utilizator</div>
+                           <br>
+                        </li>
+                        <li>
+                            <b>Meniul <em>"Template"</em></b>
+                            <div>Coming soon</div>
+                            <br>
+                        </li>
+                        <li>
+                            <b>Meniul <em>"View"</em></b>
+                            <div>Poate fi folosit pentru a schimba aspectul grafului curent</div>
+                            <br>
+                        </li>
+                        <li>
+                            <b>Meniul <em>"Force Model"</em></b>
+                            <div>Controleaza fortele ce pot fi aplicate intre nodurile grafului curent</div>
+                            <br>
+                        </li>
+                    </ul>
+                </section>
+                <section>
+                    <h1>II. Fereastra principala</h1>
+                    <p>
+                        <div>
+                            Cuprinde pe langa zona de editare a grafurilor o bara cu numele fiecarui graf al utilizatorului.
+                            Intr-o fereastra a aplicatiei pot fi deschise mai multe grafuri, insa doarunul poate fi vizualizat la un anumit moment.
+                            Trecerae de la un graf la altul se face prin apasarea unuia din casetele cu nume care va fi evidentiata.
+                        </div>
+                        <img src="./assets/header-area.png">
+
+                        <div>
+                            In imaginea de mai sus se poate observa ca la sfarsitul barei de titluri se afla un buton pe care se afla simbolul +. 
+                            Acest buton deschide dialogul de creare al unui graf, dialog prin care se specifica:
+                            <ul>
+                                <li>Numele grafului</li>
+                                <li>tipul (orientat/neorientat)</li>
+                                <li>Formatul datelor de intrare (Matrice de adiacenta/Lista de adiacenta/Lista de muchii/Vectori de tati)</li>
+                            </ul> 
+                            <img src="./assets/newgraphMenu.png" style="width: 100%;">
+
+                        </div>
+                    </p>
+                </section>
+
+                <section>
+                    <h1 id="inspector">III. Inspector</h1>
+                    <p>
+                        Inspectorul fixat in partea din dreapta a aplicatiei dezvaluie detalii despre graful curent si componentele sale.
+                        Acesta are 3 file specializate pentru a observa pe rand:
+                        <ul>
+                            <li>Structuraa grafului, tipul, numarul de noduri/muchi, componentele conex</li>
+                            <li>Atributele unui nod (descrier, id-ul, templatul folosit), nodurile adiacente, pozitia in lume</li>
+                            <li>Atributele unei muchii (descrierea, capetele)</li>
+                        </ul>
+                    </p>
+                </section>
+                
+            </div>
+            <div name="3">
+                <h1>Aplicatia <em>Graph Maker</em> a fost realizata folosind tehnologii web (HTML, CSS, JS) in editorul <em>Visual Studio Code</em>
+                    si este gazduita folosind serviciul <a href="https://mihnea240.github.io/graph/"><em>Github pages</em></a>.<br>
+                </h1>
+                
+                <p style="position: relative;">
+                    Fiind o aplicatie complexa a fost necesara organizarea in module/parti reutilizabile. <br>
+                    O tehnica utilizata frecvent in codul acestei aplicatii are legatura cu <em>Custom Elements Api</em>, 
+                    api care poate fi folosit pentru a modifica componente native ale limbajului HTML sau pentru a crea unele noi in totalitate. <br>
+                    
+                </p>
+
+                <section>
+                    Am folosit acest api pentru a incapsula functionalitati folosite adesea pentru a evita duplicarea codului.
+                    In general am creat componente care coordoneaza activitatea propriilor copii. <br><br>
+                    Exemple:
+                    
+                    <div class="image-galery">
+                        <img src="./assets/tabarea.png">
+                        <img src="./assets/inspector.png">
+                    </div>
+                    <br>
+                    Clasa <code>TabArea</code> este folosita pt a defini tag-ul <code>tab-area</code>. 
+                    Aceasta componenta asculta clickuri pe elementele care au atributul <code>for</code> din divul "header" si afiseaza elementul corespunzator din divul "tabs".
+                    Componenta <code>graph-inspector</code> este o extensie a componentei <code>tab-area</code> 
+                    care implementeaza functionalitatile explicate in <a href="#inspector" onclick="document.body.querySelector('tab-area').selectTab('2')">Structura Aplicatiei</a>
+                    Componenta <code>tab-area</code> este folosita de asemenea in meniul <em>Template</em> la selectarea grafului din bara de nume cat si la structura acestei documentatii.
+                </section>
+                <br>
+                
+                <section>
+                    Intr-o maniera similara au fost create componentele: <code>graph-tab; graph-node; graph-edge</code>
+                    Dintre aceste componenta <code>graph-tab</code> este cea mai mare, deoarece ea coordoneaza elementele de UI ( 
+                    prelucrarea eventurilor venite de la mouse si tastatura si afisarea corespunzatoarea a nodurilor si a muchiilor dintre ele).
+                    Componenta <code>graph-tab</code> este subordonata clasei <code>Graph</code> care se asigura de initializarea setarilor si de prelucrarea datelor grafului,
+                    avand metode cum ar fi aflarea gradului unui nod sau aflarea componentelor conexe, folosite in inspector.
+                </section>
+                <br>
+                <section>
+                    Un espect important al oricarei aplicatii este UX (user experience). Aplicatia <em>Graph Maker</em> permite adaugarea/stergerea/copierea de noduri/muchi, 
+                    iar in acest proces se pot face greseli. Astfel, folosind ceea ce se numeste <em>The Command design pattern</em> a fost implementata functionalita de <b>undo</b> si <b>redo</b>
+
+                    Acesta este un standard care foloseste o stiva pentru a stoca obiecte de tip comanda care sunt o codificare a schimbarile cauzate de utilizator de-a lungul ruralii programului.
+                    Obiecte de tip comanda implementeaza obligatoriu doua metode <code>undo()</code> si <code>redo()</code>, 
+                    metode care au fost legate de <kbd>Ctrl</kbd> + <kbd>z</kbd> respectiv <kbd>Ctrl</kbd> + <kbd>y</kbd>
+
+                    <img src="./assets/commandpattern.png" style="margin-left: auto;">
+                </section>
+                
+            </div>
             <div name="4"></div>
             <div name="5"></div>
-            <div name="6"></div>
+            <div name="6">
+                
+            </div>
         </div>
     </tab-area>
 </body>

@@ -381,7 +381,7 @@ class Tab extends HTMLElement {
         edge.init(props, n1.anchor(), n2.anchor(), false);
         
         if (type == Graph.ORDERED) {
-            edge.addArrow();
+    edge.addArrow();
             if (overlapping) {
                 let e2 = this.getEdge(props.to, props.from, true);
                 let p = new Point(), bufferDistance = 100;

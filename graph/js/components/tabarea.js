@@ -12,6 +12,7 @@ class TabArea extends HTMLElement{
     }
     static mutationObserver = new MutationObserver(TabArea.mutationCallback);
     static mutationConfig = { childList: true, }
+
     constructor() {
         super();
         this.scrollBehavior = { behavior: 'smooth', block: 'nearest', inline: 'center' };
@@ -44,9 +45,11 @@ class TabArea extends HTMLElement{
     getTab(name) {
         return this.querySelector(`.tabs > [name="${name}"]`);
     }
+    
     getHeader(name) {
         return this.querySelector(`.header > [for="${name}"]`);
     }
+
     show(newTab) {
         this.activeTab?.classList.remove("active");
         this.activeTab = newTab;
