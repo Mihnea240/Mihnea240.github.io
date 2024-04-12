@@ -150,9 +150,87 @@
                 
             </div>
             <div name="4"></div>
-            <div name="5"></div>
+            <div name="5">
+                <section>
+                    <h1>Teoria grafurilor</h1>
+                    <p>
+                        Prin intermediul <em>Inspectorului</em> aplicatia dezvaluie informatii despre structura unui graf, aspecte legate de teoria grafurilor:
+                        (Componente conexe, numar de noduri/muchii, gradul nodurilor, lanturi etc...). <br>
+
+                    </p>
+                </section>
+                <section>
+                    <h1>Vector art</h1>
+                    <p>
+                        Muchiile dintre noduri nu sunt linii drepte, ci curbe Bezier cuadratice. Acest tip de curba are doua puncte de contol care modifica 
+                        forma acesteia. Apasarea pe o muchi va dezvalui un suport vizual pentru aceste puncte de control, niste cerculete care pot fi mutate 
+                        folosind cursorul.
+                        <img src="" alt="">
+                    </p>
+                </section>
+                <section>
+                    <h1>Modelarea relatiilor dintre obiecte</h1>
+                    <p>
+                        Nodurile sunt obiecte legate prin muchii
+                    </p>
+                </section>
+                <section>
+                    <h1>Divertismente</h1>
+                    <p>
+                        Meniul <em>Force model</em> aplica forte asupra nodurilor. Implicit se aplica forte elastice care pot conduce la simulari de tip Soft-body
+                    </p>
+                </section>
+            </div>
             <div name="6">
-                
+                <section>
+                    Scopul principal al aplicatiei <em>Graph Maker</em> este sa faciliteze desenarea clara a grafurilor. <br> <br>
+                    Insa, deocamdata, dupa apasarea butonului <em>Submit</em> nodurile sunt create si asezate la pozitii aleatorii pe ecran. 
+                    Intr-un graf cu structura complexa acest lucru poate duce la forme neobisnuit de ciudate.
+                    <img src="" alt=""> 
+                    <br>
+                    O posibila solutia vine sub form meniului <em>Force Model</em>, rin setarea fortelor astfel incat intre nodurile adiacente sa 
+                    apara forte de atractie, iar intre nodurile neadiacente sa apara forte de respingere. In teorie acest lucru ar rearanja graful intr-o 
+                    configuratie mai lizibila.
+                </section>
+
+                <section>
+                    <h1>Aplicarea fortelor este un sistem rudimentar</h1>
+                    <p>
+                        Ca o scurta descriere a ce se intampla in spatele culiselor: La activarea sistemului care aplica forte asupra nodurilor 
+                        se retine in memorie toate nodurile vizibile pe ecran. Apoi la fiecare cateva milisecunde se racalculeze fortele intre fiecare pereche de 
+                        noduri (complexitate O(n^2)). Adaugand faptul ca schimbarea pozitiei unui element html este un proces scump, aplicatie incetineste cand
+                        sunt multe noduri pe ecran. <br>
+                        In cazul fortelor de tip atractie gravitationala se pot folosi algoritmi care reduc complexitatea la NlogN (ex: Barnes-Hut).
+                    </p>
+                </section>
+                <section>
+                        <h1>Analiza subgrafurilor</h1>
+                        <p>In cadrul aplicatiei poti selecta o parte dintr-un graf, un subgraf, insa nu poti vedea niciun fel de informatie
+                            despre selectia
+                            facuta. Acest lucru este posibil doar daca copiezi acea selectie intr-o alta fila. (<a href="#">informatii despre selectie</a>)
+                        </p>
+                </section>
+                <section>
+                    <h1>Afisarea nodurilor</h1>
+                    <p>
+                        Un mod de utilizare al aplicatiei este modelarea relatiilor dintre obiecte. Obiecte care pot fi mai complexe decat un simplu 
+                        cerculet in care este incadrat niste text. <br>
+                        Meniul <em>Template</em> permite crearea de sablone pentru initializarea setarilor unui nod. Acest meniu poate fi extins 
+                        pentru a permite adaugarea altor moduri de afisare a nodurilor, cum ar fi:
+                            <ul>
+                                <li>Imagine cu descriere: Cum ar fi numele unui folder/fiser si iconita corespunzatoare</li>
+                                <li>Imagine fara descriere</li>
+                                <li>Descriere cu tabel de propritati: Similar unei liste de campuri din MS Access</li>
+                            </ul>
+                    </p>
+                </section>
+                <section>
+                    <h1>Selectarea prin left drag</h1>
+                    <p>
+                        Similar cu dreptunghiul care apare in windows 
+                    </p>
+                    
+                </section>
             </div>
         </div>
     </tab-area>
