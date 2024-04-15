@@ -68,7 +68,7 @@ const appData = {
     dt: 0,
     lastTime:0,
     physicsSettings: {
-        frameRate: 5,
+        frameRate: 24,
         gravity: 0,
         spring: 0.01,
         springIdealLength: 200,
@@ -163,7 +163,8 @@ const keyBindings = {
     a: "selectAll",
     z: "undo",
     y: "redo",
-    f: "togglePhysicsSimulation"
+    f: "togglePhysicsSimulation",
+    n: "openNewGraphMenu",
 }
 const ACTIONS = {
     fullscreen() { toggleFullScreen() },
@@ -285,6 +286,7 @@ const ACTIONS = {
         let rect = g.tab.viewRect;
         let check;
         let dt = 1 / physicsMode.frameRate;
+        console.log(dt)
         switch (physicsMode.interactions) {
             case "Between direct neighbours": check = (a, b) => g.isEdge(a.nodeId, b.nodeId); break;
             case "Between neighbours": check = (a, b) => (g.isEdge(a.nodeId, b.nodeId) || g.isEdge(a.nodeId, -b.nodeId)); break;
@@ -313,6 +315,9 @@ const ACTIONS = {
             }
         }
         physicsMode.start(dt);
+    },
+    openNewGraphMenu(ev) {
+        UI.newGraphMenu.showModal();
     }
 }
 

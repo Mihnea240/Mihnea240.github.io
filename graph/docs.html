@@ -83,6 +83,11 @@
 
                         </div>
                     </p>
+                    <p>
+                        Zona de editare este un sptiu infinit la dreapta si in jos. Fixata la dreapta si in josul acestui spatiu sunt doua rigle care arata pozitia in lume a ferestrei. 
+                         Aparitia lor poate fi setata in meniul <em>View</em>. Tot in acest meniu, sau prin <kbd>scroll</kbd>, poste fi setat zoom-ul ferestri (diferit pentru fiecare graf). 
+                        In aceasta zona vor fi adaugate muchiile si nodurile.
+                    </p>
                 </section>
 
                 <section>
@@ -149,7 +154,22 @@
                 </section>
                 
             </div>
-            <div name="4"></div>
+            <div name="4">
+                <table>
+                    <th>Windows</th>
+                    <th>Mac Os</th>
+                    <th></th>
+                    <tr>
+                        <td>Chrome</td>
+                        <td></td>
+                        <td>V 112 4.04.2023</td>
+                    </tr>
+                    <tr>
+                        <td>Safari</td>
+                        <td>V 120</td>
+                    </tr>
+                </table>
+            </div>
             <div name="5">
                 <section>
                     <h1>Selectarea unui subgraf</h1>
@@ -158,14 +178,145 @@
                         Nodurile/muchiile selectate vor fi evidentiate folosinf culoareaprincipala a grafului (prima culoare care apare in gradientul din bara de titluri). 
                         Selctarea poate fi realizata folosind <em>Right Click</em> sau <em>Right Drag</em> (similar cu selectarea multipla din windows). <br>
                         Este permisa selectarea a multiple obiecte, intrucat deselectia se realizeaza cand utilizatorul apasa inafara selectie. <br>
-                        
+                        Unei selectii pot fi aplicate urmatoarele actiuni:
+                        <table>
+                            <th>Shortcut</th>
+                            <th>Action</th>
+                            <tr>
+                                <td><kbd>Ctrl</kbd> drag selection</td>
+                                <td>Misca toate nodurile din selectia in acelasi timp</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl</kbd> scroll</td>
+                                <td>Apropie/departeaza nodurile de pozitia cursorului</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl + C</kbd></td>
+                                <td>Copiaza selectia in clipboard (nodurile copiate si muchiile dintre acestea isi pastreaza datele cu exceptia numarului de ordine)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl + V</kbd></td>
+                                <td>Lipeste selectia copiata daca exista (aceasta este pusa la pozitia cyrsorului)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Del</kbd></td>
+                                <td>Elimina toate muchiile si nodurile selectate, inclusiv muchiile incidente de nodurile eliminate</td>
+                            </tr>
+                        </table>
+                    </p>
+                    <p>
+                        <div>Alte actiuni ce tin de selectie sunt accesibile prin meniul <em>Selection Actions</em>, care apare prin <kbd>Right Click</kbd> in afara selectiei</div><br>
+                        <table>
+                            <tr>
+                                <td>Delete nodes</td>
+                                <td>Sterge toate nodurile selectate</td>
+                            </tr>
+                            <tr>
+                                <td>Delete edges</td>
+                                <td>Sterge toate muchiile selectate</td>
+                            </tr>
+                            <tr>
+                                <td>Add node</td>
+                                <td>Adauga un nou nod</td>
+                            </tr>
+                            <tr>
+                                <td>Complete</td>
+                                <td>Adauga toate muchiile posibile intre nodurile selectate</td>
+                            </tr>
+                            <tr>
+                                <td>Disconnect</td>
+                                <td>Sterge toate muchiile incidente cu nodurile selectate</td>
+                            </tr>
+                        </table>
+                        <div>Aceste obtiuni au explicatii de tip <em>tooltip</em></div>
                     </p>
                 </section>
                 <section>
-                    <h2>Metode de constructie a grafurilor</h2>
+                    <p>Alte actiuni care pot fi indeplinite folosind tastatura</p><br>
+                    <table>
+                        <tr>
+                            <td><kbd>+</kbd></td>
+                            <td>Adauga un nou nod la pozitia cursorului</td>
+
+                        </tr>
+                        <tr>
+                            <td><kbd>F</kbd></td>
+                            <td>Porneste/opreste sistemul fortelor</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>N</kbd></td>
+                            <td>Deschide dialog pentru adaugarea unui graf</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>Ctrl + A</kbd></td>
+                            <td>Adauga in selectie toate nodurile si muchiile</td>
+                        </tr>
+                        <tr>
+                            <td><kbd>F2</kbd></td>
+                            <td>Seteaza afisarea pe ecran complet</td>
+                        </tr>
+                    </table>
+                    <br>
+
+                    <div>Pe lanaga actiunile care pot fi indeplinite asupra unei selectii exista si actiuni care pot fi aplicate asupra inui graf. Meniul <em>Graph actions</em> 
+                        se deschide prin <kbd>Right click</kbd> pe butonul specific grafului din bara de titluri, avand drept componente: </div> <br>
+                    <table>
+                        <tr>
+                            <td>Rename</td>
+                            <td>Butonul din bara de titluri specific fiecarui graf este de fapt un input de tip text care se activeaza prin dublu click sau 
+                                prin acest meniu.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Delete</td>
+                            <td>Sterge graful</td>
+                        </tr>
+                        <tr>
+                            <td>Copy</td>
+                            <td>Creeaza o copie identica a grafului</td>
+                        </tr>
+                    </table>
+                    
+                </section>
+
+                <section>
+                    <h1>Aplicarea fortelor</h1>
                     <p>
-                        I. Folosind meniul <em>New Graph</em> detaliat la <em>Structura aplicatiei</em> sau adaugarea manuala de
-                        muchii si noduri.
+                        Acest sistem poate fi activat apasand tasta <kbd>F</kbd> sau din meniul <em>Force Model</em>. 
+                        Fortele sunt aplicate intre nodurile vizibile pe ecran, iar zona vizibila pe ecran devine o cutie din care nodurile nu pot iesi. 
+                        Setarea implicita este ca intre toate nodurile sa apara o forta de tip elastic, dar meniul dispune si de alte setari. <br>
+                        <table>
+                            <tr>
+                                <td>Toggle</td>
+                                <td>Porneste/Opreste aplicarea fortelor</td>
+                            </tr>
+                            <tr>
+                                <td>Gravity</td>
+                                <td>Constanta gravitational (implicit setata la 0)</td>
+                            </tr>
+                            <tr>
+                                <td>Spring constant</td>
+                                <td>Constanta elastica, k din formula Fe=k*dl</td>
+                            </tr>
+                            <tr>
+                                <td>Spring ideal length</td>
+                                <td>Pozitia de echilibru a arcului (dl)</td>
+                            </tr>
+                            <tr>
+                                <td>Drag</td>
+                                <td>Procent de viteza pierdut in fiecare cadru, astfel incat dupa un timp nodurile sa ajung intr-o pozitie de echilibru</td>
+                            </tr>
+                            <tr>
+                                <td>Interactions</td>
+                                <td>Fortele pot fi calculate intr oricare doua perechi de noduri, sau intre oricare doua noduri adiacente</td>
+                            </tr>
+                            <tr>
+                                <td>Reset</td>
+                                <td>Acest buton reseteaza vitezele tuturor nodurilor in cazul in care lucrurile ies de sub control</td>
+                            </tr>
+
+                        </table>
+                        <div>In acest mod nodurile mutate de utilizator vor primi viteza cursorului</div>
                     </p>
                 </section>
             </div>

@@ -99,3 +99,7 @@ img{
 section{
     margin: 2rem;
 }
+td{
+    padding: .2rem;
+    border: 1px solid rgba(255, 255, 255, 0.495);
+}

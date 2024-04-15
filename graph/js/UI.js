@@ -51,10 +51,13 @@ const UI = {
             switch (chain[0]) {
                 case "spring": physicsMode.spring = value / 100; break;
                 case "isRunning":break;
-                case "frameRate": appData.physicsSettings.frameRate = value; break;
+                case "frameRate": physicsMode.frameRate = value; break;
                 case "interactions": if (physicsMode.isRunning()) physicsMode.stop(), ACTIONS.togglePhysicsSimulation();
                 default: physicsMode[chain[0]] = value;
             }
+        })
+        this.forceMenu.addEventListener("change", (ev) => {
+            if (physicsMode.isRunning()) physicsMode.stop(), physicsMode.start();
         })
     },
     

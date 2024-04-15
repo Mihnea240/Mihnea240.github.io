@@ -183,6 +183,12 @@ const actionMenuTemplate = {
             condition() { return Graph.selected.selection.nodeSet.size > 0; },
             title: "Delets all selected nodes (DEL)"
         },
+        "Delete edges": {
+            type: "button",
+            onclick() { Graph.selected.selection.deleteEdges(); UI.actionMenu.close(); },
+            condition() { return Graph.selected.selection.edgeSet.size > 0; },
+            title: "Delets all selected edges"
+        },
         "Add Node": {
             type: "button",
             onclick() { Graph.selected.addNode(); UI.actionMenu.close(); },
@@ -235,13 +241,6 @@ const actionMenuTemplate = {
             condition() { return Graph.selected.selection.nodeSet.size > 1; },
             title: "Ads all posible edges between the selected nodes \n If the graph is ordered by holding (ctrl) the direction of the edge will be randomised",
         },
-
-        delete: {
-            type: "button",
-            onclick() { Graph.selected.selection.deleteEdges(); UI.actionMenu.close(); },
-            condition() { return Graph.selected.selection.edgeSet.size > 0; },
-            title: "Delets all selected edges"
-        },
         add: {
             type: "button",
             onclick(ev) {
@@ -255,7 +254,7 @@ const physicsTemplate = {
     categoryCollapse: false,
     isRunning: {
         type: "button",
-        onclick() { ACTIONS.togglePhysicsSimulation(); },
+        onclick() { ACTIONS.togglePhysicsSimulation(); this.parentElement.close(); },
         display: "Toggle",
         title: "Turns green when active (F)"
     },
@@ -275,11 +274,11 @@ const physicsTemplate = {
         type: "number",
         max: "1000",
     },
-    energyLoss: {
+    /* energyLoss: {
         display: "Energy lost on collision",
         type: "range",
         max: "1", step: "0.1",
-    },
+    }, */
     drag: {
         type: "range",
         value: "0",
@@ -298,14 +297,15 @@ const physicsTemplate = {
                 n.transform.velocity.set(0, 0);
                 n.transform.acceleration.set(0, 0);
             }
+            this.parentElement.close();
         },
         title: "Resets the velocity and acceleration of all nodes to 0"
     },
-    frameRate: {
+    /* frameRate: {
         display: "Frame rate",
         type: "number",
         max: "60",
-    }
+    } */
 }
 
 const TemplateMenuTemplates = {
