@@ -13,18 +13,18 @@ class Graph {
         this.tab;
         /** @type {HTMLElement}*/
         this.header;
+        
+        Graph.graphMap.set(this.id = ++Graph.id, this);
 
-        this.id = ++Graph.id;
         this.type = type;
         this.selection = new GraphSelection(this.id);
         this.actionsStack = new CommandStack(this);
         this.edgeCount = 0;
         
-        UI.createTabUI(this);
         this.settings = this.initSettings();
+        UI.createTabUI(this);
         GraphTemplate.get(template).load(this, data);
         
-        Graph.graphMap.set(this.id, this);
 
         /**@type {Map<number,Set<number>>} */
         this.nodes = new Map();
@@ -38,7 +38,7 @@ class Graph {
             set: (object, prop, newValue) => {
                 object[prop] = newValue;
                 switch (prop) {
-                    case "name": this.header.setAttribute("value", newValue); break;
+                    case "name": UI.headerList.update(UI.headerList.list.indexOf(this.id)); break;
                     case "main_color": case "secondary_color": {
                         object[prop] = standardize_color(newValue);
                         if (prop == "main_color") this.setStyleAttribute("--main-color", newValue);
@@ -66,8 +66,8 @@ class Graph {
         Graph.selected = this;
         this.tab.focus();
         UI.tabArea.selectTab(this.id);
-        inspector.observe(this.tab);
 
+        inspector.observe(this.tab);
         UI.viewMenu.load(this.settings);
     }
     nextAvailableID() {
@@ -105,7 +105,7 @@ class Graph {
         }
         this.actionsStack.endGroup();
 
-        this.tab.sizeObserver.unobserve(n);
+        Tab.sizeObserver.unobserve(n);
         this.tab.removeChild(n);
         if (n.selected) this.selection.toggle(n);
 
@@ -196,13 +196,16 @@ class Graph {
     }
 
     delete() {
-        let newg = UI.headerList.items[0].getGraph();
-        if (newg != this) newg.focus();
+        let newId = UI.headerList.list.find((id) => id != this.id);
+        if (newId) Graph.get(newId).focus();
 
         if (physicsMode?.isRunning()) physicsMode.stop();
 
         this.tab.delete();
         this.header.remove();
+        let index = UI.headerList.list.indexOf(this.id);
+        UI.headerList.list.splice(index, 1);
+
         Graph.graphMap.delete(this.id);
         this.actionsStack.clear();
         this.actionsStack.graph = undefined;
@@ -227,11 +230,13 @@ class Graph {
 
     static parse(obj = defaultGraphJSON) {
         let newG = new Graph(obj.type, obj.template, obj.data);
-
-        newG.actionsStack.startGroup();
-        for (let node of obj.nodeProps) newG.addNode(node);
-        for (let edge of obj.edgeProps) newG.addEdge(edge);
-        newG.actionsStack.endGroup();
+        setTimeout(() => {
+            newG.actionsStack.startGroup();
+            for (let node of obj.nodeProps) newG.addNode(node);
+            for (let edge of obj.edgeProps) newG.addEdge(edge);
+            newG.actionsStack.endGroup();
+            
+        }, 100);
 
         return newG;
     }

@@ -177,14 +177,25 @@ class Tab extends HTMLElement {
     }
     static PositionFunctons = {
         randomScreen: (graph_tab, node, recalculateEdges) => {
-            let x_off = graph_tab.tab.scrollLeft;
-            let y_off = graph_tab.tab.scrollTop;
-            let width = random(0, parseFloat(graph_tab.css.width));
-            let height = random(0, parseFloat(graph_tab.css.height));
+            let rect = graph_tab.viewRect;
+            console.log(rect);
+            if (!rect) return;
+            let width = random(0, rect.width);
+            let height = random(0, rect.height);
     
-            node.position(x_off + width, y_off + height,recalculateEdges);
+            node.position(rect.x + width, rect.y + height, recalculateEdges);
         }
     }
+
+    static sizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+            if (entry.target.matches("graph-node")) {
+                entry.target.transform.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
+                entry.target.closest("graph-tab").recalculateEdges(entry.target.nodeId);
+            }else entry.target.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
+
+        }
+    })
 
     constructor() {
         super();
@@ -199,6 +210,9 @@ class Tab extends HTMLElement {
         this.positionFunction = Tab.PositionFunctons.randomScreen;
         this.graphId = parseInt(this.id.slice(1));
         this.zoom = 1;
+
+        this.size = new Point();
+        Tab.sizeObserver.observe(this);
 
         this.selectionRect = shadow.querySelector("#selectionRect");
         this.selectionRect.pos = new Point();
@@ -288,13 +302,6 @@ class Tab extends HTMLElement {
             
         })
 
-        this.sizeObserver = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                entry.target.transform.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
-                this.recalculateEdges(entry.target.nodeId);
-            }
-        })
-
         this.curvesArray = new Set();
         this.addEventListener("curveselect", (ev) => {
             if (ev.target.active) this.curvesArray.add(ev.target);
@@ -361,7 +368,7 @@ class Tab extends HTMLElement {
 
     addNode(props) {
         let newNode = this.appendChild(elementFromHtml(`<graph-node id="g${this.graphId} ${props.nodeId}" slot="nodes"></graph-node>`));
-        this.sizeObserver.observe(newNode);
+        Tab.sizeObserver.observe(newNode);
         newNode.init(props);
 
         if (newNode.transform.position.magSq() === 0) this.positionFunction(this, newNode, false);
@@ -453,9 +460,7 @@ class Tab extends HTMLElement {
 
     positionNodes() {
         this.classList.add("hide");
-        this.querySelectorAll("graph-node").forEach(node => {
-            this.positionFunction(this.tab, node);
-        });
+        this.getNodeArray().forEach((node) => this.positionFunction(this, node));
         this.classList.remove("hide");
     }
 
@@ -470,13 +475,13 @@ class Tab extends HTMLElement {
         return {
             x: this.tab.scrollLeft,
             y: this.tab.scrollTop,
-            width: this.rect.width / this.zoom,
-            height: this.rect.height /this.zoom
+            width: this.size.x / this.zoom,
+            height: this.size.y /this.zoom
         }
     }
 
     delete() {
-        this.sizeObserver.disconnect();
+        this.getNodeArray().forEach((n) => Tab.sizeObserver.unobserve(n));
         this.remove();
     }
 

@@ -94,9 +94,8 @@ class ListView extends HTMLElement{
             set: (obj, prop, value) => {
                 obj[prop] = value;
                 if (prop == "length") this.render();
-                else console.log(this.list.length), this.update(prop);
+                else this.update(parseInt(prop));
                 return true;
-                
             }
         })
         this.render();
@@ -121,8 +120,8 @@ class ListView extends HTMLElement{
     update(index) {
         let n = this.items.length;
         if (index === undefined)
-            for (let i = 0; i < n; i++)    this.load(this.children[i], this.data(i + this.firstIndex), i);
-        else if (index >= 0 && index < n) this.load(this.children[index], this.data(index + this.firstIndex), index);
+            for (let i = 0; i < n; i++) this.load(this.items[i], this.data(i + this.firstIndex), i);
+        else if (index >= 0 && index < n) this.load(this.items[index], this.data(index + this.firstIndex), index);
     }
     data(index) {
         return (index >= 0 && index < this.list.length) ? this.list[index] : this.autoflow ? this.countingFunction(index) : undefined;

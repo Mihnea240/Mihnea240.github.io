@@ -200,6 +200,15 @@ graph-inspector {
     }
 }
 
+#file-dialog[open]{
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
 #main {
     display: grid;
     grid-auto-flow: column;
@@ -271,6 +280,7 @@ graph-inspector {
 
 dialog[open] {
     display: flex;  
+    flex-direction: column;
     background-color: var(--menu-background);
     box-shadow: 1px 1px 7px 4px rgba(30, 30, 30, 0.904);
     border: 1px solid rgba(255, 255, 255, 0.305);

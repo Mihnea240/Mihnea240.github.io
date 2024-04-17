@@ -1,3 +1,4 @@
+
 const UI = {
     colors: ["blueviolet", "brown", "lightsalmon", "indigo", "aquamarine", "lightseagreen", "darkmagenta", "cornflowerblue", "crimson", "chocolate", "slateblue", "pink", "mediumseagreen"],
     colorIndex: 1,
@@ -18,7 +19,12 @@ const UI = {
     
         let list = this.fileDialog.querySelector("list-view");
         list.template = function(graph){
-            return elementFromHtml(`<label>${graph.settings.name}<input data-id=${graph.id} checked type="checkbox"></label>`);
+            return elementFromHtml(`<label><span></span><input checked type="checkbox"></label>`);
+        }
+        list.load = function (child, graph) {
+            console.log(child);
+            child.querySelector("span").textContent = graph.settings.name;
+            child.querySelector("input").setAttribute("data-id", graph.id);
         }
         this.fileDialog.querySelector("input").addEventListener("change", function () {
             UI.fileDialog.querySelectorAll("list-view input").forEach((el) => el.checked = this.checked);
@@ -37,7 +43,7 @@ const UI = {
                     setTimeout(() => { URL.revokeObjectURL(blobURL); anchor.href=""}, 1000);
                 } catch (e) { console.log(e) }
             }
-            this.fileDialog.close();
+            UI.fileDialog.close();
         })
     },
     
@@ -127,8 +133,8 @@ const UI = {
             el.getGraph = getGraph;
             return el;
         }
-        this.headerList.load = (child,[name,id]) => {
-            child.value = name;
+        this.headerList.load = (child,id) => {
+            child.value = Graph.get(id).settings.name;
             child.setAttribute("for", id);
         }
         this.headerList.addEventListener("mousedown", function (ev) {
@@ -136,12 +142,7 @@ const UI = {
             if (ev.target.matches(".header")) return;
             if (ev.detail != 2 && !ev.target.matches(":focus")) ev.preventDefault();
             if (ev.button == 2) return openActionMenu(ev);
-            let g = ev.target.getGraph();
-            if (g) {
-                g.focus();
-                this.style.borderImage = `linear-gradient(45deg,${g.settings.main_color},${g.settings.secondary_color}) 1`;
-                if (physicsMode.isRunning()) physicsMode.stop();
-            }
+            ev.target.getGraph().focus();
 
         });
         this.headerList.addEventListener("change", (ev) =>ev.target.getGraph ? ev.target.getGraph().settings.name=ev.target.value: 0);
@@ -151,14 +152,14 @@ const UI = {
         graph.tab = this.tabArea.tabs.appendChild(elementFromHtml(`<graph-tab name=${graph.id}></graph-tab>`));
         graph.tab.graphId = graph.id;
         graph.tab.template = graph.template;
-        graph.header = this.headerList.push([graph.name, graph.id]);
+        graph.header = this.headerList.push(graph.id);
     },
 
     initNewGraphMenu() {
         this.newGraphMenu = document.getElementById("graph-addition-dialog");
         this.newGraphMenu.querySelector("[name=submit]").onclick = (ev) => {
-            this.newGraphMenu.close();
             createGraph(this.formatNewGraphData());
+            this.newGraphMenu.close();
         }
     },
 
@@ -284,7 +285,7 @@ const UI = {
     },
 
     createComponentList(id) {
-        let list = elementFromHtml(`<list-view></list-view>`);
+        let list = elementFromHtml(`<list-view length='8' style='overflow: hidden;'></list-view>`);
         list.template =function(){
             let rez = elementFromHtml(`<div class="header"> <span class="text-hover"></span> : Size <span></span> </div>`);
             let item = UI.createNodeList();
@@ -292,7 +293,7 @@ const UI = {
             return rez;
         }
         if (id) this.setAttribute("for", id);
-        list.length = 8;
+        
         list.load = function (child, value, index) {
             let [s1, s2] = child.querySelectorAll("span");
             s1.textContent = index + this.firstIndex+1;
