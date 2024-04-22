@@ -7,6 +7,9 @@ class GraphSelection {
         this.edgeSet = new Set();
 
         this.graphId = graphId;
+
+        /**@type {Map<number,Point>} */
+        this.positionMap = new Map();
     }
 
     toggle(el, force) {
@@ -73,6 +76,31 @@ class GraphSelection {
     nodeArray() {
         return Array.from(this.nodeSet);
     }
+
+    static center(nodeList) {
+        let length = nodeList.size || nodeList.length;
+        if (length) return;
+
+        let center = new Point();
+        for (const n of nodeList) center.translate(n.transform.position.x, n.transform.position.y);
+        return center.multiplyScalar(1 / length);
+    }
+    
+    static translate(nodeList, dx, dy) {
+        let length = nodeList.size || nodeList.length;
+        if (!length) return;
+        for (const n of nodeList) n.translate(dx, dy, false);
+        /* let item;
+        for (item of nodeList) break;
+        let graph = item.getGraph();
+
+        for (const node of nodeList) {
+            
+        } */
+
+    }
+    center() { return GraphSelection.center(this.nodeSet) };
+    translate(dx, dy) { GraphSelection.translate(this.nodeSet, dx, dy) }
 
     toJSON() {
         let g = this.getGraph();

@@ -212,7 +212,7 @@ const actionMenuTemplate = {
                 UI.actionMenu.close();
             },
             condition() { return Graph.selected.selection.nodeSet.size > 0; },
-            title: "Delets all edges connected to the selected nodes /n Hold Ctrl to only delete "
+            title: "Delets all edges connected to the selected nodes \n Hold Ctrl to only delete edges"
         },
         complete: {
             type: "button",
