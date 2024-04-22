@@ -55,7 +55,7 @@ const UI = {
             let value = ev.target.parentElement.get();
             
             switch (chain[0]) {
-                case "spring": physicsMode.spring = value / 100; break;
+                case "spring": physicsMode.spring = value/100; break;
                 case "isRunning":break;
                 case "frameRate": physicsMode.frameRate = value; break;
                 case "interactions": if (physicsMode.isRunning()) physicsMode.stop(), ACTIONS.togglePhysicsSimulation();
@@ -315,6 +315,10 @@ const UI = {
         let element = inspector.observed
         Graph.selected.selection.toggle(element);
         element.scrollIntoView();
+    },
+
+    setHeaderAreaColor(color1,color2) {
+        UI.headerList.style.borderImage = `linear-gradient(45deg,${color1},${color2}) 1`;
     }
 }
 

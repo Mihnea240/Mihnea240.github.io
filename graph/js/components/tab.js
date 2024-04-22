@@ -178,7 +178,6 @@ class Tab extends HTMLElement {
     static PositionFunctons = {
         randomScreen: (graph_tab, node, recalculateEdges) => {
             let rect = graph_tab.viewRect;
-            console.log(rect);
             if (!rect) return;
             let width = random(0, rect.width);
             let height = random(0, rect.height);
@@ -191,7 +190,7 @@ class Tab extends HTMLElement {
         for (const entry of entries) {
             if (entry.target.matches("graph-node")) {
                 entry.target.transform.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
-                entry.target.closest("graph-tab").recalculateEdges(entry.target.nodeId);
+                entry.target.closest("graph-tab").recalculateEdges(entry.target.nodeId,entry.target.anchor());
             }else entry.target.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
 
         }

@@ -44,9 +44,9 @@ class Graph {
                         if (prop == "main_color") this.setStyleAttribute("--main-color", newValue);
                         if (prop == "secondary_color") this.setStyleAttribute("--secondary-color", newValue);
 
-                        let bg = `linear-gradient(45deg,${this.settings.main_color},${this.settings.secondary_color})`;
-                        this.header.style.background = bg;
-                        UI.headerList.style.borderImage = bg + " 1"; break;
+                        this.header.style.background = `linear-gradient(45deg,${this.settings.main_color},${this.settings.secondary_color})`;
+                        UI.setHeaderAreaColor(this.settings.main_color, this.settings.secondary_color);
+                        break;
                     }
                     case "zoom": {
                         this.setStyleAttribute("zoom", newValue);
@@ -65,6 +65,7 @@ class Graph {
         if (Graph.selected === this) return;
         Graph.selected = this;
         this.tab.focus();
+        UI.setHeaderAreaColor(Graph.selected.settings.main_color, Graph.selected.settings.secondary_color);
         UI.tabArea.selectTab(this.id);
 
         inspector.observe(this.tab);

@@ -208,7 +208,6 @@ const ACTIONS = {
 
                 let array = Array.from(G.adjacentNodes(top1.nodeId));
                 let i = array.indexOf(top.nodeId), j = i, slide = top;
-
                 while (slide.selected) {
                     j = (j + dir + array.length) % array.length;
                     if (i == j) break;

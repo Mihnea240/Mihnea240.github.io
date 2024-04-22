@@ -265,9 +265,10 @@ const physicsTemplate = {
     },
     spring: {
         display: "Spring constant",
-        type: "range",
-        step:"0.1",
-        max: "2"
+        type: "number",
+        decimal: "3",
+        step: "0.1",
+        min: "-10", max: "10", 
     },
     "springIdealLength":{
         display: "Spring ideal length",

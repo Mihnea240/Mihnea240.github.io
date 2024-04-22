@@ -275,6 +275,7 @@ class Inspector extends TabArea{
         this.nodeStorage={
             id: node.nodeId,
             mass: node.mass,
+            isStatic: node.isStatic,
             template: node.template,
             description: node.description,
             transform: node.transform,

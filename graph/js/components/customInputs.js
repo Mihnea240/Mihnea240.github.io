@@ -1,19 +1,20 @@
 class TextInput extends HTMLElement{
-    static observedAttributes = ["inputmode","allownewline","readonly","value","decimal"];
+    static observedAttributes = ["inputmode","allownewline","readonly","value","decimal","step"];
     constructor() {
         super();
         this.oldValue = "";
         this.isNumber = false;
         this._value = "";
         this.contentEditable = true;
+        this.step = 1;
 
         this.addEventListener("keydown", (ev) => {
             switch (ev.key) {
                 case "Enter": {
                     if (!this.allownewline) return ev.preventDefault();
                 }
-                case "ArrowUp": if (this.isNumber) this.value++; break;
-                case "ArrowDown": if (this.isNumber) this.value--; break;
+                case "ArrowUp": if (this.isNumber) this.value = this.value + this.step;  break;
+                case "ArrowDown": if (this.isNumber) this.value=this.value - this.step;  break;
             }
             ev.stopImmediatePropagation(); ev.stopPropagation();
             this.oldValue = this.textContent;
@@ -24,7 +25,7 @@ class TextInput extends HTMLElement{
             this.value = this.innerText;
         })
         this.addEventListener("blur", (ev) => {
-            this.parseAsNumber();
+            if (this.isNumber) this.textContent = this.parseAsNumber(this.value);
             this.dispatchEvent(new Event("change",{bubbles: true}));
         })
     }
@@ -32,12 +33,13 @@ class TextInput extends HTMLElement{
     set value(text) {
         text += "";
         let pattern = this.getAttribute("pattern"), check = true;
-        let maxLength = parseInt(this.getAttribute("maxLength")), minLength = parseInt(this.getAttribute("minLength"));
+        let maxLength = parseFloat(this.getAttribute("maxLength")), minLength = parseFloat(this.getAttribute("minLength"));
 
         if (pattern) text = text.replace(new RegExp(pattern), "");
         if (this.isNumber) {
             text = text.replace(/[^0-9*.+-\/]+/g, "");
-            text = this.parseAsNumber(text) + "";
+            let number = parseFloat(text);
+            if (number && this.decimal != undefined) text = number.toFixed(this.decimal) + "";
         }
         if (text.length < minLength || text.length > maxLength) text = this.oldValue;
         this.textContent = text;
@@ -67,6 +69,7 @@ class TextInput extends HTMLElement{
                 else this.setAttribute("contenteditable", true);
                 break;
             }
+            case "step": this.step = parseFloat(newValue); break;
             case "decimal": this.decimal = parseInt(newValue); break;
             
         }
