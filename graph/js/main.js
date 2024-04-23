@@ -137,16 +137,18 @@ function createFile(array) {
 function loadPotrocol(input) {
     let file = input.files[0];
     let reader = new FileReader();
-
     reader.readAsText(file);
+    
     reader.addEventListener("load", (ev) => {
         let p1 = reader.result.indexOf('id="data"') + 10;
         let p2 = reader.result.indexOf("</div>", p1);
         let json = reader.result.substring(p1, p2);
         let obj = JSON.parse(json);
-        console.log(obj,json)
         for (let i of obj) createGraph(i);
     })
+
+    UI.fileMenu.querySelector("input").value = "";
+    UI.fileMenu.close();
 }
 
 const keyBindings = {
