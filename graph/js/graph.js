@@ -309,6 +309,40 @@ class Graph {
         return this.edgeCount == this.nodeCount - 1;
     }
 
+    getPath(from, to, type="Path") {
+        
+        if (!from || !this.nodes.has(from)) return [];
+        let newList = [], dfs=new Dfs(this);
+
+        if (!to) {
+            dfs.conditions.push((node, handler) => {
+                newList.push(Array.from(handler.stack));
+                return true;
+            })
+        } else {
+            if (from == to) {
+                dfs.conditions = [(node, handler) => {
+                    if (node < 0) return false;
+                    if (node == from && handler.stack.length > 2) {
+                        newList.push(Array.from(handler.stack));
+                        newList.at(-1).push(to);
+                        return false;
+                    }
+                    return !handler.frMap.has(node);
+                }] 
+            } else {
+                dfs.conditions.push((node, handler) => {
+                    if (node != to) return true;
+                    newList.push(Array.from(handler.stack));
+                    newList.at(-1).push(to);
+                    return false;
+                })
+            }
+        }
+        dfs.reset();
+        dfs.start(from);
+        return newList;
+    }
     //To do
     parentArray(anchor) {
         if (!this.isTree()) return;
@@ -365,6 +399,51 @@ class Graph {
         return rez;
     }
 
+}
+
+class Dfs{
+    /**@param {Graph} graph */
+    constructor(graph) {
+        this.frMap = new Map();
+        this.conditions = [(node, handler) => node > 0 && !handler.frMap.has(node)];
+        this.onreturn=[]
+        this.onvisit = [(node, handler) => {
+            this.stack.push(node);
+            this.frMap.set(node, 1);
+        }];
+        this.graph = graph;
+        this.stack = [];
+    }
+    validate(node) {
+        return this.conditions.every(item => item(node, this));
+    }
+    visit(node) {
+        for (const f of this.onvisit) f(node, this);
+    }
+    return(node) {
+        for (const f of this.onreturn) f(node);
+        this.stack.pop();
+        this.frMap.delete(node)
+
+    }
+    lastVisited(stepsBack=1){
+        return this.stack.at(-stepsBack);
+    }
+    reset() {
+        this.frMap.clear();
+        this.stack = [];
+    }
+
+    start(node) {
+        this.visit(node);
+        for (const child of this.graph.adjacentNodes(node) || []) {
+            if (this.validate(child)) {
+                this.start(child);
+                this.return(child);
+            }
+        }
+        this.onChildrenVisited?.(node);
+    }
 }
 
 class GraphTemplate{

@@ -7,9 +7,24 @@ class GraphSelection {
         this.edgeSet = new Set();
 
         this.graphId = graphId;
+        this.stack = [];
 
-        /**@type {Map<number,Point>} */
-        this.positionMap = new Map();
+       /*  this.positionStack = [];
+        this.dfs = new Dfs(this.getGraph());
+        this.dfs.conditions = [(node, handler) => !handler.frMap.has(`${handler.lastVisited()}|${node}`)];
+        
+        this.dfs.onvisit = [(node, handler) => {
+            console.log(node);
+            this.positionStack.push(handler.graph.getNodeUI(node).transform.position);
+            handler.stack.push(node);
+            if (handler.stack.size > 1) handler.frMap.set(`${handler.lastVisited(2)}|${handler.lastVisited()}`);
+        }];
+        this.dfs.onreturn.push((top) => {
+            let edge = this.dfs.graph.getEdgeUI(this.dfs.lastVisited(2), this.dfs.lastVisited(1));
+            edge.translateFrom(this.positionStack.at(-2), false);
+            edge.translateTo(this.positionStack.at(-2));
+            this.positionStack.pop();
+        }) */
     }
 
     toggle(el, force) {
@@ -17,7 +32,7 @@ class GraphSelection {
             if (el.selected) this.remove(el);
             else this.add(el)
         } else if (force) this.add(el);
-        else this.remove(el);
+        else this.remove(el); 
     }
 
     add(el) {
@@ -90,17 +105,61 @@ class GraphSelection {
         let length = nodeList.size || nodeList.length;
         if (!length) return;
         for (const n of nodeList) n.translate(dx, dy, false);
-        /* let item;
-        for (item of nodeList) break;
-        let graph = item.getGraph();
+        this.updateEdges(nodeList);
+    }
+    static rotate(nodeList, angle, pivot = Point.ORIGIN) {
+        let aux = new Point();
+        for (const n of nodeList) {
+            aux.copy(n.transform.position);
+            aux.rotateAround(angle, pivot);
+            n.position(aux.x, aux.y, false);
+        }
+        this.updateEdges(nodeList);
+    }
+    static updateEdges(nodeList) {
+        let graph;
+        for (graph of nodeList) break;
+        graph = graph.getGraph();
 
-        for (const node of nodeList) {
-            
-        } */
+        let queue = [];
+        for (const node of nodeList) graph.tab.recalculateEdges(node.nodeId, node.anchor(), queue);
+        for (const edge of queue) edge.update();
 
     }
     center() { return GraphSelection.center(this.nodeSet) };
     translate(dx, dy) { GraphSelection.translate(this.nodeSet, dx, dy) }
+    rotate(angle, pivot = Point.ORIGIN) { GraphSelection.rotate(this.nodeSet, angle, pivot) }
+
+
+    getTop() {
+        return this.nodeArray().at(-1);
+    }
+
+    push() {
+        
+    }
+
+    moveInDepth(dir=1) {
+        let array = this.nodeArray();
+        let graph = this.getGraph();
+
+        if (dir < 0) {
+            
+        }
+
+        for (const node of graph.adjacentNodes(top)) {
+            let n = graph.getNodeUI(node);
+
+            if (n.selected) continue;
+
+
+            this.add(n);
+        }
+    }
+    visitSiblings() {
+        
+    }
+
 
     toJSON() {
         let g = this.getGraph();

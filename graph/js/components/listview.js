@@ -4,7 +4,7 @@ class ListView extends HTMLElement{
             let list = entry.target;
             let { inlineSize: w, blockSize: h } = entry.borderBoxSize[0];
             
-            if (!list.autofit || (list.dir == 0 && Math.abs(list.size.x - w) < 1) || (list.dir == 1 && Math.abs(list.size.y - h) < 1)) continue;
+            if ((list.dir == 0 && Math.abs(list.size.x - w) < 1) || (list.dir == 1 && Math.abs(list.size.y - h) < 1)) continue;
             
             list.size.x = w;
             list.size.y = h;
@@ -32,10 +32,11 @@ class ListView extends HTMLElement{
         <slot name='item'></slot>
         <slot></slot>
     `.trim();
-    static observedAttributes = ["length", "autofit", "break", "autoflow", "direction","target"];
+
+    static observedAttributes = ["length", "autofit", "break", "autoflow", "direction", "target"];
     constructor(){
         super();
-        this.template = (i) => elementFromHtml(`<div>${i}</div>`);
+        this.template = () => document.createElement("div");
         this.load = (child, val) => child.textContent = val;
         this.countingFunction = (i) => i;
         this.scrollEventHandler = () => this.move(0);
@@ -51,16 +52,29 @@ class ListView extends HTMLElement{
         this.size = { x: 0, y: 0 };
         this.unit = { x: 0, y: 0 };
         this.scrollOffset = { x: 1, y: 1 };
-        ListView.sizeObserver.observe(this);
         const shadow = this.attachShadow({mode: "open"});
         shadow.innerHTML = ListView.styleDeclaration;
 
         this.list = [];
+
+        this.tabIndex = 0;
+        this.addEventListener("keydown", function (ev) {
+            let unit = this.getUnit();
+            if (ev.key == "ArrowLeft" || ev.key == "ArrowUp") this.move(-unit);
+            else if(ev.key=="ArrowRight" || ev.key=="ArrowDown") this.move(unit);
+        })
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         switch(name){
-            case "length": this.length = parseInt(newValue) || 0; break;
+            case "length": {
+                if (newValue == "auto") {
+                    this.autofit = true;
+                }else if (!newValue) this.autofit = false;
+                else this.length = parseInt(newValue) || 0;
+                this.render();
+                break;
+            }
             case "autofit": this.autofit = newValue; this.render(); break;
             case "break": this.break = parseInt(newValue) || 0; break;
             case "autoflow": this.autoflow = newValue; this.render(); break;
@@ -109,18 +123,23 @@ class ListView extends HTMLElement{
         let n;
         if (this.autofit) {
             n = Math.ceil(this.getSize() / this.getUnit()) + 2;
+            console.log(this.getSize(), this.getUnit());
             if (!this.autoflow) {
                 if (this.length) n = Math.min(n, this.length);
                 n = Math.min(n, this.list.length);
             }
         }else if (!this.length) n = this.list.length;
         else n = Math.min(this.length, this.list.length);
-        this.itemsDisplayed(n);
+        this.setWindowSize(n);
     }
     update(index) {
         let n = this.items.length;
-        if (index === undefined)
-            for (let i = 0; i < n; i++) this.load(this.items[i], this.data(i + this.firstIndex), i);
+        if (index === undefined) {
+            for (let i = 0; i < n; i++) {
+                let data = this.data(i + this.firstIndex);
+                if (data!=undefined) this.load(this.items[i], data, i);
+            }
+        }
         else if (index >= 0 && index < n) this.load(this.items[index], this.data(index + this.firstIndex), index);
     }
     data(index) {
@@ -130,8 +149,8 @@ class ListView extends HTMLElement{
     getUnit() {
         if (this.unit.x + this.unit.y == 0) {
             let rect;
-            if (!this.children.length) {
-                let node = this.appendChild(document.createElement("div"));
+            if (!this.items.length) {
+                let node = this.appendChild(this.template());
                 rect = node.getBoundingClientRect();
                 node.remove();
             }else rect = this.children[0].getBoundingClientRect();
@@ -161,7 +180,7 @@ class ListView extends HTMLElement{
         if (n <= this.list.length) return this.list[n - 1];
     }
 
-    itemsDisplayed(val) {
+    setWindowSize(val) {
         let n = this.items.length;
         if (n == val) return;
         
@@ -177,18 +196,21 @@ class ListView extends HTMLElement{
     }
     
     move(value) {
-        if (this.autofit) {
-            this.flow ? this.scrollOffset.x += value : this.scrollOffset.y += value;
+        if (!this.autoflow && this.items.length >=  this.list.length) return;
+        if (this.flow) {
+            this.scrollOffset.x += value;
             if (this.scrollOffset.x < 0) this.scrollOffset.x = 0;
-            if (this.scrollOffset.y < 0) this.scrollOffset.y = 0;
             if (this.scrollOffset.x > this.size.x) this.scrollOffset.x = this.size.x;
+
+        } else {
+            this.scrollOffset.y += value;
+            if (this.scrollOffset.y < 0) this.scrollOffset.y = 0;
             if (this.scrollOffset.y > this.size.y) this.scrollOffset.y = this.size.y;
         }
-        this.firstIndex = Math.floor(this.getScroll() / this.getUnit());
-        if (!this.autoflow) {
-            if (this.firstIndex < 0) this.firstIndex = 0;
-            else if (this.firstIndex >= this.list.length) this.firstIndex = this.list.length - 1;
-        }
+
+        let newIndex = Math.floor(this.getScroll() / this.getUnit());
+        this.firstIndex = newIndex < 0 ? 0 : newIndex;
+
         this.update();
         let v = this.getScroll() / this.getUnit();
         let to = (Math.floor(v) - v) * this.getUnit();
@@ -201,18 +223,10 @@ class ListView extends HTMLElement{
     connectedCallback() {
         let rect=this.getBoundingClientRect();
         this.size = { x: rect.width, y: rect.height }; 
+        ListView.sizeObserver.observe(this);
 
         if (!this.getAttribute("direction")) this.setAttribute("direction", "column");
         this.tabIndex = 0;
-
-        this.addEventListener("keydown", function (ev) {
-            let unit = this.getUnit();
-            if (ev.key == "ArrowLeft" || ev.key == "ArrowUp") this.move(-unit);
-            else if(ev.key=="ArrowRight" || ev.key=="ArrowDown") this.move(unit);
-        })
-
-        this.target?.addEventListener("scroll", (ev) => { if (this.autofit) this.render(); })
-
         this.getUnit();
         setTimeout(_ => this.render(), 0);
         

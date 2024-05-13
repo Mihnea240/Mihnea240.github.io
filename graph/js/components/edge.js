@@ -5,17 +5,16 @@ const _curve_template =/* html */`
             stroke: white;
             fill: none;
             z-index: 10;
+            display: block;
         }
         svg{
             width: 2px;
             height: 2px;
         }
-        #hit-area{
-            stroke-width: calc(var(--edge-width)*4);
-            opacity: 0;
-            &:hover{
-                opacity: 0.7;
-            }
+        svg path:hover{
+            stroke-width: calc(var(--edge-width)*3);
+            filter: drop-shadow(0 0 1px white);
+            opacity: 0.7;
         }
         .point{
             position: absolute;
@@ -36,7 +35,6 @@ const _curve_template =/* html */`
     </style>
     <svg id="curve" overflow="visible">
         <path id="visible"></path>
-        <path id="hit-area"></path>
     </svg>
 `.trim();
 

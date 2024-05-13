@@ -286,7 +286,7 @@ const ACTIONS = {
         let list = g.tab.getNodeArray();
         let rect = g.tab.viewRect;
         let check;
-        let dt = 1 / physicsMode.frameRate;
+        let dt = 1000 / physicsMode.frameRate;
         console.log(dt)
         switch (physicsMode.interactions) {
             case "Between direct neighbours": check = (a, b) => g.isEdge(a.nodeId, b.nodeId); break;

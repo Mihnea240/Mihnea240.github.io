@@ -246,6 +246,16 @@ const actionMenuTemplate = {
             onclick(ev) {
                 UI.actionMenu.close(); 
             }
+        },
+        path: {
+            type: "button",
+            condition() {
+                return Graph.selected.selection.nodeSet.size == 2;
+            },
+            onclick(ev) {
+                let [a, b] = Graph.selected.selection.nodeSet;
+                
+            }
         }
     }
 }

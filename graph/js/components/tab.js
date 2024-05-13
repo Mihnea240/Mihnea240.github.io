@@ -188,10 +188,13 @@ class Tab extends HTMLElement {
 
     static sizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
+
             if (entry.target.matches("graph-node")) {
                 entry.target.transform.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
-                entry.target.closest("graph-tab").recalculateEdges(entry.target.nodeId,entry.target.anchor());
-            }else entry.target.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
+                entry.target.closest("graph-tab").recalculateEdges(entry.target.nodeId, entry.target.anchor());
+            } else {
+                entry.target.size.set(entry.borderBoxSize[0].inlineSize, entry.borderBoxSize[0].blockSize);
+            }
 
         }
     })
@@ -338,15 +341,22 @@ class Tab extends HTMLElement {
         this.square.style.cssText += `width: ${x}px; height: ${y}px`;
     }
 
-    recalculateEdges(nodeId, point) {
-        let g = this.getGraph();
+    recalculateEdges(nodeId, point, updateQueue) {
+        let triggerUpdate = true;
+        if (updateQueue) triggerUpdate = false;
+        else updateQueue = [];
+        
         if (UI.inspector.observed?.nodeId == nodeId) UI.inspector.observe();
         this.forEdges((edge) => {
             if (point === undefined) return;
             
-            if (edge.from === nodeId) edge.fromPosition(point);
-            else if (edge.to === nodeId) edge.toPosition(point);
+            if (edge.from === nodeId) edge.fromPosition(point, false);
+            else if (edge.to === nodeId) edge.toPosition(point, false);
+            updateQueue.push(edge);
         }, nodeId);
+
+        if(triggerUpdate)
+            for (const edge of updateQueue) edge.update();
     }
     forEdges(callBack, nodeId) {
         if (nodeId === undefined) {
@@ -354,14 +364,14 @@ class Tab extends HTMLElement {
             return;
         }
         let G = this.getGraph();
-        let neighbourSet = G.adjacentNodes(nodeId),e;
-
-        for (let node of neighbourSet) {
-            node = Math.abs(node);
-            e = G.getEdgeUI(node, nodeId);
-            if (e) callBack(e);
-            e = G.getEdgeUI(nodeId, node);
-            if (e) callBack(e);
+        
+        for (let node of G.adjacentNodes(nodeId) || []) {
+            if (node < 0) callBack(G.getEdgeUI(-node, nodeId));
+            else {
+                callBack(G.getEdgeUI(nodeId, node))
+                let e=G.getEdgeUI(node, nodeId)
+                if (e) callBack(e);
+            }
         }
     }
 

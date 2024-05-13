@@ -496,6 +496,14 @@ dialog[open] {
         margin: 0 .1rem 0 0;
     }
 }
+.component-list{
+    & .header{
+        margin: .2rem 0;
+    }
+    & list-view{
+        margin: 0 1ch;
+    }
+}
 
 #template {
     width: 25vw;    height: 80vh;

@@ -285,9 +285,9 @@ const UI = {
     },
 
     createComponentList(id) {
-        let list = elementFromHtml(`<list-view length='8' style='overflow: hidden;'></list-view>`);
+        let list = elementFromHtml(`<list-view length='8' class='component-list'></list-view>`);
         list.template =function(){
-            let rez = elementFromHtml(`<div class="header"> <span class="text-hover"></span> : Size <span></span> </div>`);
+            let rez = elementFromHtml(`<div class="header"> <span class="text-hover"></span> : size <span></span> </div>`);
             let item = UI.createNodeList();
             rez.appendChild(item);
             return rez;
@@ -301,12 +301,7 @@ const UI = {
             child.querySelector("list-view").list = value;
         }
         list.addEventListener("click", function (ev) {
-            if (ev.target.matches("span.text-hover")) {
-                let g = Graph.get(parseInt(this.closest("[for]").getAttribute("for")));
-                if (!g) return console.log(this);
-
-                for (let n of ev.target.parentElement.querySelector("list-view").list) g.selection.toggle(g.getNodeUI(n));
-            }
+            if (ev.target.matches("span.text-hover")) this.onElementFocus(ev.target.closest("list-view"));
         })
         return list;
     },
