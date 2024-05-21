@@ -106,7 +106,6 @@ function visibleElements(graph,includeNodes=true,includEdges=true) {
             }
         } else if (includEdges && el.tagName == "GRAPH-EDGE") {
             let r = el.getBoundingClientRect();
-            console.log(zoom);
             p.set(r.x, r.y).translate(scrollLeft - left/zoom, scrollTop - top/zoom  );
             rect = {
                 x: p.x,

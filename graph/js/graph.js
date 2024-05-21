@@ -49,8 +49,9 @@ class Graph {
                         break;
                     }
                     case "zoom": {
-                        this.setStyleAttribute("zoom", newValue);
+                        this.tab.style.setProperty("zoom", newValue);
                         this.tab.zoom = newValue;
+                        if (Graph.selected == this) UI.viewMenu.querySelector("[name='zoom']").set(newValue);
                         break;
                     }
                     case "template": this.tab.template = newValue; break;

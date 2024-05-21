@@ -75,7 +75,7 @@ const defaultTemplateStyls = {
             width: 100%;  height:100%;
             background: inherit;
             z-index: -2;
-            zoom: var(--zoom);
+           
         }
         ::-webkit-scrollbar{
             background-color: inherit;
@@ -144,12 +144,7 @@ const viewMenuTemplate = {
     zoom: {
         type: "range",
         min: "0.1", max: "3", step: "0.1",
-    },
-    background: {
-        type: "text",
-
-    }
-        
+    },  
 }
 
 const actionMenuTemplate = {
@@ -241,7 +236,7 @@ const actionMenuTemplate = {
             condition() { return Graph.selected.selection.nodeSet.size > 1; },
             title: "Ads all posible edges between the selected nodes \n If the graph is ordered by holding (ctrl) the direction of the edge will be randomised",
         },
-        add: {
+        /*add: {
             type: "button",
             onclick(ev) {
                 UI.actionMenu.close(); 
@@ -256,7 +251,7 @@ const actionMenuTemplate = {
                 let [a, b] = Graph.selected.selection.nodeSet;
                 
             }
-        }
+        }*/
     }
 }
 
@@ -298,7 +293,7 @@ const physicsTemplate = {
     },
     "interactions": {
         type: "select",
-        options: ["All", "Between neighbours", "Between direct neighbours"],
+        options: ["All", "Between neighbours"],
         title: "Decides whitch nodes are effected by forces"
     },
     "reset": {

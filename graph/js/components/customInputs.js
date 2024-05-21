@@ -13,8 +13,8 @@ class TextInput extends HTMLElement{
                 case "Enter": {
                     if (!this.allownewline) return ev.preventDefault();
                 }
-                case "ArrowUp": if (this.isNumber) this.value = this.value + this.step;  break;
-                case "ArrowDown": if (this.isNumber) this.value=this.value - this.step;  break;
+                case "ArrowUp": if (this.isNumber) this.value = this.value + this.step;  this.dispatchEvent(new Event("input",{bubbles: true}));  break;
+                case "ArrowDown": if (this.isNumber) this.value=this.value - this.step;  this.dispatchEvent(new Event("input",{bubbles: true}));  break;
             }
             ev.stopImmediatePropagation(); ev.stopPropagation();
             this.oldValue = this.textContent;
@@ -24,7 +24,7 @@ class TextInput extends HTMLElement{
             //this.innerHTML.replace("</div>", "").replace("<div>", "\n");
             this.value = this.innerText;
         })
-        this.addEventListener("blur", (ev) => {
+        this.addEventListener("blur", function(ev){ 
             if (this.isNumber) this.textContent = this.parseAsNumber(this.value);
             this.dispatchEvent(new Event("change",{bubbles: true}));
         })

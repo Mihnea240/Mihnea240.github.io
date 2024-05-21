@@ -53,17 +53,20 @@ const UI = {
         this.forceMenu.addEventListener("input", function(ev){
             let chain = CustomInputs.getChainFromEvent(this, ev);
             let value = ev.target.parentElement.get();
-            
+            console.log(chain[0],value);
             switch (chain[0]) {
                 case "spring": physicsMode.spring = value/100; break;
                 case "isRunning":break;
                 case "frameRate": physicsMode.frameRate = value; break;
-                case "interactions": if (physicsMode.isRunning()) physicsMode.stop(), ACTIONS.togglePhysicsSimulation();
+                //case "interactions": if (physicsMode.isRunning()) physicsMode.stop(), ACTIONS.togglePhysicsSimulation();
                 default: physicsMode[chain[0]] = value;
             }
         })
         this.forceMenu.addEventListener("change", (ev) => {
-            if (physicsMode.isRunning()) physicsMode.stop(), physicsMode.start();
+            if (physicsMode.isRunning()) {
+                ACTIONS.togglePhysicsSimulation();
+                ACTIONS.togglePhysicsSimulation();
+            }
         })
     },
     
@@ -258,7 +261,7 @@ const UI = {
         this.initFileDialog();
         this.initForceMenu();
         this.initActionMenu();
-        this.initTemplateMenu();
+        //this.initTemplateMenu();
         this.initInspector();
         this.initNewGraphMenu();
     },
@@ -301,7 +304,7 @@ const UI = {
             child.querySelector("list-view").list = value;
         }
         list.addEventListener("click", function (ev) {
-            if (ev.target.matches("span.text-hover")) this.onElementFocus(ev.target.closest("list-view"));
+            if (ev.target.matches("span.text-hover")) this.onElementFocus(ev.target.parentElement.querySelector("list-view"));
         })
         return list;
     },

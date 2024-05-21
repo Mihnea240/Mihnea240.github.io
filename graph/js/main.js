@@ -73,7 +73,7 @@ const appData = {
         spring: 0.01,
         springIdealLength: 200,
         energyLoss: 0.2,
-        drag: 0.01,
+        drag: 0.02,
         interactions: "All",
     },
 }
@@ -286,8 +286,7 @@ const ACTIONS = {
         let list = g.tab.getNodeArray();
         let rect = g.tab.viewRect;
         let check;
-        let dt = 1000 / physicsMode.frameRate;
-        console.log(dt)
+        let dt = 10 / physicsMode.frameRate;
         switch (physicsMode.interactions) {
             case "Between direct neighbours": check = (a, b) => g.isEdge(a.nodeId, b.nodeId); break;
             case "Between neighbours": check = (a, b) => (g.isEdge(a.nodeId, b.nodeId) || g.isEdge(a.nodeId, -b.nodeId)); break;

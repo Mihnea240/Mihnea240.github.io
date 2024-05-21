@@ -156,11 +156,11 @@ const InspectorTemplates = {
         }
     },
     paths: {
-        type: {
+        /* type: {
             type: "select",
             options: ["Path", "Trail"],
             title: "Path: a sequence of distinct nodes and edges \n Trail: a sequence of nodes conected by distinct edges" 
-        },
+        }, */
         limits: {
             tupel: true,
             from: {
@@ -232,6 +232,7 @@ class Inspector extends TabArea{
             let chain = CustomInputs.getChainFromEvent(this, ev);
             let value = ev.target.parentElement.get();
             let last = chain.pop();
+            if (this.details.graph.contains(ev.target)) CustomInputs.setFromChain(this.observed.getGraph().settings, chain, value);
             CustomInputs.setFromChain(this.observed, chain, value);
             if (chain[0] == "x" || chain[0] == "y") this.observed.update();
         })
@@ -262,14 +263,7 @@ class Inspector extends TabArea{
 
         conexComponent.onElementFocus = function(target) {
             let graph = Graph.get(parseInt(target.closest("[for]").getAttribute("for")));
-            let dfs = new Dfs(graph);
-
-            dfs.onvisit.push((node, handler) => {
-                if (handler.stack.length > 1) graph.selection.add(graph.getEdgeUI(handler.stack.at(-1), node));
-                console.log(node);
-                graph.selection.add(graph.getNodeUI(node));
-            })
-            dfs.start(target.list[0]);
+            for (let n of target.list) graph.selection.add(graph.getNodeUI(n));
         }
 
         chainComponent.onElementFocus = function (target) {
@@ -278,7 +272,7 @@ class Inspector extends TabArea{
             graph.selection.add(graph.getNodeUI(target.list[0]));
             for (let i = 1; i < target.list.length; i++){
                 graph.selection.add(graph.getEdgeUI(target.list[i - 1], target.list[i]));
-                graph.selection.add(graph.getNodeUI(target.list[0]));
+                graph.selection.add(graph.getNodeUI(target.list[i]));
             }
         }
     }
@@ -362,13 +356,14 @@ class Inspector extends TabArea{
         this.graphStorage = {
             name: graph.settings.name,
             id: graph.id,
-            type: (graph.type ?"Ordered" : "Unordere") + (graph.isTree() ? " tree" : ""),
+            type: (graph.type ?"Ordered" : "Unordere"),// + (graph.isTree() ? " tree" : ""),
             edgeCount: graph.edgeCount,
             nodeCount: graph.nodeCount,
         }
         let list = this.details.graph.querySelector("[name='Conex parts'] list-view");
 
         let components = graph.conexParts();
+        for (let c of components.array) c.sort((a, b) => a < b ? -1 : 1);
         components.array.sort((a, b) => {
             if (a.length == b.length) return a[0] < b[0] ? -1 : 1;
             return a.length > b.length ? -1 : 1;
@@ -383,9 +378,9 @@ class Inspector extends TabArea{
     extractPathData() {
         let from = this.details.paths.querySelector(`[name='from']`).get();
         let to = this.details.paths.querySelector(`[name='to']`).get();
-        let type = this.details.paths.querySelector(`[name='type']`).get();
+        //let type = this.details.paths.querySelector(`[name='type']`).get();
 
-        let list = Graph.selected.getPath(from, to, type);
+        let list = Graph.selected.getPath(from, to);
         this.details.paths.querySelector("[name='result'] span").textContent = `Result: ${list.length}`;
         this.details.paths.querySelector(`[name='result'] list-view`).list = list;
     }

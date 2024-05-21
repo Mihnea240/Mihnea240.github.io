@@ -30,7 +30,7 @@
 <body>
     <div id="menu-bar"> 
         <button class="text-hover" for="file">File</button>
-        <button class="text-hover" for="templates">Templates</button>
+        <!-- <button class="text-hover" for="templates">Templates</button> -->
         <button class="text-hover" for="view">View</button>
         <button class="text-hover" for="physics">Force Model</button>
         
@@ -39,7 +39,7 @@
             <button onclick="saveProtrocol(); this.parentElement.close()">Save</button>
         </dialog>
         
-        <dialog name="templates" is="pop-dialog">
+       <!--  <dialog name="templates" is="pop-dialog">
             <tab-area id="template">
                 <div class="header">
                     <div for="graph">Graph</div>
@@ -62,7 +62,7 @@
                 </div>
             </tab-area> 
         </dialog>
-
+ -->
         <dialog id="file-dialog">
             <div class="h">
                 <div>Select graphs</div>
@@ -104,8 +104,8 @@
     
     <dialog id="graph-addition-dialog" is="pop-dialog">
         <div class="header">
-            <span>Add new graph : </span>
-            <input type="text" name="name" maxLength=32 size=16 spellcheck=false>
+            <span>Add new graph </span>
+            <!-- <input type="text" name="name" maxLength=32 size=16 spellcheck=false> -->
             <button name="submit">Submit</button>
         </div>
         <div class="inputs">

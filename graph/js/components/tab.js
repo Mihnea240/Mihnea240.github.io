@@ -89,7 +89,7 @@ class Tab extends HTMLElement {
         },
         nodeDrag(target, ev, delta) {
             if (target.focused) return;
-            delta.multiplyScalar(1 / target.parentElement.zoom);
+            //delta.multiplyScalar(1 / target.parentElement.zoom);
             if (ev.ctrlKey) {
                 for (let n of target.getGraph().selection.nodeSet) {
                     n.translate(delta.x, delta.y);
@@ -292,15 +292,15 @@ class Tab extends HTMLElement {
             this.screenToWorld(lastPointer.set(ev.clientX,ev.clientY));
 
             this.zoom += ev.deltaY < 0 ? -scale : scale;
-            if (zoom < 0.1) this.zoom = scale;
+            if (this.zoom < 0.1) this.zoom = scale;
             
             this.getGraph().settings.zoom = this.zoom;
             this.screenToWorld(currentPointer.set(ev.clientX, ev.clientY));
 
-            this.classList.add("hide");
+            //this.classList.add("hide");
             for (let n of this.getNodeArray()) n.translate(currentPointer.x - lastPointer.x, currentPointer.y - lastPointer.y);
 
-            this.classList.remove("hide");
+            //this.classList.remove("hide");
             
         })
 
@@ -484,8 +484,8 @@ class Tab extends HTMLElement {
         return {
             x: this.tab.scrollLeft,
             y: this.tab.scrollTop,
-            width: this.size.x / this.zoom,
-            height: this.size.y /this.zoom
+            width: this.size.x,
+            height: this.size.y
         }
     }
 

@@ -123,7 +123,6 @@ class ListView extends HTMLElement{
         let n;
         if (this.autofit) {
             n = Math.ceil(this.getSize() / this.getUnit()) + 2;
-            console.log(this.getSize(), this.getUnit());
             if (!this.autoflow) {
                 if (this.length) n = Math.min(n, this.length);
                 n = Math.min(n, this.list.length);
