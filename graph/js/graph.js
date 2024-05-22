@@ -132,6 +132,7 @@ class Graph {
         let xSet = this.adjacentNodes(x);
         let ySet = this.adjacentNodes(y);
 
+        if (!xSet || !ySet) return;
         switch (this.type) {
             case Graph.ORDERED: {
                 if (xSet.has(-y)) {
