@@ -142,8 +142,10 @@ class Tab extends HTMLElement {
             let graph = Graph.get(originalEdge.graphId);
     
             if (ev.target.matches("graph-node")) {
-                if (ev.target.nodeId != originalEdge.to) graph.addEdge({ from: this.fromNode.nodeId, to: ev.target.nodeId });
-                else originalEdge.classList.remove("hide");
+                if (ev.target.nodeId != originalEdge.to) {
+                    graph.addEdge({ from: this.fromNode.nodeId, to: ev.target.nodeId });
+                    graph.removeEdge(originalEdge.from, originalEdge.to);
+                }else originalEdge.classList.remove("hide");
             } else {
                 this.tab.screenToWorld(this.point.set(ev.clientX, ev.clientY));
                 this.addNewConnection(this.fromNode.nodeId, this.point);
